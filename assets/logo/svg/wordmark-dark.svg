@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191 44" width="191" height="44">
+  <circle cx="22" cy="22" r="9.24" fill="none" stroke="#F2F0EC" stroke-width="1.54"/>
+  <circle cx="28.53" cy="15.47" r="3.34" fill="#FF7E82"/>
+  <text x="60" y="22" dominant-baseline="central" font-family="'Instrument Sans', system-ui, sans-serif"
+    font-size="40" font-weight="600" letter-spacing="-1.8" fill="#F2F0EC">memo</text>
+</svg>
