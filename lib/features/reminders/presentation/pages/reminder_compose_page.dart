@@ -363,41 +363,27 @@ class _TagPicker extends StatelessWidget {
   final ValueChanged<String?> onChanged;
 
   Future<void> _addTag(BuildContext context) async {
-    final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New tag'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Home, Work, Health…'),
-          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+      builder: (_) => const _NewTagDialog(),
     );
-    controller.dispose();
     if (name != null && name.isNotEmpty) onChanged(name);
   }
 
   @override
   Widget build(BuildContext context) {
+    // A tag just typed into the dialog is not in knownTags yet — without it
+    // here the new tag is selected but nothing on screen shows that.
+    final tags = [
+      ...knownTags,
+      if (selected != null && !knownTags.contains(selected)) selected!,
+    ];
+
     return Wrap(
       spacing: 7,
       runSpacing: 7,
       children: [
-        for (final tag in knownTags)
+        for (final tag in tags)
           TagChip(
             label: tag,
             dotColor: tagColor(tag),
@@ -406,6 +392,49 @@ class _TagPicker extends StatelessWidget {
             onTap: () => onChanged(tag == selected ? null : tag),
           ),
         TagChip(label: '+ New', dashed: true, onTap: () => _addTag(context)),
+      ],
+    );
+  }
+}
+
+/// Owns its own controller so the controller's lifetime matches the dialog's.
+/// Disposing it at the `showDialog` call site instead would kill it while the
+/// route is still animating out, and the field would rebuild against it.
+class _NewTagDialog extends StatefulWidget {
+  const _NewTagDialog();
+
+  @override
+  State<_NewTagDialog> createState() => _NewTagDialogState();
+}
+
+class _NewTagDialogState extends State<_NewTagDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() => Navigator.of(context).pop(_controller.text.trim());
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('New tag'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: const InputDecoration(hintText: 'Home, Work, Health…'),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(onPressed: _submit, child: const Text('Add')),
       ],
     );
   }
