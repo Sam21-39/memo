@@ -32,11 +32,50 @@ class RemindersCubit extends Cubit<RemindersState> {
 
   Future<void> load() async {
     try {
-      final reminders = await _repository.getAll();
+      final reminders = await _rollForwardStaleRepeats(
+        await _repository.getAll(),
+      );
       emit(state.copyWith(status: RemindersStatus.ready, reminders: reminders));
     } catch (_) {
       emit(state.copyWith(status: RemindersStatus.failure));
     }
+  }
+
+  /// The OS keeps firing a repeat on its own schedule, but the stored
+  /// `scheduledAt` stays at the occurrence it was created for. Left alone it
+  /// drifts into the past and the reminder shows as permanently overdue, so
+  /// catch each repeat up to its next real occurrence on load.
+  Future<List<Reminder>> _rollForwardStaleRepeats(
+    List<Reminder> reminders,
+  ) async {
+    final now = DateTime.now();
+    final result = <Reminder>[];
+    var changed = false;
+
+    for (final reminder in reminders) {
+      final stale =
+          reminder.repeat.repeats &&
+          !reminder.isDone &&
+          reminder.scheduledAt.isBefore(now);
+      if (!stale) {
+        result.add(reminder);
+        continue;
+      }
+      final next = reminder.repeat.nextAfterNow(reminder.scheduledAt, now);
+      if (next == null) {
+        result.add(reminder);
+        continue;
+      }
+      final rolled = reminder.copyWith(scheduledAt: next);
+      await _persist(rolled);
+      result.add(rolled);
+      changed = true;
+    }
+
+    if (changed) {
+      result.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    }
+    return result;
   }
 
   /// Insert or update — the compose page builds the entity (via

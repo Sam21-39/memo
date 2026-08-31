@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:memo/core/di/injection.dart';
+import 'package:memo/core/feature_flags/feature_flags.dart';
+import 'package:memo/core/theme/app_theme.dart';
+import 'package:memo/core/utils/notification_scheduler.dart';
+import 'package:memo/features/reminders/domain/entities/reminder.dart';
+import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
+import 'package:memo/features/reminders/presentation/cubit/reminders_cubit.dart';
+import 'package:memo/features/reminders/presentation/pages/reminder_list_page.dart';
+import 'package:memo/features/reminders/presentation/widgets/check_control.dart';
+
+class _InMemoryRepository implements ReminderRepository {
+  _InMemoryRepository([this._reminders = const []]);
+
+  List<Reminder> _reminders;
+
+  @override
+  Future<List<Reminder>> getAll() async =>
+      [..._reminders]..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+
+  @override
+  Future<Reminder?> getById(String id) async =>
+      _reminders.where((r) => r.id == id).firstOrNull;
+
+  @override
+  Future<void> save(Reminder reminder) async {
+    _reminders = [..._reminders.where((r) => r.id != reminder.id), reminder];
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    _reminders = _reminders.where((r) => r.id != id).toList();
+  }
+}
+
+class _NoopPlugin implements FlutterLocalNotificationsPlugin {
+  @override
+  dynamic noSuchMethod(Invocation invocation) async => null;
+}
+
+Reminder _reminder(String id, String title, DateTime at, {String? tag}) =>
+    Reminder(
+      id: id,
+      title: title,
+      scheduledAt: at,
+      createdAt: DateTime(2026, 8, 1),
+      tag: tag,
+    );
+
+Future<void> _pumpList(WidgetTester tester, ReminderRepository repo) async {
+  await tester.pumpWidget(
+    BlocProvider(
+      create: (_) => RemindersCubit(
+        repo,
+        NotificationScheduler(_NoopPlugin()),
+        snoozeEnabled: true,
+      )..load(),
+      child: MaterialApp(theme: AppTheme.light, home: const ReminderListPage()),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  setUpAll(() {
+    sl.registerSingleton<FeatureFlags>(const RemoteFeatureFlags());
+  });
+
+  tearDownAll(() => sl.reset());
+
+  testWidgets('empty state invites the first reminder', (tester) async {
+    await _pumpList(tester, _InMemoryRepository());
+
+    expect(find.text('Nothing scheduled'), findsOneWidget);
+    expect(find.text('New reminder'), findsOneWidget);
+  });
+
+  testWidgets('loaded state groups reminders under day headers', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day, 23, 59);
+    final nextWeek = today.add(const Duration(days: 7));
+
+    await _pumpList(
+      tester,
+      _InMemoryRepository([
+        _reminder('1', 'Water the fig tree', today),
+        _reminder('2', 'Renew passport', nextWeek),
+      ]),
+    );
+
+    expect(find.text('Nothing scheduled'), findsNothing);
+    expect(find.text('Water the fig tree'), findsOneWidget);
+    expect(find.text('Renew passport'), findsOneWidget);
+    expect(find.textContaining('TODAY'), findsOneWidget);
+  });
+
+  testWidgets('an overdue reminder gets its own section', (tester) async {
+    final overdueAt = DateTime.now().subtract(const Duration(hours: 2));
+
+    await _pumpList(
+      tester,
+      _InMemoryRepository([_reminder('1', 'Call the pharmacy', overdueAt)]),
+    );
+
+    expect(find.text('OVERDUE'), findsOneWidget);
+    expect(find.textContaining('2h late'), findsOneWidget);
+    expect(find.textContaining('1 overdue'), findsOneWidget);
+  });
+
+  testWidgets('completing a reminder moves it out of the list', (tester) async {
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+      23,
+      59,
+    );
+    await _pumpList(
+      tester,
+      _InMemoryRepository([_reminder('1', 'Water the fig tree', today)]),
+    );
+
+    await tester.tap(find.byType(CheckControl));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Water the fig tree'), findsNothing);
+    expect(find.text('Nothing scheduled'), findsOneWidget);
+  });
+}

@@ -23,7 +23,12 @@ class RemindersState {
 
   List<Reminder> get upcoming => _visible.where((r) => !r.isDone).toList();
 
+  /// Filtered — used for the list screen's counts.
   List<Reminder> get done => _visible.where((r) => r.isDone).toList();
+
+  /// Unfiltered — the Done archive is its own screen and must not inherit the
+  /// list's tag filter.
+  List<Reminder> get allDone => reminders.where((r) => r.isDone).toList();
 
   /// Every tag currently in use, for the filter bar.
   List<String> get tagsInUse {

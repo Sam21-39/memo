@@ -90,9 +90,12 @@ class ReminderRow extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            Text(
-              tagLabel!,
-              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            Flexible(
+              child: Text(
+                tagLabel!,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+              ),
             ),
           ],
         ],

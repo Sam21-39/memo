@@ -10,6 +10,7 @@ class SwipeableReminderRow extends StatefulWidget {
     this.onComplete,
     this.onSnooze,
     this.onDelete,
+    this.background,
     this.actionWidth = 52,
     this.completeThreshold = 96,
   });
@@ -18,6 +19,11 @@ class SwipeableReminderRow extends StatefulWidget {
   final VoidCallback? onComplete;
   final VoidCallback? onSnooze;
   final VoidCallback? onDelete;
+
+  /// The row slides over the action buttons, so it must be opaque. Pass the
+  /// surface it sits on — an overdue card is tinted, not plain surface.
+  final Color? background;
+
   final double actionWidth;
   final double completeThreshold;
 
@@ -27,15 +33,24 @@ class SwipeableReminderRow extends StatefulWidget {
 
 class _SwipeableReminderRowState extends State<SwipeableReminderRow>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 180),
-  );
+  // Built eagerly in initState, not lazily: a row the user never swipes would
+  // otherwise first touch the field inside dispose(), constructing a ticker
+  // against an already-deactivated element.
+  late final AnimationController _controller;
   double _offset = 0;
 
   double get _openOffset =>
       -widget.actionWidth *
       ((widget.onSnooze != null ? 1 : 0) + (widget.onDelete != null ? 1 : 0));
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
+  }
 
   @override
   void dispose() {
@@ -81,6 +96,37 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
       },
       child: Stack(
         children: [
+          // Complete affordance, revealed by dragging right.
+          if (_offset > 0)
+            Positioned.fill(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: _offset,
+                    child: ColoredBox(
+                      color: scheme.primary.withValues(
+                        alpha: (_offset / widget.completeThreshold).clamp(
+                          0.0,
+                          1.0,
+                        ),
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Icon(
+                            Icons.check,
+                            size: 19,
+                            color: scheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
           if (hasActions)
             Positioned.fill(
               child: Row(
@@ -106,8 +152,11 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
               ),
             ),
           Transform.translate(
-            offset: Offset(_offset < 0 ? _offset : 0, 0),
-            child: ColoredBox(color: scheme.surface, child: widget.child),
+            offset: Offset(_offset, 0),
+            child: ColoredBox(
+              color: widget.background ?? scheme.surface,
+              child: widget.child,
+            ),
           ),
         ],
       ),

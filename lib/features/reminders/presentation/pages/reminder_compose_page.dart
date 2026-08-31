@@ -67,11 +67,15 @@ class _ReminderComposePageState extends State<ReminderComposePage> {
   bool get _canSave => _title.text.trim().isNotEmpty;
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    // showDatePicker asserts initialDate is within range, so an old reminder
+    // being edited has to be able to widen it.
+    final firstDate = DateTime(now.year - 1);
     final picked = await showDatePicker(
       context: context,
       initialDate: _scheduledAt,
-      firstDate: DateTime(DateTime.now().year - 1),
-      lastDate: DateTime(DateTime.now().year + 5),
+      firstDate: _scheduledAt.isBefore(firstDate) ? _scheduledAt : firstDate,
+      lastDate: DateTime(now.year + 5),
     );
     if (picked == null) return;
     setState(() {
@@ -383,6 +387,7 @@ class _TagPicker extends StatelessWidget {
         ],
       ),
     );
+    controller.dispose();
     if (name != null && name.isNotEmpty) onChanged(name);
   }
 

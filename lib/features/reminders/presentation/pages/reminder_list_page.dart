@@ -61,7 +61,7 @@ class ReminderListPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                _BottomBar(doneCount: state.done.length),
+                const _BottomBar(),
               ],
             ),
           ),
@@ -181,6 +181,13 @@ class _ReminderList extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
+    // Opaque, not translucent: each row paints this behind itself so it can
+    // slide over the swipe actions without them showing through.
+    final overdueSurface = Color.alphaBlend(
+      scheme.primary.withValues(alpha: 0.06),
+      scheme.surface,
+    );
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,
@@ -192,11 +199,11 @@ class _ReminderList extends StatelessWidget {
         if (grouped.overdue.isNotEmpty) ...[
           const DaySectionHeader(label: 'Overdue', emphasize: true),
           SectionCard(
-            background: scheme.primary.withValues(alpha: 0.06),
+            background: overdueSurface,
             borderColor: scheme.primary.withValues(alpha: 0.22),
             children: [
               for (final reminder in grouped.overdue)
-                _Row(reminder: reminder, now: now),
+                _Row(reminder: reminder, now: now, background: overdueSurface),
             ],
           ),
           const SizedBox(height: 26),
@@ -220,10 +227,11 @@ class _ReminderList extends StatelessWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row({required this.reminder, required this.now});
+  const _Row({required this.reminder, required this.now, this.background});
 
   final Reminder reminder;
   final DateTime now;
+  final Color? background;
 
   Future<void> _openDetail(BuildContext context) async {
     await Navigator.of(context).push(
@@ -266,6 +274,7 @@ class _Row extends StatelessWidget {
     final isOverdue = reminder.isOverdue(now);
 
     return SwipeableReminderRow(
+      background: background,
       onComplete: () => _complete(context),
       onSnooze: flags.snooze
           ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
@@ -349,9 +358,7 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.doneCount});
-
-  final int doneCount;
+  const _BottomBar();
 
   Future<void> _compose(BuildContext context) async {
     final cubit = context.read<RemindersCubit>();

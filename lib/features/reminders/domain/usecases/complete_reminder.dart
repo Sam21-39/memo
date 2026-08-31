@@ -10,17 +10,8 @@ class CompleteReminder {
   const CompleteReminder();
 
   Reminder call(Reminder reminder, {required DateTime now}) {
-    final next = reminder.repeat.nextAfter(reminder.scheduledAt);
+    final next = reminder.repeat.nextAfterNow(reminder.scheduledAt, now);
     if (next == null) return reminder.copyWith(isDone: true);
-
-    // A reminder untouched for several cycles can be far in the past; roll
-    // forward until the next occurrence is actually in the future.
-    var candidate = next;
-    while (candidate.isBefore(now)) {
-      final following = reminder.repeat.nextAfter(candidate);
-      if (following == null) break;
-      candidate = following;
-    }
-    return reminder.copyWith(scheduledAt: candidate, isDone: false);
+    return reminder.copyWith(scheduledAt: next, isDone: false);
   }
 }

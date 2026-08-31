@@ -18,7 +18,7 @@ class RemindersDonePage extends StatelessWidget {
       builder: (context, state) {
         final theme = Theme.of(context);
         final scheme = theme.colorScheme;
-        final done = state.done.reversed.toList();
+        final done = state.allDone.reversed.toList();
 
         return Scaffold(
           appBar: AppBar(

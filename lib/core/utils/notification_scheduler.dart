@@ -209,9 +209,13 @@ class NotificationScheduler {
     );
   }
 
-  /// Same time of day, today if still ahead, otherwise tomorrow.
+  /// Same time of day, today if still ahead, otherwise tomorrow — but never
+  /// before the reminder's own start date, so a repeat set to begin next week
+  /// does not fire tonight.
   static DateTime _nextDailyOccurrence(DateTime scheduledAt) {
     final now = DateTime.now();
+    if (scheduledAt.isAfter(now)) return scheduledAt;
+
     var next = DateTime(
       now.year,
       now.month,

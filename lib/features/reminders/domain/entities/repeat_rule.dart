@@ -43,6 +43,19 @@ class RepeatRule {
     }
   }
 
+  /// First occurrence strictly after [from] that is also not before [now].
+  /// A reminder left untouched for several cycles can be far in the past, so
+  /// this rolls forward until it lands in the future rather than one step.
+  DateTime? nextAfterNow(DateTime from, DateTime now) {
+    var candidate = nextAfter(from);
+    while (candidate != null && candidate.isBefore(now)) {
+      final following = nextAfter(candidate);
+      if (following == null) break;
+      candidate = following;
+    }
+    return candidate;
+  }
+
   @override
   bool operator ==(Object other) =>
       other is RepeatRule &&
