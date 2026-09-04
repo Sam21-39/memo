@@ -13,6 +13,7 @@ import '../cubit/reminders_cubit.dart';
 import '../cubit/reminders_state.dart';
 import '../widgets/key_value_row.dart';
 import '../widgets/section_card.dart';
+import '../widgets/snooze_preset_row.dart';
 import 'reminder_compose_page.dart';
 
 /// memo Screens C · "Detail" — reached from a row or a notification tap.
@@ -133,6 +134,29 @@ class ReminderDetailPage extends StatelessWidget {
                             ),
                           ),
                         ],
+                      ),
+                      FeatureGate(
+                        enabled: flags.snooze && !reminder.isDone,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.xl),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'SNOOZE',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontSize: 10,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              SnoozePresetRow(
+                                onSelect: (preset) => context
+                                    .read<RemindersCubit>()
+                                    .snooze(reminder, by: preset.duration),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       OutlinedButton(

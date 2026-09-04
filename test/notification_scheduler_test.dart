@@ -12,6 +12,15 @@ class _ScheduledCall {
   final tz.TZDateTime when;
   final DateTimeComponents? matchComponents;
   final String? payload;
+
+  /// The scheduler picks occurrences in host-local time and hands the plugin
+  /// the same instant in `tz.local` (UTC here). Assert on this, not on [when]:
+  /// otherwise every date check flips a day whenever the host's offset pushes
+  /// the UTC equivalent over midnight, and the suite passes or fails by the
+  /// hour it is run at. `when.toLocal()` will not do — on a `TZDateTime` that
+  /// means `tz.local`, which is the UTC we are converting back out of.
+  DateTime get localWhen =>
+      DateTime.fromMillisecondsSinceEpoch(when.millisecondsSinceEpoch);
 }
 
 /// Records calls instead of touching a platform channel. `noSuchMethod`
@@ -113,7 +122,7 @@ void main() {
     );
 
     // Must not fire tonight just because the time of day has passed.
-    expect(plugin.scheduled.single.when.day, start.day);
+    expect(plugin.scheduled.single.localWhen.day, start.day);
   });
 
   test('a weekly repeat schedules one notification per picked day', () async {
@@ -125,7 +134,7 @@ void main() {
     );
 
     expect(plugin.scheduled, hasLength(3));
-    expect(plugin.scheduled.map((c) => c.when.weekday).toSet(), {1, 3, 5});
+    expect(plugin.scheduled.map((c) => c.localWhen.weekday).toSet(), {1, 3, 5});
     for (final call in plugin.scheduled) {
       expect(call.matchComponents, DateTimeComponents.dayOfWeekAndTime);
     }
@@ -172,10 +181,9 @@ void main() {
       await capped.enforcePendingLimit(oneOffs(70));
 
       expect(plugin.scheduled, hasLength(64));
-      expect(
-        plugin.scheduled.map((c) => c.payload),
-        [for (var i = 1; i <= 64; i++) 'r$i'],
-      );
+      expect(plugin.scheduled.map((c) => c.payload), [
+        for (var i = 1; i <= 64; i++) 'r$i',
+      ]);
     });
 
     test('a weekly repeat is charged one slot per picked weekday', () async {

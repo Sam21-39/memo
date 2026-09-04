@@ -55,6 +55,10 @@ class StartupGate extends StatefulWidget {
 class _StartupGateState extends State<StartupGate> {
   late final Future<bool> _completed = sl<OnboardingRepository>().isCompleted();
   bool _onboarded = false;
+  late final AppLifecycleListener _lifecycle;
+
+  NotificationTap? _lastTap;
+  DateTime? _lastTapAt;
 
   @override
   void initState() {
@@ -66,9 +70,36 @@ class _StartupGateState extends State<StartupGate> {
       final launchTap = await scheduler.launchTap();
       if (launchTap != null) _handleTap(launchTap);
     });
+    // Alarms keep firing and repeats keep rolling while the app is backgrounded
+    // — without this the list is however stale it was when the user left.
+    _lifecycle = AppLifecycleListener(
+      onResume: () => context.read<RemindersCubit>().load(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  /// The launch-details path and the [NotificationScheduler.onTap] callback are
+  /// separate deliveries of the same tap. Today only one of them can fire, but
+  /// a snooze applied twice is silently 20 minutes — so make it idempotent
+  /// rather than depend on that ordering.
+  bool _alreadyHandled(NotificationTap tap) {
+    final at = _lastTapAt;
+    return at != null &&
+        _lastTap?.reminderId == tap.reminderId &&
+        _lastTap?.action == tap.action &&
+        DateTime.now().difference(at) < const Duration(seconds: 3);
   }
 
   Future<void> _handleTap(NotificationTap tap) async {
+    if (_alreadyHandled(tap)) return;
+    _lastTap = tap;
+    _lastTapAt = DateTime.now();
+
     final cubit = context.read<RemindersCubit>();
     final reminder = await cubit.applyNotificationAction(
       tap.reminderId,

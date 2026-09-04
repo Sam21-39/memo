@@ -66,6 +66,11 @@ class _ReminderComposePageState extends State<ReminderComposePage> {
 
   bool get _canSave => _title.text.trim().isNotEmpty;
 
+  /// A repeat rolls forward to its next occurrence, so only a one-off can be
+  /// saved to a time that has already gone — and it would never fire.
+  bool get _isPastOneOff =>
+      !_repeat.repeats && _scheduledAt.isBefore(DateTime.now());
+
   Future<void> _pickDate() async {
     final now = DateTime.now();
     // showDatePicker asserts initialDate is within range, so an old reminder
@@ -86,6 +91,14 @@ class _ReminderComposePageState extends State<ReminderComposePage> {
         _scheduledAt.hour,
         _scheduledAt.minute,
       );
+      // Plain "Weekly" means "this day, every week", so it has to follow the
+      // date. A multi-day custom rule was picked deliberately — leave it.
+      if (_repeat.type == RepeatType.weekly && _repeat.weekdays.length == 1) {
+        _repeat = RepeatRule(
+          RepeatType.weekly,
+          weekdays: {_scheduledAt.weekday},
+        );
+      }
     });
   }
 
@@ -241,6 +254,18 @@ class _ReminderComposePageState extends State<ReminderComposePage> {
                       ),
                     ],
                   ),
+                  if (_isPastOneOff)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text(
+                        'That time has already passed — this one will show as '
+                        'overdue and will not ring.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 13,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ),
                   FeatureGate(
                     enabled: _flags.repeatReminders,
                     child: _Labelled(

@@ -222,7 +222,12 @@ class _ReminderList extends StatelessWidget {
             borderColor: scheme.primary.withValues(alpha: 0.22),
             children: [
               for (final reminder in grouped.overdue)
-                _Row(reminder: reminder, now: now, background: overdueSurface),
+                _Row(
+                  key: ValueKey(reminder.id),
+                  reminder: reminder,
+                  now: now,
+                  background: overdueSurface,
+                ),
             ],
           ),
           const SizedBox(height: 26),
@@ -235,7 +240,7 @@ class _ReminderList extends StatelessWidget {
           SectionCard(
             children: [
               for (final reminder in group.reminders)
-                _Row(reminder: reminder, now: now),
+                _Row(key: ValueKey(reminder.id), reminder: reminder, now: now),
             ],
           ),
           const SizedBox(height: 26),
@@ -246,7 +251,12 @@ class _ReminderList extends StatelessWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row({required this.reminder, required this.now, this.background});
+  const _Row({
+    super.key,
+    required this.reminder,
+    required this.now,
+    this.background,
+  });
 
   final Reminder reminder;
   final DateTime now;
@@ -278,10 +288,15 @@ class _Row extends StatelessWidget {
           wasRepeating ? 'Moved to next occurrence' : 'Marked done',
         ),
         duration: const Duration(seconds: 5),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () => cubit.save(reminder),
-        ),
+        // No Undo on a repeat: restoring its old time puts it in the past, and
+        // the next load rolls it straight forward again — the button would
+        // look like it worked and change nothing. Nothing was lost anyway.
+        action: wasRepeating
+            ? null
+            : SnackBarAction(
+                label: 'Undo',
+                onPressed: () => cubit.save(reminder),
+              ),
       ),
     );
   }
