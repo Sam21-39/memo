@@ -42,6 +42,9 @@ class _FakePlugin implements FlutterLocalNotificationsPlugin {
   Future<void> cancel(int id, {String? tag}) async => cancelled.add(id);
 
   @override
+  Future<void> cancelAll() async => scheduled.clear();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
@@ -49,8 +52,9 @@ Reminder _reminder({
   required DateTime scheduledAt,
   RepeatRule repeat = RepeatRule.none,
   bool isDone = false,
+  String id = 'abc123',
 }) => Reminder(
-  id: 'abc123',
+  id: id,
   title: 'Water the fig tree',
   scheduledAt: scheduledAt,
   createdAt: DateTime(2026, 8, 1),
@@ -144,6 +148,57 @@ void main() {
     await NotificationScheduler(other).cancel('abc123');
 
     expect(other.cancelled, contains(scheduledId));
+  });
+
+  group('iOS pending limit', () {
+    late NotificationScheduler capped;
+
+    setUp(() => capped = NotificationScheduler(plugin, capPending: true));
+
+    List<Reminder> oneOffs(int count) => [
+      for (var i = 1; i <= count; i++)
+        _reminder(
+          id: 'r$i',
+          scheduledAt: DateTime.now().add(Duration(days: i)),
+        ),
+    ];
+
+    test('under the limit nothing is re-registered', () async {
+      await capped.enforcePendingLimit(oneOffs(64));
+      expect(plugin.scheduled, isEmpty);
+    });
+
+    test('over the limit the soonest 64 are kept', () async {
+      await capped.enforcePendingLimit(oneOffs(70));
+
+      expect(plugin.scheduled, hasLength(64));
+      expect(
+        plugin.scheduled.map((c) => c.payload),
+        [for (var i = 1; i <= 64; i++) 'r$i'],
+      );
+    });
+
+    test('a weekly repeat is charged one slot per picked weekday', () async {
+      final weekly = _reminder(
+        id: 'weekly',
+        scheduledAt: DateTime.now().add(const Duration(minutes: 5)),
+        repeat: const RepeatRule(RepeatType.weekly, weekdays: {1, 2, 3, 4, 5}),
+      );
+
+      await capped.enforcePendingLimit([weekly, ...oneOffs(62)]);
+
+      // 5 weekday slots + 59 one-offs, not 1 + 63.
+      expect(plugin.scheduled, hasLength(64));
+      expect(plugin.scheduled.map((c) => c.payload), isNot(contains('r60')));
+    });
+
+    test('off iOS the limit is not enforced', () async {
+      await NotificationScheduler(
+        plugin,
+        capPending: false,
+      ).enforcePendingLimit(oneOffs(70));
+      expect(plugin.scheduled, isEmpty);
+    });
   });
 
   test('different reminders do not share notification ids', () async {

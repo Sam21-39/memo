@@ -36,6 +36,12 @@ class RemindersCubit extends Cubit<RemindersState> {
         await _repository.getAll(),
       );
       emit(state.copyWith(status: RemindersStatus.ready, reminders: reminders));
+      // Unfiltered: the OS budget is about every live alarm, not the tag the
+      // list happens to be showing.
+      await _scheduler.enforcePendingLimit(
+        reminders.where((r) => !r.isDone).toList(),
+        snoozeEnabled: snoozeEnabled,
+      );
     } catch (_) {
       emit(state.copyWith(status: RemindersStatus.failure));
     }

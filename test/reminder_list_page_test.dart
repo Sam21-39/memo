@@ -36,6 +36,21 @@ class _InMemoryRepository implements ReminderRepository {
   }
 }
 
+/// Fails the first read, then behaves — so "Try again" has something to
+/// recover to.
+class _FailingRepository extends _InMemoryRepository {
+  _FailingRepository(super.reminders);
+
+  bool _failed = false;
+
+  @override
+  Future<List<Reminder>> getAll() {
+    if (_failed) return super.getAll();
+    _failed = true;
+    throw Exception('database unavailable');
+  }
+}
+
 class _NoopPlugin implements FlutterLocalNotificationsPlugin {
   @override
   dynamic noSuchMethod(Invocation invocation) async => null;
@@ -110,6 +125,32 @@ void main() {
     expect(find.text('OVERDUE'), findsOneWidget);
     expect(find.textContaining('2h late'), findsOneWidget);
     expect(find.textContaining('1 overdue'), findsOneWidget);
+  });
+
+  testWidgets('a failed load says so instead of showing an empty list', (
+    tester,
+  ) async {
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+      23,
+      59,
+    );
+    await _pumpList(
+      tester,
+      _FailingRepository([_reminder('1', 'Water the fig tree', today)]),
+    );
+
+    expect(find.text("Couldn't load your reminders"), findsOneWidget);
+    expect(find.text('Nothing scheduled'), findsNothing);
+    // The header count would otherwise claim "0 scheduled" over real data.
+    expect(find.textContaining('0 scheduled'), findsNothing);
+
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Water the fig tree'), findsOneWidget);
   });
 
   testWidgets('completing a reminder moves it out of the list', (tester) async {

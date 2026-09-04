@@ -46,6 +46,8 @@ class ReminderListPage extends StatelessWidget {
                     _Header(
                       scheduled: state.upcoming.length,
                       overdue: grouped.overdue.length,
+                      // "0 scheduled" would contradict both other states.
+                      showCounts: state.status == RemindersStatus.ready,
                     ),
                     FeatureGate(
                       enabled: flags.tags && state.tagsInUse.isNotEmpty,
@@ -55,9 +57,19 @@ class ReminderListPage extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: grouped.isEmpty
-                          ? const _EmptyState()
-                          : _ReminderList(grouped: grouped, now: now),
+                      child: switch (state.status) {
+                        // An empty list and a failed read look identical
+                        // otherwise — for a reminder app that reads as
+                        // "nothing scheduled" when reminders exist.
+                        RemindersStatus.loading => const SizedBox.shrink(),
+                        RemindersStatus.failure => const _FailureState(),
+                        RemindersStatus.ready when grouped.isEmpty =>
+                          const _EmptyState(),
+                        RemindersStatus.ready => _ReminderList(
+                          grouped: grouped,
+                          now: now,
+                        ),
+                      },
                     ),
                   ],
                 ),
@@ -72,10 +84,15 @@ class ReminderListPage extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.scheduled, required this.overdue});
+  const _Header({
+    required this.scheduled,
+    required this.overdue,
+    required this.showCounts,
+  });
 
   final int scheduled;
   final int overdue;
+  final bool showCounts;
 
   @override
   Widget build(BuildContext context) {
@@ -83,8 +100,10 @@ class _Header extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     final parts = <String>[
-      '$scheduled scheduled',
-      if (overdue > 0) '$overdue overdue',
+      if (showCounts) ...[
+        '$scheduled scheduled',
+        if (overdue > 0) '$overdue overdue',
+      ],
     ];
 
     return Padding(
@@ -349,6 +368,46 @@ class _EmptyState extends StatelessWidget {
                 height: 1.55,
                 color: scheme.onSurface.withValues(alpha: 0.45),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FailureState extends StatelessWidget {
+  const _FailureState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(38, 0, 38, 80),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Couldn't load your reminders",
+              style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'They are still saved on this device. '
+              'Alarms already scheduled keep firing.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 15,
+                height: 1.55,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            OutlinedButton(
+              onPressed: () => context.read<RemindersCubit>().load(),
+              child: const Text('Try again'),
             ),
           ],
         ),

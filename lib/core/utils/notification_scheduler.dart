@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -18,15 +20,21 @@ class NotificationTap {
 const _doneActionId = 'memo_done';
 const _snoozeActionId = 'memo_snooze';
 const _channelId = 'memo_reminders';
+const _iosPendingLimit = 64;
 const _iosCategoryId = 'memo_reminder';
 
 /// Thin wrapper over [FlutterLocalNotificationsPlugin]: schedules a reminder's
 /// alarm, cancels it, and reports taps. Owns every id and repeat-rule detail
 /// so callers only ever pass a [Reminder].
 class NotificationScheduler {
-  NotificationScheduler(this._plugin);
+  NotificationScheduler(this._plugin, {bool? capPending})
+    : _capPending = capPending ?? Platform.isIOS;
 
   final FlutterLocalNotificationsPlugin _plugin;
+
+  /// iOS only — see [enforcePendingLimit]. Injectable so it can be tested off
+  /// a real device.
+  final bool _capPending;
 
   /// Set before [initialize] so a cold start from a notification is not lost.
   void Function(NotificationTap tap)? onTap;
@@ -146,6 +154,46 @@ class NotificationScheduler {
         }
     }
   }
+
+  /// iOS keeps only the 64 soonest pending notifications and silently discards
+  /// the rest — and never restores a discarded one when earlier alarms fire, so
+  /// a reminder past the limit stays permanently silent. Re-register the
+  /// soonest that fit whenever [upcoming] asks for more slots than that.
+  ///
+  /// [upcoming] must be undone reminders, soonest first.
+  ///
+  /// ponytail: ranks by [Reminder.scheduledAt] alone, so a weekly rule's later
+  /// weekdays are counted at its first occurrence. Expand each repeat into real
+  /// occurrence times only if a user actually loses an alarm to that.
+  Future<void> enforcePendingLimit(
+    List<Reminder> upcoming, {
+    bool snoozeEnabled = true,
+  }) async {
+    if (!_capPending) return;
+
+    var needed = 0;
+    for (final reminder in upcoming) {
+      needed += _slotsFor(reminder);
+    }
+    if (needed <= _iosPendingLimit) return;
+
+    await _plugin.cancelAll();
+    var used = 0;
+    for (final reminder in upcoming) {
+      final slots = _slotsFor(reminder);
+      if (used + slots > _iosPendingLimit) break;
+      await schedule(reminder, snoozeEnabled: snoozeEnabled);
+      used += slots;
+    }
+  }
+
+  /// A weekly rule costs one pending notification per picked weekday — the
+  /// plugin can only match a single day-of-week per schedule.
+  int _slotsFor(Reminder reminder) =>
+      reminder.repeat.type == RepeatType.weekly &&
+          reminder.repeat.weekdays.isNotEmpty
+      ? reminder.repeat.weekdays.length
+      : 1;
 
   Future<void> cancel(String reminderId) async {
     final base = _baseId(reminderId);
