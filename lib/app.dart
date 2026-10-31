@@ -10,6 +10,7 @@ import 'core/chrome/chrome_mode.dart';
 import 'core/di.dart';
 import 'core/theme/memo_theme.dart';
 import 'features/onboarding/presentation/pages/onboarding_flow.dart';
+import 'features/reminders/data/alarm/ios_alarm_scheduler.dart';
 import 'features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'features/reminders/data/alarm/native_alarm.dart';
 import 'features/reminders/data/media_store.dart';
@@ -187,6 +188,14 @@ class _MemoAppState extends State<MemoApp> {
         }
       }
       if (Platform.isIOS) {
+        // Done / Snooze tapped on an AlarmKit alarm while the app was closed.
+        for (final queued in await sl<AlarmKit>().drainActions()) {
+          await sl<ApplyAlarmAction>()(
+            queued.reminderId,
+            queued.action == 'done' ? AlarmAction.done : AlarmAction.snooze,
+            queued.at,
+          );
+        }
         final reduce = await native.reduceTransparency();
         if (mounted && reduce != _reduceTransparency) {
           setState(() => _reduceTransparency = reduce);

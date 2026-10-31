@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import '../features/onboarding/data/onboarding_repository_impl.dart';
 import '../features/onboarding/domain/onboarding_repository.dart';
 import '../features/reminders/data/alarm/android_alarm_scheduler.dart';
+import '../features/reminders/data/alarm/ios_alarm_scheduler.dart';
 import '../features/reminders/data/alarm/local_notification_scheduler.dart';
 import '../features/reminders/data/alarm/native_alarm.dart';
 import '../features/reminders/data/media_store.dart';
@@ -59,9 +60,11 @@ Future<void> configureDependencies() async {
     soundFor: (r) async => await spoken.soundFor(r) ?? 'memo_ring.caf',
   );
   await notifications.initialize(onBackground: onBackgroundNotification);
+  const alarmKit = AlarmKit();
+  sl.registerSingleton(alarmKit);
   final AlarmScheduler scheduler = Platform.isAndroid
       ? AndroidAlarmScheduler(native, spoken)
-      : notifications;
+      : IosAlarmScheduler(alarmKit, notifications, spoken);
 
   final repository = ReminderRepositoryImpl(await ReminderDb.open());
   final save = SaveReminder(repository, scheduler);
@@ -69,7 +72,7 @@ Future<void> configureDependencies() async {
     ..registerSingleton<LocalNotificationScheduler>(notifications)
     ..registerSingleton<AlarmScheduler>(scheduler)
     ..registerSingleton<OnboardingRepository>(
-      OnboardingRepositoryImpl(prefs, notifications),
+      OnboardingRepositoryImpl(prefs, notifications, alarmKit),
     )
     ..registerSingleton<ReminderRepository>(repository)
     ..registerSingleton(save)
