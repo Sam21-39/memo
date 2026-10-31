@@ -4,11 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/app_prefs.dart';
+import '../reminders/data/alarm/native_alarm.dart';
 
 class SettingsState {
   const SettingsState({
     this.notifications,
     this.exactAlarms,
+    this.fullScreen,
     this.defaultNagMin,
     this.voiceRingsDefault = true,
   });
@@ -18,6 +20,9 @@ class SettingsState {
 
   /// Android only; null elsewhere.
   final bool? exactAlarms;
+
+  /// Android 14+: the alarm may take over the lock screen. Null elsewhere.
+  final bool? fullScreen;
   final int? defaultNagMin;
   final bool voiceRingsDefault;
 }
@@ -25,20 +30,30 @@ class SettingsState {
 /// Permission states are read live and refreshed when the app resumes, since
 /// the user changes them in the OS settings app.
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit(this._prefs) : super(const SettingsState());
+  SettingsCubit(this._prefs, this._native) : super(const SettingsState());
 
   final AppPrefs _prefs;
+  final NativeAlarm _native;
 
   Future<void> refresh() async {
     final notifications = await Permission.notification.isGranted;
     final exact = Platform.isAndroid
         ? await Permission.scheduleExactAlarm.isGranted
         : null;
+    bool? fullScreen;
+    if (Platform.isAndroid) {
+      try {
+        fullScreen = await _native.canUseFullScreenIntent();
+      } on NativeAlarmError {
+        fullScreen = null;
+      }
+    }
     if (isClosed) return;
     emit(
       SettingsState(
         notifications: notifications,
         exactAlarms: exact,
+        fullScreen: fullScreen,
         defaultNagMin: _prefs.defaultNagMin,
         voiceRingsDefault: _prefs.voiceRingsDefault,
       ),
@@ -56,6 +71,16 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> requestExactAlarms() async {
     await Permission.scheduleExactAlarm.request();
+    await refresh();
+  }
+
+  Future<void> openFullScreenSettings() async {
+    await _native.openFullScreenSettings();
+    await refresh();
+  }
+
+  Future<void> toggleVoiceRings() async {
+    await _prefs.setVoiceRingsDefault(!_prefs.voiceRingsDefault);
     await refresh();
   }
 }

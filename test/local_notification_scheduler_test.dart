@@ -236,4 +236,22 @@ void main() {
 
     expect(plugin.scheduled.single.id, isNot(otherPlugin.scheduled.single.id));
   });
+
+  test('iOS bursts count against the 64 slots like any other fire', () async {
+    final capped = LocalNotificationScheduler(
+      plugin,
+      capPending: true,
+      burst: true,
+    );
+    await capped.syncAll([
+      for (var i = 1; i <= 40; i++)
+        _reminder(
+          id: 'r$i',
+          dueAt: DateTime.now().add(Duration(days: i)),
+        ),
+    ]);
+    // 2 fires each: the soonest 32 reminders fit.
+    expect(plugin.scheduled, hasLength(64));
+    expect(plugin.scheduled.map((c) => c.payload).toSet(), hasLength(32));
+  });
 }

@@ -91,6 +91,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               active: state.exactAlarms == true,
                             ),
                           ),
+                        if (state.fullScreen != null)
+                          KeyValueRow(
+                            label: 'Full-screen alarm',
+                            onTap: cubit.openFullScreenSettings,
+                            child: PillValue(
+                              allowed(state.fullScreen),
+                              active: state.fullScreen == true,
+                            ),
+                          ),
                         if (flags.nag)
                           KeyValueRow(
                             label: 'Default nag',
@@ -100,14 +109,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                   : 'Every ${state.defaultNagMin} min',
                             ),
                           ),
-                        if (flags.voiceCapture)
-                          KeyValueRow(
-                            label: 'Ring with my voice',
-                            child: PillValue(
-                              state.voiceRingsDefault ? 'On' : 'Off',
-                              active: state.voiceRingsDefault,
-                            ),
+                        KeyValueRow(
+                          label: 'Ring with my voice',
+                          onTap: cubit.toggleVoiceRings,
+                          child: PillValue(
+                            state.voiceRingsDefault ? 'On' : 'Off',
+                            active: state.voiceRingsDefault,
                           ),
+                        ),
                       ],
                     ),
                     if (state.notifications == false)

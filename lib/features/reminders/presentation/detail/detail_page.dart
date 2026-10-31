@@ -9,6 +9,8 @@ import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
+import '../../data/media_store.dart';
+import '../../data/voice_clip.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/entities/repeat_rule.dart';
 import '../../domain/repositories/reminder_repository.dart';
@@ -145,6 +147,34 @@ class _Body extends StatelessWidget {
                 Text(
                   reminder.note!,
                   style: MemoType.body.copyWith(color: c.ink70),
+                ),
+              ],
+              if (reminder.hasVoice) ...[
+                const SizedBox(height: MemoSpace.space4),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Play voice note',
+                      onPressed: () => sl<VoiceClip>().play(
+                        sl<MediaStore>().voicePath(reminder.id),
+                      ),
+                      style: IconButton.styleFrom(
+                        fixedSize: const Size.square(36),
+                        backgroundColor: c.ink6,
+                      ),
+                      icon: Icon(
+                        Icons.play_arrow_rounded,
+                        color: c.ink,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: MemoSpace.space3),
+                    Text(
+                      '${MediaStore.clipLength(sl<MediaStore>().voicePath(reminder.id))}'
+                      ' · your voice${reminder.voiceRings ? ' · rings' : ''}',
+                      style: MemoType.labelMedium.copyWith(color: c.ink70),
+                    ),
+                  ],
                 ),
               ],
               const SizedBox(height: MemoSpace.space6),

@@ -27,11 +27,20 @@ abstract final class AlarmIds {
   /// Weekly rules: one main per weekday, Mon = 1 .. Sun = 7.
   static int weekday(String id, int weekday) => base(id) ^ (0x200 + weekday);
 
+  /// iOS burst for a weekly rule's weekday fire.
+  static int burstWeekday(String id, int weekday) =>
+      base(id) ^ (0x300 + weekday);
+
+  /// Android: the one-off a native Snooze arms before Dart catches up.
+  static int snooze(String id) => base(id) ^ 0x400;
+
   /// Every id this reminder could own — cancel sweeps them all.
   static List<int> all(String id) => [
     main(id),
     preAlarm(id),
     for (var k = 1; k <= maxNags; k++) nag(id, k),
     for (var d = 1; d <= 7; d++) weekday(id, d),
+    for (var d = 1; d <= 7; d++) burstWeekday(id, d),
+    snooze(id),
   ];
 }

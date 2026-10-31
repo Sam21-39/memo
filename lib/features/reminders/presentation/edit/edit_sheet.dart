@@ -10,6 +10,8 @@ import '../../../../core/ui/memo_sheet.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
+import '../../data/media_store.dart';
+import '../../data/voice_clip.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/entities/repeat_rule.dart';
 import '../../domain/usecases/save_reminder.dart';
@@ -37,6 +39,9 @@ Future<void> showEditSheet(
         sl<SaveReminder>(),
         existing: existing,
         defaultNagMin: sl<AppPrefs>().defaultNagMin,
+        voiceRingsDefault: sl<AppPrefs>().voiceRingsDefault,
+        media: sl<MediaStore>(),
+        voice: sl<VoiceClip>(),
       ),
       child: BlocListener<EditCubit, EditState>(
         listenWhen: (a, b) => b.status == EditStatus.saved,
@@ -200,6 +205,19 @@ class _EditFormState extends State<EditForm> {
                       onChanged: cubit.setTag,
                     ),
                   ],
+                  if (cubit.media != null && cubit.voice != null) ...[
+                    const SizedBox(height: MemoSpace.space6),
+                    const DaySectionHeader(label: 'Sound'),
+                    _SoundCard(state: state),
+                  ],
+                  if (state.error != null && state.status == EditStatus.editing)
+                    Padding(
+                      padding: const EdgeInsets.only(top: MemoSpace.space2),
+                      child: Text(
+                        state.error!,
+                        style: MemoType.body.copyWith(color: c.destructive),
+                      ),
+                    ),
                   const SizedBox(height: MemoSpace.space4),
                 ],
               ),
@@ -207,6 +225,119 @@ class _EditFormState extends State<EditForm> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Hold the mic to record (30 s cap); the clip rings unless switched off.
+class _SoundCard extends StatelessWidget {
+  const _SoundCard({required this.state});
+
+  final EditState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = MemoColors.of(context);
+    final cubit = context.read<EditCubit>();
+    final mono = MemoType.labelMedium.copyWith(color: c.ink70);
+    String secs(Duration d) => '0:${d.inSeconds.toString().padLeft(2, '0')}';
+
+    final Widget row;
+    if (state.recording) {
+      row = Row(
+        children: [
+          Text(
+            '● ${secs(state.recorded)}',
+            style: mono.copyWith(color: c.accent),
+          ),
+          Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
+          const Spacer(),
+          Text('Release to stop', style: mono),
+        ],
+      );
+    } else if (state.hasClip) {
+      final path = cubit.clipPath!;
+      row = Row(
+        children: [
+          IconButton(
+            tooltip: 'Play voice note',
+            onPressed: () => sl<VoiceClip>().play(path),
+            style: IconButton.styleFrom(
+              fixedSize: const Size.square(36),
+              backgroundColor: c.ink6,
+            ),
+            icon: Icon(Icons.play_arrow_rounded, color: c.ink, size: 18),
+          ),
+          const SizedBox(width: MemoSpace.space3),
+          Expanded(
+            child: Text(
+              '${MediaStore.clipLength(path)} · your voice',
+              style: mono,
+            ),
+          ),
+          Semantics(
+            button: true,
+            toggled: state.voiceRings,
+            label: 'Ring with this clip',
+            child: GestureDetector(
+              onTap: () => cubit.setVoiceRings(!state.voiceRings),
+              child: PillValue(
+                state.voiceRings ? 'Rings' : 'Silent',
+                active: state.voiceRings,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Delete voice note',
+            onPressed: cubit.deleteClip,
+            icon: Icon(Icons.close_rounded, color: c.ink45, size: 18),
+          ),
+        ],
+      );
+    } else {
+      row = Row(
+        children: [
+          Expanded(child: Text('Hold to record a voice note', style: mono)),
+          _HoldToRecord(cubit: cubit),
+        ],
+      );
+    }
+    return SectionCard(
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space4),
+            child: Align(alignment: Alignment.centerLeft, child: row),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HoldToRecord extends StatelessWidget {
+  const _HoldToRecord({required this.cubit});
+
+  final EditCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = MemoColors.of(context);
+    return Semantics(
+      button: true,
+      label: 'Hold to record',
+      child: GestureDetector(
+        onLongPressStart: (_) => cubit.startRecording(),
+        onLongPressEnd: (_) => cubit.stopRecording(),
+        onLongPressCancel: cubit.stopRecording,
+        child: Container(
+          width: MemoSpace.hitMin,
+          height: MemoSpace.hitMin,
+          decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
+          child: Icon(Icons.mic_none_rounded, color: c.onAccent, size: 20),
+        ),
+      ),
     );
   }
 }

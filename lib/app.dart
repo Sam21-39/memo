@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -8,12 +11,16 @@ import 'core/di.dart';
 import 'core/theme/memo_theme.dart';
 import 'features/onboarding/presentation/pages/onboarding_flow.dart';
 import 'features/reminders/data/alarm/local_notification_scheduler.dart';
+import 'features/reminders/data/alarm/native_alarm.dart';
+import 'features/reminders/data/media_store.dart';
+import 'features/reminders/data/voice_clip.dart';
 import 'features/reminders/domain/repositories/reminder_repository.dart';
-import 'features/reminders/domain/usecases/complete_reminder.dart';
+import 'features/reminders/domain/usecases/apply_alarm_action.dart';
 import 'features/reminders/domain/usecases/delete_reminder.dart';
 import 'features/reminders/domain/usecases/save_reminder.dart';
-import 'features/reminders/domain/usecases/snooze_reminder.dart';
 import 'features/reminders/domain/usecases/sync_alarms.dart';
+import 'features/reminders/presentation/alarm/alarm_cubit.dart';
+import 'features/reminders/presentation/alarm/alarm_page.dart';
 import 'features/reminders/presentation/archive/archive_cubit.dart';
 import 'features/reminders/presentation/archive/archive_page.dart';
 import 'features/reminders/presentation/detail/detail_cubit.dart';
@@ -59,6 +66,32 @@ GoRouter buildRouter(AppPrefs prefs) {
         ),
       ),
       GoRoute(
+        path: '/alarm/:id',
+        builder: (_, state) {
+          final voice = sl<VoiceClip>();
+          final media = sl<MediaStore>();
+          final native = sl<NativeAlarm>();
+          return BlocProvider(
+            create: (_) => AlarmCubit(
+              state.pathParameters['id']!,
+              sl<ReminderRepository>(),
+              sl<SaveReminder>(),
+              ringingNatively: (id) async =>
+                  Platform.isAndroid && await native.ringing() == id,
+              stopRinging: () async {
+                if (Platform.isAndroid) await native.stopRinging();
+              },
+              play: (id) => voice.play(media.voicePath(id)),
+              stop: voice.stopPlaying,
+            )..load(),
+            child: AlarmPage(
+              voicePath: media.voicePath,
+              onClose: () => router.canPop() ? router.pop() : router.go('/'),
+            ),
+          );
+        },
+      ),
+      GoRoute(
         path: '/done',
         builder: (_, _) => BlocProvider(
           create: (_) =>
@@ -70,7 +103,8 @@ GoRouter buildRouter(AppPrefs prefs) {
       GoRoute(
         path: '/settings',
         builder: (_, _) => BlocProvider(
-          create: (_) => SettingsCubit(sl<AppPrefs>())..refresh(),
+          create: (_) =>
+              SettingsCubit(sl<AppPrefs>(), sl<NativeAlarm>())..refresh(),
           child: const SettingsPage(),
         ),
       ),
@@ -90,16 +124,15 @@ class _MemoAppState extends State<MemoApp> {
   late final GoRouter _router = buildRouter(sl<AppPrefs>());
   late final AppLifecycleListener _lifecycle;
   final _handled = <String, DateTime>{};
+  bool _reduceTransparency = false;
 
   @override
   void initState() {
     super.initState();
     final notifications = sl<LocalNotificationScheduler>();
     notifications.onTap = _handleTap;
-    // Alarms keep firing and repeats keep rolling while backgrounded; never
-    // trust that a request registered yesterday still exists.
-    _lifecycle = AppLifecycleListener(onResume: () => sl<SyncAlarms>()());
-    sl<SyncAlarms>()();
+    _lifecycle = AppLifecycleListener(onResume: _catchUp);
+    _catchUp();
     // A tap that cold-started the app is not delivered to onTap.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final tap = await notifications.launchTap();
@@ -113,9 +146,37 @@ class _MemoAppState extends State<MemoApp> {
     super.dispose();
   }
 
-  /// Done and Snooze apply against the DB; a body tap opens the reminder.
-  /// The launch-details path and the live callback can both deliver one tap,
-  /// and a snooze applied twice is silently 20 minutes, so each
+  /// On launch and resume: apply Done/Snooze tapped on a native alarm while
+  /// Dart was not running, then re-register every alarm — never trust that a
+  /// request registered yesterday still exists.
+  Future<void> _catchUp() async {
+    final native = sl<NativeAlarm>();
+    try {
+      if (Platform.isAndroid) {
+        for (final queued in await native.drainActions()) {
+          await sl<ApplyAlarmAction>()(
+            queued.reminderId,
+            queued.action == 'done' ? AlarmAction.done : AlarmAction.snooze,
+            queued.at,
+          );
+        }
+      }
+      if (Platform.isIOS) {
+        final reduce = await native.reduceTransparency();
+        if (mounted && reduce != _reduceTransparency) {
+          setState(() => _reduceTransparency = reduce);
+        }
+      }
+    } on NativeAlarmError {
+      // The queue stays native-side; the next resume tries again.
+    } finally {
+      await sl<SyncAlarms>()();
+    }
+  }
+
+  /// Done and Snooze apply against the DB; a body tap opens the alarm
+  /// screen. The launch-details path and the live callback can both deliver
+  /// one tap, and a snooze applied twice is silently 20 minutes, so each
   /// `<id>:<action>:<due_at>` is honoured once per 10 s.
   Future<void> _handleTap(NotificationTap tap) async {
     final reminder = await sl<ReminderRepository>().getById(tap.reminderId);
@@ -126,25 +187,18 @@ class _MemoAppState extends State<MemoApp> {
     if (_handled.containsKey(key)) return;
     _handled[key] = now;
 
-    final save = sl<SaveReminder>();
-    try {
-      switch (tap.action) {
-        case NotificationAction.open:
-          await _router.push('/reminder/${reminder.id}');
-          return;
-        case NotificationAction.done:
-          await save(const CompleteReminder()(reminder, now: now));
-        case NotificationAction.snooze:
-          await save(
-            const SnoozeReminder()(
-              reminder,
-              now: now,
-              by: const Duration(minutes: 10),
-            ),
-          );
-      }
-    } finally {
-      await sl<SyncAlarms>()();
+    switch (tap.action) {
+      case NotificationAction.open:
+        unawaited(_router.push('/alarm/${reminder.id}'));
+      case NotificationAction.done || NotificationAction.snooze:
+        await sl<ApplyAlarmAction>()(
+          reminder.id,
+          tap.action == NotificationAction.done
+              ? AlarmAction.done
+              : AlarmAction.snooze,
+          now,
+        );
+        await sl<SyncAlarms>()();
     }
   }
 
@@ -162,8 +216,7 @@ class _MemoAppState extends State<MemoApp> {
             : ChromeModeScope.resolve(
                 platform: Theme.of(context).platform,
                 highContrast: MediaQuery.highContrastOf(context),
-                // M1: read UIAccessibility.isReduceTransparencyEnabled.
-                reduceTransparency: false,
+                reduceTransparency: _reduceTransparency,
               ),
         child: child!,
       ),
