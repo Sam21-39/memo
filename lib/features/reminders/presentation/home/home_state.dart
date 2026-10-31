@@ -40,8 +40,16 @@ class HomeReady extends HomeState {
       if (!r.isDone && (tagFilter == null || r.tag == tagFilter)) r,
   ];
 
+  /// Every tag ever used: what the tag pickers offer.
   List<String> get tagsInUse =>
       ({for (final r in reminders) ?r.tag}.toList()..sort());
+
+  /// Tags on live reminders: what the filter bar offers. A tag only on done
+  /// reminders would filter to an empty list.
+  List<String> get filterTags => ({
+    for (final r in reminders)
+      if (!r.isDone) ?r.tag,
+  }.toList()..sort());
 
   HomeReady copyWith({
     List<Reminder>? reminders,

@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _Header(ready: ready, overdue: grouped.overdue.length),
-                    if (flags.tags && (ready?.tagsInUse.isNotEmpty ?? false))
+                    if (flags.tags && (ready?.filterTags.isNotEmpty ?? false))
                       _TagFilterBar(state: ready!),
                     Expanded(
                       child: switch (state) {
@@ -228,7 +228,7 @@ class _TagFilterBar extends StatelessWidget {
             selected: selected == null,
             onTap: () => cubit.filterByTag(null),
           ),
-          for (final tag in state.tagsInUse) ...[
+          for (final tag in state.filterTags) ...[
             const SizedBox(width: MemoSpace.space2),
             TagChip(
               label: tag,
