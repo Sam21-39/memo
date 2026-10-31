@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/core/di.dart';
+import 'package:memo/core/theme/memo_theme.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -180,5 +181,47 @@ void main() {
     expect(repo.all.single.repeat.repeats, isTrue);
     expect(scheduler.scheduled.single.title, 'Pills');
     expect(find.text('Save'), findsNothing); // back to idle
+  });
+
+  testWidgets('an overdue row is opaque in dark mode, hiding its actions', (
+    tester,
+  ) async {
+    await setUpDi([
+      reminder('1', 'Bins', DateTime.now().subtract(const Duration(hours: 2))),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: MemoTheme.dark,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => HomeCubit(
+                sl<ReminderRepository>(),
+                sl<SaveReminder>(),
+                sl<DeleteReminder>(),
+              )..load(),
+            ),
+            BlocProvider(
+              create: (_) => CaptureCubit(
+                sl<SaveReminder>(),
+                media: null,
+                voice: null,
+                stt: null,
+                knownTags: () => const [],
+              ),
+            ),
+          ],
+          child: const HomePage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final row = find.ancestor(
+      of: find.text('Bins'),
+      matching: find.byType(ColoredBox),
+    );
+    final colors = tester.widgetList<ColoredBox>(row).map((b) => b.color);
+    expect(colors.any((c) => c.a == 1.0), isTrue);
+    expect(colors.where((c) => c.a > 0 && c.a < 1.0), isEmpty);
   });
 }

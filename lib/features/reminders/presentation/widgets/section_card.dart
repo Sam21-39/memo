@@ -16,7 +16,8 @@ class SectionCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: tinted ? c.accentSoft : c.surface,
+        // Tint over surface, so the card matches its (opaque) rows exactly.
+        color: tinted ? Color.alphaBlend(c.accentSoft, c.surface) : c.surface,
         border: Border.all(color: c.hairline),
         borderRadius: BorderRadius.circular(MemoRadius.card),
       ),

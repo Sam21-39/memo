@@ -156,7 +156,13 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
             Transform.translate(
               offset: Offset(_offset, 0),
               child: ColoredBox(
-                color: widget.background ?? c.surface,
+                // Always opaque: the row slides over its action buttons, and a
+                // translucent tint (accent-soft is 16 % in dark mode) would
+                // show "10m" and "Del" through the text.
+                color: Color.alphaBlend(
+                  widget.background ?? c.surface,
+                  c.surface,
+                ),
                 child: widget.child,
               ),
             ),
