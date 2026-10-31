@@ -1,4 +1,4 @@
-package app.memo
+package com.appamania.memo
 
 import io.flutter.embedding.android.FlutterActivity
 

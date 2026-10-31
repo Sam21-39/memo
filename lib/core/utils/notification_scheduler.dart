@@ -251,7 +251,10 @@ class NotificationScheduler {
             ),
         ],
       ),
-      iOS: const DarwinNotificationDetails(categoryIdentifier: _iosCategoryId),
+      iOS: const DarwinNotificationDetails(
+        categoryIdentifier: _iosCategoryId,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+      ),
     );
   }
 
