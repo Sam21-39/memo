@@ -134,9 +134,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       SectionCard(
                         children: [
                           if (flags.voiceCapture)
-                            const KeyValueRow(
+                            KeyValueRow(
                               label: 'Dictation language',
-                              child: PillValue('English'),
+                              child: PillValue(
+                                state.dictation == false
+                                    ? 'Not on this phone'
+                                    : 'English',
+                              ),
                             ),
                           if (flags.imageCapture)
                             const KeyValueRow(
@@ -146,6 +150,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                     ],
+                    if (state.dictation == false)
+                      Padding(
+                        padding: const EdgeInsets.only(top: MemoSpace.space2),
+                        child: Text(
+                          'This phone has no on-device speech model, so a '
+                          'held voice note keeps its clip and rings, but is '
+                          'titled "Voice note". Nothing is sent to a server.',
+                          style: MemoType.body.copyWith(color: c.ink70),
+                        ),
+                      ),
                     const SizedBox(height: MemoSpace.space6),
                     const DaySectionHeader(label: 'Look'),
                     SectionCard(

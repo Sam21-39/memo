@@ -10,10 +10,19 @@ enum ChromeShape { bar, pill, circle, sheet }
 /// round buttons on chrome, sheets. Glass or solid comes from
 /// [ChromeModeScope]; shape, radius and layout never change between them.
 class MemoChrome extends StatelessWidget {
-  const MemoChrome({super.key, required this.shape, required this.child});
+  const MemoChrome({
+    super.key,
+    required this.shape,
+    required this.child,
+    this.solid = false,
+  });
 
   final ChromeShape shape;
   final Widget child;
+
+  /// Force solid: an expanded capture bar carries chips that must read over
+  /// the dimmed list.
+  final bool solid;
 
   BorderRadius get _radius => switch (shape) {
     ChromeShape.bar => BorderRadius.circular(MemoRadius.chrome),
@@ -26,7 +35,7 @@ class MemoChrome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (ChromeModeScope.of(context) == ChromeMode.glass) {
+    if (!solid && ChromeModeScope.of(context) == ChromeMode.glass) {
       return GlassSurface(borderRadius: _radius, child: child);
     }
     final c = MemoColors.of(context);

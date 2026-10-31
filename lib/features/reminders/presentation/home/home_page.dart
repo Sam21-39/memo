@@ -13,13 +13,13 @@ import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
 import '../../domain/entities/reminder.dart';
 import '../day_grouping.dart';
-import '../edit/edit_sheet.dart';
 import '../widgets/check_control.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/reminder_row.dart';
 import '../widgets/section_card.dart';
 import '../widgets/swipeable_reminder_row.dart';
 import 'capture_bar.dart';
+import 'capture_cubit.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
 
@@ -105,9 +105,31 @@ class _HomePageState extends State<HomePage> {
                       onAction: context.read<HomeCubit>().undo,
                     ),
                   ),
-                CaptureBar(
-                  onCompose: () =>
-                      showEditSheet(context, knownTags: ready?.tagsInUse),
+                // Expanded capture dims the list; a tap outside closes the
+                // keyboard, or the bar itself when nothing was typed.
+                BlocBuilder<CaptureCubit, CaptureState>(
+                  buildWhen: (a, b) => a.expanded != b.expanded,
+                  builder: (context, capture) => capture.expanded
+                      ? Positioned.fill(
+                          child: GestureDetector(
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              final cubit = context.read<CaptureCubit>();
+                              if (cubit.state.text.trim().isEmpty &&
+                                  !cubit.state.hasClip) {
+                                cubit.discard();
+                              }
+                            },
+                            child: ColoredBox(color: MemoColors.scrim),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: CaptureBar(knownTags: ready?.tagsInUse ?? const []),
                 ),
               ],
             ),

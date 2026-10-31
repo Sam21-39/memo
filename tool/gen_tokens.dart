@@ -116,6 +116,10 @@ void _colors(StringBuffer b, Map<String, dynamic> color) {
   }
   b
     ..writeln()
+    ..writeln('  /// Dim behind sheets and the expanded capture bar: always dark ink, so')
+    ..writeln('  /// dark mode darkens rather than greys out.')
+    ..writeln('  static final scrim = light.ink.withValues(alpha: 0.35);')
+    ..writeln()
     ..writeln('  static MemoColors of(BuildContext context) =>')
     ..writeln('      Theme.of(context).extension<MemoColors>()!;')
     ..writeln()

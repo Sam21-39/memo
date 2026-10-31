@@ -26,19 +26,26 @@ import 'edit_cubit.dart';
 /// Artboard Edit-Reminder: create or edit in a sheet over Home or Detail.
 /// Saves (write + schedule) itself; a schedule failure is shown, then the
 /// sheet closes because the row is saved and will retry.
-Future<void> showEditSheet(
+///
+/// [draft] prefills a new reminder (the capture bar's "More"); [draftClip]
+/// says a recorded clip waits in the draft file. Returns true once saved.
+Future<bool> showEditSheet(
   BuildContext context, {
   Reminder? existing,
+  Reminder? draft,
+  bool draftClip = false,
   List<String>? knownTags,
-}) {
+}) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
-  return showMemoSheet<void>(
+  final saved = await showMemoSheet<bool>(
     context,
     tall: true,
     builder: (_) => BlocProvider(
       create: (_) => EditCubit(
         sl<SaveReminder>(),
         existing: existing,
+        draft: draft,
+        draftClip: draftClip,
         defaultNagMin: sl<AppPrefs>().defaultNagMin,
         voiceRingsDefault: sl<AppPrefs>().voiceRingsDefault,
         media: sl<MediaStore>(),
@@ -50,12 +57,13 @@ Future<void> showEditSheet(
           if (state.error != null) {
             messenger?.showSnackBar(SnackBar(content: Text(state.error!)));
           }
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true);
         },
         child: EditForm(knownTags: knownTags ?? const []),
       ),
     ),
   );
+  return saved ?? false;
 }
 
 class EditForm extends StatefulWidget {

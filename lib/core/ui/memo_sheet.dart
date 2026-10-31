@@ -16,7 +16,7 @@ Future<T?> showMemoSheet<T>(
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    barrierColor: c.ink.withValues(alpha: 0.35),
+    barrierColor: MemoColors.scrim,
     elevation: 0,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),

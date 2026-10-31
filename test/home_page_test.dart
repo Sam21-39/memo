@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/core/di.dart';
@@ -6,6 +7,7 @@ import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
+import 'package:memo/features/reminders/presentation/home/capture_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_page.dart';
 import 'package:memo/features/reminders/presentation/widgets/check_control.dart';
@@ -29,12 +31,26 @@ class _FailingRepository extends InMemoryRepository {
 Future<void> _pump(WidgetTester tester, [ReminderRepository? repo]) async {
   await tester.pumpWidget(
     themed(
-      BlocProvider(
-        create: (_) => HomeCubit(
-          repo ?? sl<ReminderRepository>(),
-          sl<SaveReminder>(),
-          sl<DeleteReminder>(),
-        )..load(),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => HomeCubit(
+              repo ?? sl<ReminderRepository>(),
+              sl<SaveReminder>(),
+              sl<DeleteReminder>(),
+            )..load(),
+          ),
+          BlocProvider(
+            create: (_) => CaptureCubit(
+              sl<SaveReminder>(),
+              media: null,
+              voice: null,
+              stt: null,
+              knownTags: () => const ['Health'],
+              clock: () => DateTime(2026, 11, 4, 12),
+            ),
+          ),
+        ],
         child: const HomePage(),
       ),
     ),
@@ -141,5 +157,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('10m'), findsOneWidget);
     expect(find.text('Del'), findsOneWidget);
+  });
+
+  testWidgets('typing in the bar shows parsed chips, Save writes it', (
+    tester,
+  ) async {
+    final (repo, scheduler) = await setUpDi();
+    await _pump(tester);
+    await tester.enterText(
+      find.byType(TextField),
+      'Pills at 8 tonight every day',
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('20:00'), findsOneWidget);
+    expect(find.text('Daily'), findsOneWidget);
+    expect(find.text('OVERDUE'), findsNothing);
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.all.single.title, 'Pills');
+    expect(repo.all.single.dueAt, DateTime(2026, 11, 4, 20));
+    expect(repo.all.single.repeat.repeats, isTrue);
+    expect(scheduler.scheduled.single.title, 'Pills');
+    expect(find.text('Save'), findsNothing); // back to idle
   });
 }

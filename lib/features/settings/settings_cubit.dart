@@ -5,12 +5,14 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/app_prefs.dart';
 import '../reminders/data/alarm/native_alarm.dart';
+import '../reminders/data/speech_to_text.dart';
 
 class SettingsState {
   const SettingsState({
     this.notifications,
     this.exactAlarms,
     this.fullScreen,
+    this.dictation,
     this.defaultNagMin,
     this.voiceRingsDefault = true,
   });
@@ -23,6 +25,9 @@ class SettingsState {
 
   /// Android 14+: the alarm may take over the lock screen. Null elsewhere.
   final bool? fullScreen;
+
+  /// On-device speech-to-text exists here. Null until read.
+  final bool? dictation;
   final int? defaultNagMin;
   final bool voiceRingsDefault;
 }
@@ -30,10 +35,12 @@ class SettingsState {
 /// Permission states are read live and refreshed when the app resumes, since
 /// the user changes them in the OS settings app.
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit(this._prefs, this._native) : super(const SettingsState());
+  SettingsCubit(this._prefs, this._native, [this._stt = const SpeechToText()])
+    : super(const SettingsState());
 
   final AppPrefs _prefs;
   final NativeAlarm _native;
+  final SpeechToText _stt;
 
   Future<void> refresh() async {
     final notifications = await Permission.notification.isGranted;
@@ -48,12 +55,14 @@ class SettingsCubit extends Cubit<SettingsState> {
         fullScreen = null;
       }
     }
+    final dictation = await _stt.available();
     if (isClosed) return;
     emit(
       SettingsState(
         notifications: notifications,
         exactAlarms: exact,
         fullScreen: fullScreen,
+        dictation: dictation,
         defaultNagMin: _prefs.defaultNagMin,
         voiceRingsDefault: _prefs.voiceRingsDefault,
       ),

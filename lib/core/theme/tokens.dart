@@ -117,6 +117,10 @@ class MemoColors extends ThemeExtension<MemoColors> {
     chromeHighlight: Color(0x40FFFFFF),
   );
 
+  /// Dim behind sheets and the expanded capture bar: always dark ink, so
+  /// dark mode darkens rather than greys out.
+  static final scrim = light.ink.withValues(alpha: 0.35);
+
   static MemoColors of(BuildContext context) =>
       Theme.of(context).extension<MemoColors>()!;
 

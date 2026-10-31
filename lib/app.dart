@@ -13,6 +13,7 @@ import 'features/onboarding/presentation/pages/onboarding_flow.dart';
 import 'features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'features/reminders/data/alarm/native_alarm.dart';
 import 'features/reminders/data/media_store.dart';
+import 'features/reminders/data/speech_to_text.dart';
 import 'features/reminders/data/voice_clip.dart';
 import 'features/reminders/domain/repositories/reminder_repository.dart';
 import 'features/reminders/domain/usecases/apply_alarm_action.dart';
@@ -25,7 +26,9 @@ import 'features/reminders/presentation/archive/archive_cubit.dart';
 import 'features/reminders/presentation/archive/archive_page.dart';
 import 'features/reminders/presentation/detail/detail_cubit.dart';
 import 'features/reminders/presentation/detail/detail_page.dart';
+import 'features/reminders/presentation/home/capture_cubit.dart';
 import 'features/reminders/presentation/home/home_cubit.dart';
+import 'features/reminders/presentation/home/home_state.dart';
 import 'features/reminders/presentation/home/home_page.dart';
 import 'features/settings/settings_cubit.dart';
 import 'features/settings/settings_page.dart';
@@ -40,12 +43,30 @@ GoRouter buildRouter(AppPrefs prefs) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (_, _) => BlocProvider(
-          create: (_) => HomeCubit(
-            sl<ReminderRepository>(),
-            sl<SaveReminder>(),
-            sl<DeleteReminder>(),
-          )..load(),
+        builder: (_, _) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => HomeCubit(
+                sl<ReminderRepository>(),
+                sl<SaveReminder>(),
+                sl<DeleteReminder>(),
+              )..load(),
+            ),
+            BlocProvider(
+              create: (context) => CaptureCubit(
+                sl<SaveReminder>(),
+                media: sl<MediaStore>(),
+                voice: sl<VoiceClip>(),
+                stt: const SpeechToText(),
+                knownTags: () {
+                  final home = context.read<HomeCubit>().state;
+                  return home is HomeReady ? home.tagsInUse : const [];
+                },
+                defaultNagMin: sl<AppPrefs>().defaultNagMin,
+                voiceRingsDefault: sl<AppPrefs>().voiceRingsDefault,
+              ),
+            ),
+          ],
           child: const HomePage(),
         ),
       ),

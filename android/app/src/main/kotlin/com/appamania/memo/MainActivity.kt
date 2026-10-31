@@ -34,6 +34,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
+        SttPlugin(applicationContext, engine.dartExecutor.binaryMessenger)
         MethodChannel(engine.dartExecutor.binaryMessenger, "memo/alarm").setMethodCallHandler { call, result ->
             val store = AlarmStore(this)
             when (call.method) {

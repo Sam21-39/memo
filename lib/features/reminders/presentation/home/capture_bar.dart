@@ -1,91 +1,419 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/chrome/memo_chrome.dart';
 import '../../../../core/di.dart';
 import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/memo_loader.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/utils/date_format.dart';
+import '../../../tags/presentation/tag_color.dart';
+import '../../data/media_store.dart';
+import '../../data/voice_clip.dart';
+import '../../domain/entities/repeat_rule.dart';
+import '../edit/edit_sheet.dart';
+import 'capture_cubit.dart';
+import 'capture_sheets.dart';
 
-/// The floating bar over Home, in its idle state: placeholder, camera, mic.
-/// A canvas fade sits beneath it so the list disappears rather than ends.
+/// Artboards Home-* (idle), Capture-Parsed, Capture-Recording, Loaders.
 ///
-/// M0: tapping the field opens the edit sheet. M2 turns it into a live text
-/// field with parsed chips, and the mic into hold-to-record.
-class CaptureBar extends StatelessWidget {
-  const CaptureBar({super.key, required this.onCompose});
+/// Idle it is glass. Expanded (typed, recording, transcribing) it goes
+/// solid so the chips read over the dimmed list. A canvas fade sits under
+/// it so the list disappears rather than ends.
+class CaptureBar extends StatefulWidget {
+  const CaptureBar({super.key, required this.knownTags});
 
-  final VoidCallback onCompose;
+  final List<String> knownTags;
+
+  @override
+  State<CaptureBar> createState() => _CaptureBarState();
+}
+
+class _CaptureBarState extends State<CaptureBar> {
+  final _text = TextEditingController();
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _more(CaptureCubit cubit) async {
+    final saved = await showEditSheet(
+      context,
+      draft: cubit.draft(),
+      draftClip: cubit.state.hasClip,
+      knownTags: widget.knownTags,
+    );
+    if (saved) await cubit.discard();
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
-    final flags = sl<FeatureFlags>();
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0, 0.6],
-            colors: [c.canvas.withValues(alpha: 0), c.canvas],
+    final cubit = context.read<CaptureCubit>();
+    return BlocConsumer<CaptureCubit, CaptureState>(
+      // A transcript, or a reset after Save, changes the text under us.
+      listenWhen: (a, b) => b.text != _text.text,
+      listener: (context, state) {
+        _text.value = TextEditingValue(
+          text: state.text,
+          selection: TextSelection.collapsed(offset: state.text.length),
+        );
+        if (state.phase == CapturePhase.idle) _focus.unfocus();
+      },
+      builder: (context, state) {
+        final message = state.error ?? state.notice;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: const [0, 0.6],
+              colors: [c.canvas.withValues(alpha: 0), c.canvas],
+            ),
           ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            MemoSpace.space3,
-            MemoSpace.space6,
-            MemoSpace.space3,
-            MediaQuery.paddingOf(context).bottom + MemoSpace.space3,
-          ),
-          child: MemoChrome(
-            shape: ChromeShape.bar,
-            child: SizedBox(
-              height: MemoSpace.barHeight,
-              child: Row(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              MemoSpace.space3,
+              MemoSpace.space6,
+              MemoSpace.space3,
+              MediaQuery.paddingOf(context).bottom + MemoSpace.space3,
+            ),
+            child: MemoChrome(
+              shape: ChromeShape.bar,
+              solid: state.expanded,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Semantics(
-                      button: true,
-                      label: 'New reminder',
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: onCompose,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: MemoSpace.space4,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Remind me to…',
-                              style: MemoType.bodyLarge.copyWith(
-                                color: c.ink45,
-                              ),
-                            ),
-                          ),
+                  if (state.phase == CapturePhase.typing ||
+                      state.phase == CapturePhase.saving)
+                    _Chips(
+                      state: state,
+                      knownTags: widget.knownTags,
+                      onMore: () => _more(cubit),
+                    ),
+                  if (message != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        MemoSpace.space4,
+                        MemoSpace.space3,
+                        MemoSpace.space4,
+                        0,
+                      ),
+                      child: Text(
+                        message,
+                        style: MemoType.body.copyWith(
+                          color: state.error != null ? c.destructive : c.ink70,
                         ),
                       ),
                     ),
+                  SizedBox(
+                    height: MemoSpace.barHeight,
+                    child: Row(
+                      children: [
+                        Expanded(child: _main(context, state, cubit)),
+                        if (sl<FeatureFlags>().imageCapture &&
+                            state.phase == CapturePhase.idle)
+                          const MemoIconButton(
+                            icon: Icons.photo_camera_outlined,
+                            label: 'Add a photo',
+                          ),
+                        // The mic keeps one slot from idle through recording:
+                        // rebuilding it mid-hold would lose the release.
+                        if (state.phase == CapturePhase.recording ||
+                            (!state.canSave &&
+                                state.phase != CapturePhase.transcribing &&
+                                state.phase != CapturePhase.saving))
+                          _Mic(
+                            cubit: cubit,
+                            active: state.phase == CapturePhase.recording,
+                          )
+                        else if (state.canSave)
+                          TextButton(
+                            onPressed: cubit.save,
+                            child: const Text('Save'),
+                          ),
+                        const SizedBox(width: MemoSpace.space1),
+                      ],
+                    ),
                   ),
-                  if (flags.imageCapture)
-                    const MemoIconButton(
-                      icon: Icons.photo_camera_outlined,
-                      label: 'Add a photo',
-                    ),
-                  if (flags.voiceCapture)
-                    const MemoIconButton(
-                      icon: Icons.mic_none_rounded,
-                      label: 'Hold to record',
-                      accent: true,
-                    ),
-                  const SizedBox(width: MemoSpace.space1),
                 ],
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _main(BuildContext context, CaptureState state, CaptureCubit cubit) {
+    final c = MemoColors.of(context);
+    final mono = MemoType.labelMedium.copyWith(color: c.ink70);
+    String secs(Duration d) => '0:${d.inSeconds.toString().padLeft(2, '0')}';
+    final pad = const EdgeInsets.only(left: MemoSpace.space4);
+    switch (state.phase) {
+      case CapturePhase.recording:
+        // From 20 s the timer turns to a countdown in accent.
+        final left = VoiceClip.maxLength - state.recorded;
+        final late = state.recorded >= const Duration(seconds: 20);
+        return Padding(
+          padding: pad,
+          child: Row(
+            children: [
+              Text(
+                late ? '● ${secs(left)} left' : '● ${secs(state.recorded)}',
+                style: mono.copyWith(color: c.accent),
+              ),
+              const SizedBox(width: MemoSpace.space3),
+              Expanded(
+                child: Text(
+                  'Release to stop. Transcript becomes the title.',
+                  maxLines: 2,
+                  style: MemoType.body.copyWith(fontSize: 13, color: c.ink70),
+                ),
+              ),
+            ],
+          ),
+        );
+      case CapturePhase.transcribing:
+        return Padding(
+          padding: pad,
+          child: Row(
+            children: [
+              MemoLoader(label: 'Listening · ${secs(state.recorded)}'),
+              const Spacer(),
+              TextButton(
+                onPressed: cubit.cancelTranscription,
+                style: TextButton.styleFrom(foregroundColor: c.ink70),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      case CapturePhase.saving:
+        return Padding(
+          padding: pad,
+          child: const Align(
+            alignment: Alignment.centerLeft,
+            child: MemoLoader(label: 'Saving'),
+          ),
+        );
+      case CapturePhase.idle || CapturePhase.typing:
+        return TextField(
+          controller: _text,
+          focusNode: _focus,
+          onChanged: cubit.setText,
+          onSubmitted: (_) => cubit.save(),
+          textInputAction: TextInputAction.done,
+          textCapitalization: TextCapitalization.sentences,
+          style: MemoType.bodyLarge.copyWith(color: c.ink),
+          decoration: InputDecoration(
+            hintText: 'Remind me to…',
+            hintStyle: MemoType.bodyLarge.copyWith(color: c.ink45),
+            filled: false,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: pad,
+          ),
+        );
+    }
+  }
+}
+
+/// Time, Repeat, Tag, voice and More. A wrong chip is tapped to fix.
+class _Chips extends StatelessWidget {
+  const _Chips({
+    required this.state,
+    required this.knownTags,
+    required this.onMore,
+  });
+
+  final CaptureState state;
+  final List<String> knownTags;
+  final VoidCallback onMore;
+
+  static String _repeat(RepeatRule r) {
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return switch (r.type) {
+      RepeatType.none => '+ Repeat',
+      RepeatType.daily => 'Daily',
+      RepeatType.weekly when r.weekdays.length == 1 =>
+        'Every ${names[r.weekdays.first - 1]}',
+      RepeatType.weekly
+          when r.weekdays.containsAll({1, 2, 3, 4, 5}) &&
+              r.weekdays.length == 5 =>
+        'Weekdays',
+      RepeatType.weekly =>
+        (r.weekdays.toList()..sort()).map((d) => names[d - 1]).join(' '),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<CaptureCubit>();
+    final due = state.dueAt!;
+    final now = DateTime.now();
+    final when =
+        '${dayHeaderLabel(due, now) == 'Today' ? '' : '${dayHeaderLabel(due, now)} '}'
+        '${formatTime(due)}';
+    final tag = state.tag;
+    final media = cubit.media;
+    return SizedBox(
+      height: 46,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(
+          MemoSpace.space3,
+          MemoSpace.space3,
+          MemoSpace.space3,
+          0,
+        ),
+        children: [
+          _Chip(
+            label: when,
+            dashed: state.timeGuessed,
+            semantics: state.timeGuessed
+                ? 'Time, a guess: $when'
+                : 'Time: $when',
+            onTap: () async {
+              final at = await showWhenSheet(context, due);
+              if (at != null) cubit.setDueAt(at);
+            },
+          ),
+          _Chip(
+            label: _repeat(state.repeat),
+            dashed: !state.repeat.repeats,
+            onTap: () async {
+              final r = await showRepeatSheet(context, state.repeat, due);
+              if (r != null) cubit.setRepeat(r);
+            },
+          ),
+          _Chip(
+            label: tag ?? '+ Tag',
+            dot: tag == null ? null : tagColor(tag),
+            dashed: tag == null,
+            onTap: () async {
+              final t = await showTagSheet(context, tag, knownTags);
+              if (t != null) cubit.setTag(t.isEmpty ? null : t);
+            },
+          ),
+          if (state.hasClip && media != null)
+            _Chip(
+              label:
+                  '${MediaStore.clipLength(media.draftVoicePath)} · '
+                  '${state.voiceRings ? 'Rings with voice' : 'Silent clip'}',
+              dashed: !state.voiceRings,
+              onTap: () => cubit.setVoiceRings(!state.voiceRings),
+            ),
+          _Chip(label: 'More', dashed: true, onTap: onMore),
+        ],
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({
+    required this.label,
+    required this.onTap,
+    this.dashed = false,
+    this.dot,
+    this.semantics,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  /// A guess or an empty slot: outlined, not filled.
+  final bool dashed;
+  final Color? dot;
+  final String? semantics;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = MemoColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: MemoSpace.space2),
+      child: Semantics(
+        button: true,
+        label: semantics ?? label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space3),
+            decoration: BoxDecoration(
+              color: dashed ? null : c.ink6,
+              borderRadius: BorderRadius.circular(MemoRadius.chip),
+              border: dashed ? Border.all(color: c.ink45) : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (dot != null) ...[
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: dot,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  label,
+                  style: MemoType.labelMedium.copyWith(
+                    color: dashed ? c.ink70 : c.ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Hold to record. Raw pointer events: down records, up stops.
+class _Mic extends StatelessWidget {
+  const _Mic({required this.cubit, required this.active});
+
+  final CaptureCubit cubit;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = MemoColors.of(context);
+    return Semantics(
+      button: true,
+      label: 'Hold to record',
+      child: Listener(
+        onPointerDown: (_) {
+          HapticFeedback.selectionClick();
+          cubit.startRecording();
+        },
+        onPointerUp: (_) => cubit.stopRecording(),
+        onPointerCancel: (_) => cubit.stopRecording(),
+        child: AnimatedContainer(
+          duration: MemoMotion.fast,
+          width: MemoSpace.hitMin,
+          height: MemoSpace.hitMin,
+          decoration: BoxDecoration(
+            color: active ? c.accentPressed : c.accent,
+            shape: BoxShape.circle,
+            border: active ? Border.all(color: c.accentSoft, width: 4) : null,
+          ),
+          child: Icon(Icons.mic_none_rounded, color: c.onAccent, size: 20),
         ),
       ),
     );
