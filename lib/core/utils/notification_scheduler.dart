@@ -42,11 +42,11 @@ class NotificationScheduler {
   Future<void> initialize() async {
     tz_data.initializeTimeZones();
     tz.setLocalLocation(
-      tz.getLocation(await FlutterTimezone.getLocalTimezone()),
+      tz.getLocation((await FlutterTimezone.getLocalTimezone()).identifier),
     );
 
     await _plugin.initialize(
-      InitializationSettings(
+      settings: InitializationSettings(
         android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(
           // Onboarding asks first; this must not prompt on its own.
@@ -197,9 +197,9 @@ class NotificationScheduler {
 
   Future<void> cancel(String reminderId) async {
     final base = _baseId(reminderId);
-    await _plugin.cancel(base);
+    await _plugin.cancel(id: base);
     for (var weekday = 1; weekday <= 7; weekday++) {
-      await _plugin.cancel(base + weekday);
+      await _plugin.cancel(id: base + weekday);
     }
   }
 
@@ -213,15 +213,13 @@ class NotificationScheduler {
     DateTimeComponents? matchComponents,
   ) async {
     await _plugin.zonedSchedule(
-      id,
-      reminder.title,
-      reminder.note,
-      tz.TZDateTime.from(when, tz.local),
-      details,
+      id: id,
+      title: reminder.title,
+      body: reminder.note,
+      scheduledDate: tz.TZDateTime.from(when, tz.local),
+      notificationDetails: details,
       payload: reminder.id,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: matchComponents,
     );
   }

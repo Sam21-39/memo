@@ -30,14 +30,12 @@ class _FakePlugin implements FlutterLocalNotificationsPlugin {
   final cancelled = <int>[];
 
   @override
-  Future<void> zonedSchedule(
-    int id,
+  Future<void> zonedSchedule({
+    required int id,
     String? title,
     String? body,
-    tz.TZDateTime scheduledDate,
-    NotificationDetails notificationDetails, {
-    required UILocalNotificationDateInterpretation
-    uiLocalNotificationDateInterpretation,
+    required tz.TZDateTime scheduledDate,
+    required NotificationDetails notificationDetails,
     required AndroidScheduleMode androidScheduleMode,
     String? payload,
     DateTimeComponents? matchDateTimeComponents,
@@ -48,7 +46,8 @@ class _FakePlugin implements FlutterLocalNotificationsPlugin {
   }
 
   @override
-  Future<void> cancel(int id, {String? tag}) async => cancelled.add(id);
+  Future<void> cancel({required int id, String? tag}) async =>
+      cancelled.add(id);
 
   @override
   Future<void> cancelAll() async => scheduled.clear();
