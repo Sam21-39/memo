@@ -149,7 +149,7 @@ ParsedReminder parseReminder(
       case final m?) {
     repeat = RepeatRule.daily;
     repeatSpan = spanOf(m);
-  } else if (take(RegExp(r'\b(?:every\s+)?weekdays\b')) case final m?) {
+  } else if (take(RegExp(r'\b(?:every\s+)?weekdays?\b')) case final m?) {
     repeat = const RepeatRule(RepeatType.weekly, weekdays: {1, 2, 3, 4, 5});
     repeatSpan = spanOf(m);
   } else if (take(RegExp(r'\b(?:every\s+)?weekends?\b')) case final m?) {
@@ -280,7 +280,7 @@ ParsedReminder parseReminder(
   if (exact == null) {
     if (take(
           RegExp(
-            r'\b(?:at\s+|@\s*|by\s+)?(\d{1,2})(?:[:.](\d{2}))?\s*'
+            r'(?:\b(?:at|by)\s+|@\s*)?\b(\d{1,2})(?:[:.](\d{2}))?\s*'
             r'(a\.?m\.?|p\.?m\.?)(?=\W|$)',
           ),
         )
@@ -290,7 +290,7 @@ ParsedReminder parseReminder(
       minute = int.tryParse(m.group(2) ?? '') ?? 0;
       timeSpans.add(spanOf(m));
     } else if (take(
-          RegExp(r'\b(?:at\s+|@\s*|by\s+)?([01]?\d|2[0-3])[:.]([0-5]\d)\b'),
+          RegExp(r'(?:\b(?:at|by)\s+|@\s*)?\b([01]?\d|2[0-3])[:.]([0-5]\d)\b'),
         )
         case final m?) {
       hour = int.parse(m.group(1)!);
@@ -298,11 +298,13 @@ ParsedReminder parseReminder(
       // "8:30" with no am/pm is as ambiguous as "at 8"; "20:00" is not.
       ambiguous = hour >= 1 && hour <= 12 && !m.group(1)!.startsWith('0');
       timeSpans.add(spanOf(m));
-    } else if (take(RegExp(r'\b(?:at\s+|@\s*)?(noon|midday|midnight)\b'))
+    } else if (take(RegExp(r'(?:\bat\s+|@\s*)?\b(noon|midday|midnight)\b'))
         case final m?) {
       (hour, minute) = _namedTimes[m.group(1)]!;
       timeSpans.add(spanOf(m));
-    } else if (take(RegExp(r'\b(?:at|@)\s*(\d{1,2})\b(?!\s*(?:min|hour|h\b))'))
+    } else if (take(
+          RegExp(r'(?:\bat\s*|@\s*)(\d{1,2})\b(?!\s*(?:min|hour|h\b))'),
+        )
         case final m?) {
       final h = int.parse(m.group(1)!);
       if (h <= 23) {
@@ -343,8 +345,14 @@ ParsedReminder parseReminder(
     DateTime at(int h) => DateTime(base.year, base.month, base.day, h, minute!);
     if (ambiguous) {
       // "at 8" is the next 8:00 or 20:00 that is still ahead.
-      final candidates = [at(hour), at(hour + 12 == 24 ? 12 : hour + 12)]
-        ..sort();
+      // "at 12" is noon or the midnight that follows it.
+      final candidates = [
+        at(hour),
+        if (hour == 12)
+          DateTime(base.year, base.month, base.day + 1, 0, minute!)
+        else
+          at(hour + 12),
+      ]..sort();
       due = candidates.firstWhere(
         (c) => c.isAfter(now),
         orElse: () =>
@@ -410,7 +418,7 @@ String _title(String input, String work) {
     kept.write(work[i] == ' ' && input[i] != ' ' ? ' ' : input[i]);
   }
   var t = kept.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
-  const glue = r'(?:at|on|by|to|for|and|every|in|this|the|next|,|-)';
+  const glue = r'(?:at|on|by|to|for|and|every|this|the|next|,|-)';
   t = t.replaceFirst(
     RegExp(r'^(?:remind\s+me\s+(?:to\s+)?)', caseSensitive: false),
     '',
