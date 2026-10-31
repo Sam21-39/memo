@@ -93,6 +93,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               active: state.exactAlarms == true,
                             ),
                           ),
+                        if (state.alarmKit != null)
+                          KeyValueRow(
+                            label: 'Full-screen alarms',
+                            onTap: cubit.requestAlarms,
+                            child: PillValue(
+                              allowed(state.alarmKit),
+                              active: state.alarmKit == true,
+                            ),
+                          ),
                         if (state.overlay != null)
                           KeyValueRow(
                             label: 'Take over the screen',
