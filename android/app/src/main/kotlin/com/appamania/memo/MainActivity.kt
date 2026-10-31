@@ -64,6 +64,9 @@ class MainActivity : FlutterActivity() {
                 "drainActions" -> result.success(store.drainActions())
                 "ringing" -> result.success(AlarmService.ringing)
                 "stopRinging" -> {
+                    // The Alarm screen handled it: quiet the rest of this
+                    // occurrence now, Dart reschedules right after.
+                    call.argument<String>("reminderId")?.let { AlarmArm.quietOccurrence(this, it) }
                     AlarmService.stop(this)
                     result.success(null)
                 }

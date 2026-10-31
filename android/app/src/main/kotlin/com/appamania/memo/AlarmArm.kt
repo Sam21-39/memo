@@ -47,4 +47,31 @@ object AlarmArm {
             Intent(context, AlarmReceiver::class.java).putExtra("id", id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+
+    /**
+     * Done or Snooze on a ringing alarm: this occurrence is handled, so its
+     * remaining nags must not ring before Dart catches up. One-off fires go;
+     * a repeat's nags and pre-alarm still ahead of their main move one cycle.
+     */
+    fun quietOccurrence(context: Context, reminderId: String) {
+        val store = AlarmStore(context)
+        val mine = store.all().filter { it.getString("reminderId") == reminderId }
+        val mains = mine.filter { it.optString("kind") == "main" }.associateBy { it.getInt("id") }
+        val kept = store.all().filter { it.getString("reminderId") != reminderId }.toMutableList()
+        for (entry in mine) {
+            val repeat = entry.getString("repeat")
+            val kind = entry.optString("kind", "main")
+            if (repeat == "none") {
+                cancel(context, entry.getInt("id"))
+                continue
+            }
+            val main = mains[entry.optInt("group", entry.getInt("id"))]
+            if (kind != "main" && main != null && entry.getLong("at") < main.getLong("at")) {
+                entry.put("at", next(entry.getLong("at"), repeat, entry.getLong("at"))!!)
+                arm(context, entry)
+            }
+            kept += entry
+        }
+        store.save(kept)
+    }
 }

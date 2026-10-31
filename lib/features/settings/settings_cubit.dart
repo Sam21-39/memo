@@ -92,4 +92,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _prefs.setVoiceRingsDefault(!_prefs.voiceRingsDefault);
     await refresh();
   }
+
+  Future<void> setDefaultNag(int? minutes) async {
+    await _prefs.setDefaultNagMin(minutes);
+    await refresh();
+  }
 }

@@ -97,7 +97,8 @@ void main() {
         now: now,
         burst: true,
       );
-      expect(fires, hasLength(1));
+      expect(fires.where((f) => f.kind == FireKind.burst), isEmpty);
+      expect(fires, hasLength(1 + AlarmIds.maxNags));
     });
 
     test('weekly bursts get their own ids', () {
@@ -132,6 +133,106 @@ void main() {
         DateTime(2026, 10, 20, 8),
       );
       expect([next.month, next.day, next.hour], [10, 27, 7]);
+    });
+  });
+
+  group('nag and pre-alarm', () {
+    test('a one-off nags 6 times then stops', () {
+      final fires = firesFor(
+        reminder('a', 'Bins', DateTime(2026, 11, 5, 7)).copyWith(nagMin: 10),
+        now: now,
+      );
+      expect(fires.map((f) => f.at), [
+        for (var k = 0; k <= 6; k++) DateTime(2026, 11, 5, 7, 10 * k),
+      ]);
+      expect(fires.skip(1).every((f) => f.kind == FireKind.nag), isTrue);
+      expect(fires.map((f) => f.id).toSet(), hasLength(7));
+    });
+
+    test('a custom nag interval is honoured', () {
+      final fires = firesFor(
+        reminder('a', 'Bins', DateTime(2026, 11, 5, 7)).copyWith(nagMin: 7),
+        now: now,
+      );
+      expect(fires[1].at, DateTime(2026, 11, 5, 7, 7));
+      expect(fires.last.at, DateTime(2026, 11, 5, 7, 42));
+    });
+
+    test('a pre-alarm rings before the main', () {
+      final fires = firesFor(
+        reminder(
+          'a',
+          'Bins',
+          DateTime(2026, 11, 5, 7),
+        ).copyWith(preAlarmMin: 15),
+        now: now,
+      );
+      expect(fires.first.kind, FireKind.pre);
+      expect(fires.first.at, DateTime(2026, 11, 5, 6, 45));
+      expect(fires.first.id, AlarmIds.preAlarm('a'));
+    });
+
+    test('an overdue repeat keeps nagging today while its main moves on', () {
+      final fires = firesFor(
+        reminder(
+          'd',
+          'Pills',
+          DateTime(2026, 11, 4, 11, 55),
+          repeat: RepeatRule.daily,
+        ).copyWith(nagMin: 10),
+        now: now, // 12:00, five minutes late
+      );
+      final nags = fires.where((f) => f.kind == FireKind.nag).toList();
+      expect(nags.first.at, DateTime(2026, 11, 4, 12, 5));
+      expect(nags.every((f) => f.repeat == FireRepeat.daily), isTrue);
+      expect(
+        fires.firstWhere((f) => f.kind == FireKind.main).at,
+        DateTime(2026, 11, 5, 11, 55),
+      );
+    });
+
+    test('a snoozed repeat nags from the snooze, not from today', () {
+      final fires = firesFor(
+        reminder(
+          'd',
+          'Pills',
+          DateTime(2026, 11, 4, 11, 55),
+          repeat: RepeatRule.daily,
+        ).copyWith(nagMin: 10, snoozedUntil: DateTime(2026, 11, 4, 12, 15)),
+        now: now,
+      );
+      final today = fires.where((f) => f.at.day == 4).toList();
+      expect(today.first.kind, FireKind.snooze);
+      expect(today.first.at, DateTime(2026, 11, 4, 12, 15));
+      expect(today.skip(1).map((f) => f.at), [
+        for (var k = 1; k <= 6; k++) DateTime(2026, 11, 4, 12, 15 + 10 * k),
+      ]);
+      // The series is untouched: tomorrow at 11:55, nags from there.
+      expect(
+        fires.firstWhere((f) => f.kind == FireKind.main).at,
+        DateTime(2026, 11, 5, 11, 55),
+      );
+      expect(
+        fires.where((f) => f.kind == FireKind.nag && f.at.day == 5).first.at,
+        DateTime(2026, 11, 5, 12, 5),
+      );
+    });
+
+    test('a weekly nag after midnight lands on the next weekday', () {
+      final fires = firesFor(
+        reminder(
+          'w',
+          'Late call',
+          DateTime(2026, 10, 1, 23, 50),
+          repeat: const RepeatRule(RepeatType.weekly, weekdays: {5}),
+        ).copyWith(nagMin: 30),
+        now: now,
+      );
+      final mainFire = fires.firstWhere((f) => f.kind == FireKind.main);
+      final firstNag = fires.firstWhere((f) => f.kind == FireKind.nag);
+      expect(mainFire.at, DateTime(2026, 11, 6, 23, 50)); // Friday
+      expect(firstNag.at, DateTime(2026, 11, 7, 0, 20)); // Saturday 00:20
+      expect(firstNag.group, mainFire.id);
     });
   });
 }

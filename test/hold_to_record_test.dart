@@ -110,6 +110,9 @@ void main() {
     tester,
   ) async {
     await setUpDi();
+    // Tall enough that the lazily built list includes the Sound row.
+    tester.view.physicalSize = const Size(1200, 4000);
+    addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(
       themed(
         Scaffold(
@@ -121,7 +124,6 @@ void main() {
       ),
     );
     final mic = find.byIcon(Icons.mic_none_rounded);
-    await tester.ensureVisible(mic);
     await tester.pumpAndSettle();
 
     final finger = await tester.startGesture(tester.getCenter(mic));

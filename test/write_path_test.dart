@@ -4,6 +4,7 @@ import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/usecases/complete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
+import 'package:memo/features/reminders/domain/usecases/snooze_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/sync_alarms.dart';
 
 import 'fakes.dart';
@@ -134,5 +135,51 @@ void main() {
     expect(next.doneAt, isNull);
     expect(next.nagCount, 0);
     expect(next.dueAt, DateTime(2026, 11, 11, 8));
+  });
+
+  group('snoozing a repeat', () {
+    final r = reminder(
+      'd',
+      'Pills',
+      DateTime(2026, 11, 10, 20),
+      repeat: RepeatRule.daily,
+    );
+    final now = DateTime(2026, 11, 10, 20, 2);
+
+    test('keeps the series time and sets a snooze', () {
+      final s = const SnoozeReminder()(
+        r,
+        now: now,
+        by: const Duration(minutes: 10),
+      );
+      expect(s.dueAt, DateTime(2026, 11, 10, 20));
+      expect(s.snoozedUntil, DateTime(2026, 11, 10, 20, 12));
+      expect(s.ringsAt, DateTime(2026, 11, 10, 20, 12));
+    });
+
+    test('Done after a snooze clears it and moves to tomorrow', () {
+      final s = const SnoozeReminder()(
+        r,
+        now: now,
+        by: const Duration(minutes: 10),
+      );
+      final done = const CompleteReminder()(
+        s,
+        now: DateTime(2026, 11, 10, 20, 13),
+      );
+      expect(done.snoozedUntil, isNull);
+      expect(done.dueAt, DateTime(2026, 11, 11, 20));
+    });
+
+    test('a one-off snooze still moves its own time', () {
+      final one = reminder('o', 'Bins', DateTime(2026, 11, 10, 20));
+      final s = const SnoozeReminder()(
+        one,
+        now: now,
+        by: const Duration(minutes: 10),
+      );
+      expect(s.dueAt, DateTime(2026, 11, 10, 20, 12));
+      expect(s.snoozedUntil, isNull);
+    });
   });
 }

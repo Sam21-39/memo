@@ -17,6 +17,7 @@ class Reminder {
     this.voiceRings = false,
     this.hasImage = false,
     this.needsSchedule = false,
+    this.snoozedUntil,
   });
 
   final String id;
@@ -54,9 +55,16 @@ class Reminder {
   /// The last schedule attempt failed; retried on next launch.
   final bool needsSchedule;
 
+  /// A repeat snoozed for this occurrence only: it rings here, while the
+  /// series keeps [dueAt]'s time. A one-off snooze just moves [dueAt].
+  final DateTime? snoozedUntil;
+
   bool get isDone => doneAt != null;
 
-  bool isOverdue(DateTime now) => !isDone && dueAt.isBefore(now);
+  /// When it next needs the user: the snooze if one is set, else [dueAt].
+  DateTime get ringsAt => snoozedUntil ?? dueAt;
+
+  bool isOverdue(DateTime now) => !isDone && ringsAt.isBefore(now);
 
   Reminder copyWith({
     String? title,
@@ -77,6 +85,8 @@ class Reminder {
     bool? voiceRings,
     bool? hasImage,
     bool? needsSchedule,
+    DateTime? snoozedUntil,
+    bool clearSnooze = false,
   }) {
     return Reminder(
       id: id,
@@ -94,6 +104,7 @@ class Reminder {
       voiceRings: voiceRings ?? this.voiceRings,
       hasImage: hasImage ?? this.hasImage,
       needsSchedule: needsSchedule ?? this.needsSchedule,
+      snoozedUntil: clearSnooze ? null : (snoozedUntil ?? this.snoozedUntil),
     );
   }
 }

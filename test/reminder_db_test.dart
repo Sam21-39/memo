@@ -59,6 +59,7 @@ void main() {
 
     final db = await ReminderDb.open(path: path, factory: factory);
     expect(db.upgradedFrom, 1);
+    expect(await db.db.getVersion(), 3);
     final repo = ReminderRepositoryImpl(db);
 
     final pills = (await repo.getById('pills'))!;
@@ -93,12 +94,19 @@ void main() {
       hasImage: true,
       needsSchedule: true,
       doneAt: DateTime(2026, 11, 3, 7, 5),
+      snoozedUntil: DateTime(2026, 11, 3, 7, 10),
     );
     await repo.save(original);
     final back = (await repo.getById('r'))!;
     expect(
-      [back.preAlarmMin, back.nagMin, back.nagCount, back.doneAt],
-      [15, 10, 2, DateTime(2026, 11, 3, 7, 5)],
+      [
+        back.preAlarmMin,
+        back.nagMin,
+        back.nagCount,
+        back.doneAt,
+        back.snoozedUntil,
+      ],
+      [15, 10, 2, DateTime(2026, 11, 3, 7, 5), DateTime(2026, 11, 3, 7, 10)],
     );
     expect([
       back.hasVoice,

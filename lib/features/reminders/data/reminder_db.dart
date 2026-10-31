@@ -70,6 +70,8 @@ class ReminderDb {
       'DROP TABLE reminders',
       'ALTER TABLE reminders_v2 RENAME TO reminders',
     ],
+    // v3 — snoozed_until: a repeat's snooze no longer moves its series.
+    ['ALTER TABLE reminders ADD COLUMN snoozed_until INTEGER'],
   ];
 
   static int get version => migrations.length;

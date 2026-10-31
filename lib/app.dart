@@ -100,7 +100,9 @@ GoRouter buildRouter(AppPrefs prefs) {
               ringingNatively: (id) async =>
                   Platform.isAndroid && await native.ringing() == id,
               stopRinging: () async {
-                if (Platform.isAndroid) await native.stopRinging();
+                if (Platform.isAndroid) {
+                  await native.stopRinging(state.pathParameters['id']);
+                }
               },
               play: (id) => voice.play(media.voicePath(id)),
               stop: voice.stopPlaying,

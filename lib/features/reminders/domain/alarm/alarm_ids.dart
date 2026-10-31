@@ -31,8 +31,18 @@ abstract final class AlarmIds {
   static int burstWeekday(String id, int weekday) =>
       base(id) ^ (0x300 + weekday);
 
-  /// Android: the one-off a native Snooze arms before Dart catches up.
+  /// A repeat snoozed for one occurrence (also Android's native snooze).
   static int snooze(String id) => base(id) ^ 0x400;
+
+  /// Pre-alarm for a weekly rule's weekday fire.
+  static int preWeekday(String id, int weekday) => base(id) ^ (0x500 + weekday);
+
+  /// Nag k after a weekly rule's weekday fire.
+  static int nagWeekday(String id, int weekday, int k) =>
+      base(id) ^ (0x1000 + weekday * 16 + k);
+
+  /// Nag k after a snooze; k = 0 is the snooze's iOS burst.
+  static int snoozeNag(String id, int k) => base(id) ^ (0x2000 + k);
 
   /// Every id this reminder could own — cancel sweeps them all.
   static List<int> all(String id) => [
@@ -42,5 +52,9 @@ abstract final class AlarmIds {
     for (var d = 1; d <= 7; d++) weekday(id, d),
     for (var d = 1; d <= 7; d++) burstWeekday(id, d),
     snooze(id),
+    for (var d = 1; d <= 7; d++) preWeekday(id, d),
+    for (var d = 1; d <= 7; d++)
+      for (var k = 1; k <= maxNags; k++) nagWeekday(id, d, k),
+    for (var k = 0; k <= maxNags; k++) snoozeNag(id, k),
   ];
 }

@@ -18,7 +18,21 @@ void main() {
   test('one reminder never reuses an id across fires', () {
     final ids = AlarmIds.all('1793430295000000');
     expect(ids.toSet(), hasLength(ids.length));
-    expect(ids, hasLength(1 + 1 + AlarmIds.maxNags + 7 + 7 + 1));
+    expect(
+      ids,
+      hasLength(
+        1 +
+            1 +
+            AlarmIds.maxNags +
+            7 +
+            7 +
+            1 +
+            7 +
+            7 * AlarmIds.maxNags +
+            AlarmIds.maxNags +
+            1,
+      ),
+    );
   });
 
   test('ids stay positive 32-bit ints, as both plugins require', () {

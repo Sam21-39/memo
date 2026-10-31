@@ -9,7 +9,8 @@ import org.json.JSONObject
  * never need a Dart isolate. Also the queue of Done/Snooze taps made while
  * Dart was not running; Dart drains it on its next launch or resume.
  *
- * Entry: {id, at (epoch ms), repeat: none|daily|weekly, reminderId, title,
+ * Entry: {id, at (epoch ms), repeat: none|daily|weekly, kind:
+ * main|pre|nag|burst|snooze, group (its main fire's id), reminderId, title,
  * body, sound (path or null), snoozeId}.
  */
 class AlarmStore(context: Context) {

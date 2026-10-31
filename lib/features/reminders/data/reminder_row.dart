@@ -22,6 +22,7 @@ extension ReminderRow on Reminder {
     'voice_rings': voiceRings ? 1 : 0,
     'has_image': hasImage ? 1 : 0,
     'needs_schedule': needsSchedule ? 1 : 0,
+    'snoozed_until': snoozedUntil?.millisecondsSinceEpoch,
   };
 }
 
@@ -51,5 +52,6 @@ Reminder reminderFromRow(Map<String, Object?> row) {
     voiceRings: row['voice_rings'] == 1,
     hasImage: row['has_image'] == 1,
     needsSchedule: row['needs_schedule'] == 1,
+    snoozedUntil: _time(row['snoozed_until']),
   );
 }

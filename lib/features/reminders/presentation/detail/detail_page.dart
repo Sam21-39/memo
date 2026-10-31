@@ -6,6 +6,7 @@ import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_dialog.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/ui/minutes_sheet.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
@@ -130,9 +131,9 @@ class _Body extends StatelessWidget {
                 label: reminder.isDone
                     ? 'Done'
                     : reminder.isOverdue(now)
-                    ? '${formatWhen(reminder.dueAt, now)} · '
-                          '${formatLateness(now.difference(reminder.dueAt))}'
-                    : formatWhen(reminder.dueAt, now),
+                    ? '${formatWhen(reminder.ringsAt, now)} · '
+                          '${formatLateness(now.difference(reminder.ringsAt))}'
+                    : formatWhen(reminder.ringsAt, now),
                 emphasize: reminder.isOverdue(now),
               ),
               Semantics(
@@ -185,7 +186,7 @@ class _Body extends StatelessWidget {
                     child: PillValue(
                       reminder.isDone
                           ? 'Done'
-                          : formatWhen(reminder.dueAt, now),
+                          : formatWhen(reminder.ringsAt, now),
                     ),
                   ),
                   if (flags.repeatReminders)
@@ -199,8 +200,13 @@ class _Body extends StatelessWidget {
                       child: PillValue(
                         reminder.nagMin == null
                             ? 'Off'
-                            : 'Every ${reminder.nagMin} min',
+                            : nagLabel(reminder.nagMin!),
                       ),
+                    ),
+                  if (flags.preAlarm && reminder.preAlarmMin != null)
+                    KeyValueRow(
+                      label: 'Pre-alarm',
+                      child: PillValue(preAlarmLabel(reminder.preAlarmMin!)),
                     ),
                   if (tag != null)
                     KeyValueRow(

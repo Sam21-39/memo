@@ -328,8 +328,8 @@ class _Row extends StatelessWidget {
         title: reminder.title,
         state: overdue ? CheckState.overdue : CheckState.idle,
         trailing: overdue
-            ? formatLateness(now.difference(reminder.dueAt))
-            : formatTime(reminder.dueAt),
+            ? formatLateness(now.difference(reminder.ringsAt))
+            : formatTime(reminder.ringsAt),
         subtitle: tag ?? reminder.note?.split('\n').first,
         tagColor: tag == null ? null : tagColor(tag),
         repeats: flags.repeatReminders && reminder.repeat.repeats,

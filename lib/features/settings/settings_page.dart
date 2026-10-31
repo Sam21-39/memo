@@ -7,6 +7,7 @@ import '../../core/di.dart';
 import '../../core/feature_flags/feature_flags.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/memo_nav_bar.dart';
+import '../../core/ui/minutes_sheet.dart';
 import '../reminders/presentation/widgets/day_section_header.dart';
 import '../reminders/presentation/widgets/key_value_row.dart';
 import '../reminders/presentation/widgets/section_card.dart';
@@ -103,10 +104,25 @@ class _SettingsPageState extends State<SettingsPage> {
                         if (flags.nag)
                           KeyValueRow(
                             label: 'Default nag',
+                            onTap: () async {
+                              final m = await showMinutesSheet(
+                                context,
+                                title: 'Default nag',
+                                body:
+                                    'New reminders ring again this often '
+                                    'until done. Each one can change it.',
+                                presets: const [5, 10, 30],
+                                current: state.defaultNagMin,
+                                label: nagLabel,
+                              );
+                              if (m != null) {
+                                await cubit.setDefaultNag(m == 0 ? null : m);
+                              }
+                            },
                             child: PillValue(
                               state.defaultNagMin == null
                                   ? 'Off'
-                                  : 'Every ${state.defaultNagMin} min',
+                                  : nagLabel(state.defaultNagMin!),
                             ),
                           ),
                         KeyValueRow(

@@ -64,7 +64,8 @@ class NativeAlarm {
   /// The reminder ringing right now, if any.
   Future<String?> ringing() => _call<String>('ringing');
 
-  Future<void> stopRinging() => _call<void>('stopRinging');
+  Future<void> stopRinging([String? reminderId]) =>
+      _call<void>('stopRinging', {'reminderId': reminderId});
 
   /// Android 14 asks the user before full-screen alarms are allowed.
   Future<bool> canUseFullScreenIntent() async =>

@@ -3,6 +3,10 @@ import '../entities/reminder.dart';
 /// Pure: returns the reminder re-timed, nags restarting from the new time.
 /// Presets are 10m / 1h / tomorrow — `by: null` means tomorrow at the
 /// reminder's own time of day.
+///
+/// A one-off moves its [Reminder.dueAt]. A repeat keeps its series time and
+/// gets [Reminder.snoozedUntil] instead, so snoozing daily pills by 10 min
+/// does not make them daily at 20:10 forever.
 class SnoozeReminder {
   const SnoozeReminder();
 
@@ -16,6 +20,9 @@ class SnoozeReminder {
             reminder.dueAt.minute,
           )
         : now.add(by);
+    if (reminder.repeat.repeats) {
+      return reminder.copyWith(snoozedUntil: next, nagCount: 0);
+    }
     return reminder.copyWith(dueAt: next, clearDone: true, nagCount: 0);
   }
 }

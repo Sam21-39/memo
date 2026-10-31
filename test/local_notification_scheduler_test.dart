@@ -254,4 +254,30 @@ void main() {
     expect(plugin.scheduled, hasLength(64));
     expect(plugin.scheduled.map((c) => c.payload).toSet(), hasLength(32));
   });
+
+  test('20 nagging reminders: the soonest 64 fires still ring', () async {
+    final capped = LocalNotificationScheduler(
+      plugin,
+      capPending: true,
+      burst: true,
+    );
+    final start = DateTime.now().add(const Duration(hours: 1));
+    await capped.syncAll([
+      for (var i = 0; i < 20; i++)
+        Reminder(
+          id: 'n$i',
+          title: 'Nag $i',
+          dueAt: start.add(Duration(hours: i)),
+          createdAt: DateTime(2026, 8, 1),
+          nagMin: 5,
+        ),
+    ]);
+    // 7 fires each (main + 6 nags) = 140 wanted; the soonest 64 kept, in
+    // time order, so the first 9 reminders are fully covered.
+    expect(plugin.scheduled, hasLength(64));
+    final times = plugin.scheduled.map((c) => c.localWhen).toList();
+    expect(times, [...times]..sort());
+    expect(plugin.scheduled.where((c) => c.payload == 'n0'), hasLength(7));
+    expect(plugin.scheduled.where((c) => c.payload == 'n19'), isEmpty);
+  });
 }

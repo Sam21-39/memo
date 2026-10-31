@@ -26,6 +26,7 @@ class SyncAlarms {
         current = reminder.copyWith(
           dueAt: reminder.repeat.nextAfterNow(reminder.dueAt, at),
           nagCount: 0,
+          clearSnooze: true,
         );
       }
       if (current.needsSchedule) {

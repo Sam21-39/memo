@@ -21,6 +21,8 @@ class AndroidAlarmScheduler implements AlarmScheduler {
         'id': fire.id,
         'at': fire.at.millisecondsSinceEpoch,
         'repeat': fire.repeat.name,
+        'kind': fire.kind.name,
+        'group': fire.group,
         'reminderId': r.id,
         'title': r.title,
         'body': r.note ?? '',

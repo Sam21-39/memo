@@ -7,6 +7,7 @@ import '../../../../core/di.dart';
 import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_pickers.dart';
+import '../../../../core/ui/minutes_sheet.dart';
 import '../../../../core/ui/memo_sheet.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
@@ -174,19 +175,43 @@ class _EditFormState extends State<EditForm> {
                       if (flags.preAlarm)
                         KeyValueRow(
                           label: 'Pre-alarm',
+                          onTap: () async {
+                            final m = await showMinutesSheet(
+                              context,
+                              title: 'Pre-alarm',
+                              body: 'An early heads-up before it rings.',
+                              presets: const [5, 15, 30, 60],
+                              current: state.preAlarmMin,
+                              label: preAlarmLabel,
+                            );
+                            if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
+                          },
                           child: PillValue(
                             state.preAlarmMin == null
                                 ? 'Off'
-                                : '${state.preAlarmMin} min before',
+                                : preAlarmLabel(state.preAlarmMin!),
                           ),
                         ),
                       if (flags.nag)
                         KeyValueRow(
                           label: 'Nag until done',
+                          onTap: () async {
+                            final m = await showMinutesSheet(
+                              context,
+                              title: 'Nag until done',
+                              body:
+                                  'Rings again up to 6 times, until you '
+                                  'mark it done.',
+                              presets: const [5, 10, 30],
+                              current: state.nagMin,
+                              label: nagLabel,
+                            );
+                            if (m != null) cubit.setNag(m == 0 ? null : m);
+                          },
                           child: PillValue(
                             state.nagMin == null
                                 ? 'Off'
-                                : 'Every ${state.nagMin} min',
+                                : nagLabel(state.nagMin!),
                           ),
                         ),
                     ],
@@ -314,8 +339,16 @@ class _SoundCard extends StatelessWidget {
                         style: mono.copyWith(color: c.accent),
                       ),
                       Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
-                      const Spacer(),
-                      Text('Release to stop', style: mono),
+                      const SizedBox(width: MemoSpace.space3),
+                      Expanded(
+                        child: Text(
+                          'Release to stop',
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: mono,
+                        ),
+                      ),
                     ],
                   )
                 : Text('Hold to record a voice note', style: mono),

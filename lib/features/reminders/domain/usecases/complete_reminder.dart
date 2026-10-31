@@ -10,7 +10,14 @@ class CompleteReminder {
 
   Reminder call(Reminder reminder, {required DateTime now}) {
     final next = reminder.repeat.nextAfterNow(reminder.dueAt, now);
-    if (next == null) return reminder.copyWith(doneAt: now, nagCount: 0);
-    return reminder.copyWith(dueAt: next, clearDone: true, nagCount: 0);
+    if (next == null) {
+      return reminder.copyWith(doneAt: now, nagCount: 0, clearSnooze: true);
+    }
+    return reminder.copyWith(
+      dueAt: next,
+      clearDone: true,
+      nagCount: 0,
+      clearSnooze: true,
+    );
   }
 }

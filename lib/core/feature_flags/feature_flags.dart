@@ -29,9 +29,9 @@ class RemoteFeatureFlags implements FeatureFlags {
   @override
   bool get tags => _flags['tags'] ?? true;
   @override
-  bool get nag => _flags['nag'] ?? false;
+  bool get nag => _flags['nag'] ?? true;
   @override
-  bool get preAlarm => _flags['pre_alarm'] ?? false;
+  bool get preAlarm => _flags['pre_alarm'] ?? true;
   @override
   bool get voiceCapture => _flags['voice_capture'] ?? true;
   @override

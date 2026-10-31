@@ -21,11 +21,15 @@ class AppPrefs {
   Future<void> setBatteryStepDone() =>
       _prefs.setBool('battery_step_done', true);
 
-  /// Nag interval new reminders start with. Null = off.
-  int? get defaultNagMin => _prefs.getInt('default_nag_min');
-  Future<void> setDefaultNagMin(int? minutes) => minutes == null
-      ? _prefs.remove('default_nag_min')
-      : _prefs.setInt('default_nag_min', minutes);
+  /// Nag interval new reminders start with. Null = off. Owner's default:
+  /// every 10 min; stored 0 means the user turned it off.
+  int? get defaultNagMin {
+    final v = _prefs.getInt('default_nag_min') ?? 10;
+    return v == 0 ? null : v;
+  }
+
+  Future<void> setDefaultNagMin(int? minutes) =>
+      _prefs.setInt('default_nag_min', minutes ?? 0);
 
   bool get voiceRingsDefault => _prefs.getBool('voice_rings_default') ?? true;
   Future<void> setVoiceRingsDefault(bool value) =>

@@ -54,7 +54,7 @@ class AlarmPage extends StatelessWidget {
         if (reminder == null) return const Scaffold();
         final cubit = context.read<AlarmCubit>();
         final now = DateTime.now();
-        final late = now.difference(reminder.dueAt);
+        final late = now.difference(reminder.ringsAt);
         return Scaffold(
           body: SafeArea(
             child: Padding(
@@ -80,7 +80,7 @@ class AlarmPage extends StatelessWidget {
                   ),
                   const SizedBox(height: MemoSpace.space6),
                   Text(
-                    formatTime(reminder.dueAt),
+                    formatTime(reminder.ringsAt),
                     style: MemoType.clock.copyWith(color: c.ink),
                   ),
                   const SizedBox(height: MemoSpace.space3),

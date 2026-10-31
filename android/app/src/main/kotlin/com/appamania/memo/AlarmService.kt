@@ -37,6 +37,7 @@ class AlarmService : Service() {
             ACTION_DONE, ACTION_SNOOZE -> {
                 val reminderId = intent.getStringExtra("reminderId") ?: ringing
                 if (reminderId != null) {
+                    AlarmArm.quietOccurrence(this, reminderId)
                     AlarmStore(this).appendAction(
                         reminderId,
                         if (intent.action == ACTION_DONE) "done" else "snooze",
@@ -86,6 +87,8 @@ class AlarmService : Service() {
         if (snoozeId == -1) return
         val entry = JSONObject(intent.getStringExtra("entryJson") ?: return)
             .put("id", snoozeId)
+            .put("group", snoozeId)
+            .put("kind", "snooze")
             .put("repeat", "none")
             .put("at", System.currentTimeMillis() + SNOOZE_MS)
         AlarmStore(this).put(entry)

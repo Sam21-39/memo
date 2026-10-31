@@ -282,6 +282,7 @@ class EditCubit extends Cubit<EditState> {
           // A new time is a new occurrence.
           clearDone: true,
           nagCount: 0,
+          clearSnooze: true,
         ) ??
         const CreateReminder()(
           title: title,
