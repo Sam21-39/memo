@@ -1,7 +1,8 @@
 import '../entities/reminder.dart';
 
-/// Pure: returns the reminder re-timed. Presets are 10m / 1h / tomorrow —
-/// `by: null` means tomorrow at the reminder's own time of day.
+/// Pure: returns the reminder re-timed, nags restarting from the new time.
+/// Presets are 10m / 1h / tomorrow — `by: null` means tomorrow at the
+/// reminder's own time of day.
 class SnoozeReminder {
   const SnoozeReminder();
 
@@ -11,10 +12,10 @@ class SnoozeReminder {
             now.year,
             now.month,
             now.day + 1,
-            reminder.scheduledAt.hour,
-            reminder.scheduledAt.minute,
+            reminder.dueAt.hour,
+            reminder.dueAt.minute,
           )
         : now.add(by);
-    return reminder.copyWith(scheduledAt: next, isDone: false);
+    return reminder.copyWith(dueAt: next, clearDone: true, nagCount: 0);
   }
 }

@@ -7,11 +7,12 @@ class CreateReminder {
 
   Reminder call({
     required String title,
-    required DateTime scheduledAt,
+    required DateTime dueAt,
     required DateTime now,
     String? note,
     RepeatRule repeat = RepeatRule.none,
     String? tag,
+    int? nagMin,
   }) {
     return Reminder(
       // ponytail: timestamp id — unique enough for one device, one user.
@@ -19,9 +20,10 @@ class CreateReminder {
       id: now.microsecondsSinceEpoch.toString(),
       title: title.trim(),
       note: (note == null || note.trim().isEmpty) ? null : note.trim(),
-      scheduledAt: scheduledAt,
+      dueAt: dueAt,
       repeat: repeat,
       tag: tag,
+      nagMin: nagMin,
       createdAt: now,
     );
   }

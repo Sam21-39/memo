@@ -53,8 +53,6 @@ String generate(Map<String, dynamic> json) {
     )
     ..writeln('// ignore_for_file: constant_identifier_names')
     ..writeln()
-    ..writeln("import 'dart:ui' show FontFeature;")
-    ..writeln()
     ..writeln("import 'package:flutter/material.dart';")
     ..writeln();
 

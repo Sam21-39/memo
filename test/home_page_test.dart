@@ -1,0 +1,145 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:memo/core/di.dart';
+import 'package:memo/features/reminders/domain/entities/reminder.dart';
+import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
+import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
+import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
+import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
+import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
+import 'package:memo/features/reminders/presentation/home/home_page.dart';
+import 'package:memo/features/reminders/presentation/widgets/check_control.dart';
+
+import 'fakes.dart';
+
+/// Fails the first read, then behaves — so "Try again" has something to
+/// recover to.
+class _FailingRepository extends InMemoryRepository {
+  _FailingRepository(super.reminders);
+  bool _failed = false;
+
+  @override
+  Future<List<Reminder>> getAll() {
+    if (_failed) return super.getAll();
+    _failed = true;
+    throw Exception('database unavailable');
+  }
+}
+
+Future<void> _pump(WidgetTester tester, [ReminderRepository? repo]) async {
+  await tester.pumpWidget(
+    themed(
+      BlocProvider(
+        create: (_) => HomeCubit(
+          repo ?? sl<ReminderRepository>(),
+          sl<SaveReminder>(),
+          sl<DeleteReminder>(),
+        )..load(),
+        child: const HomePage(),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  final now = DateTime.now();
+  DateTime inDays(int d, int hour) =>
+      DateTime(now.year, now.month, now.day + d, hour);
+
+  testWidgets('empty state invites the first reminder', (tester) async {
+    await setUpDi();
+    await _pump(tester);
+    expect(find.text('Nothing scheduled'), findsOneWidget);
+    expect(find.text('Remind me to…'), findsOneWidget);
+  });
+
+  testWidgets('groups reminders under day headers', (tester) async {
+    await setUpDi([
+      reminder('1', 'Pills', inDays(1, 20), tag: 'Health'),
+      reminder('2', 'Dentist', inDays(3, 9)),
+    ]);
+    await _pump(tester);
+    expect(find.text('TOMORROW'), findsOneWidget);
+    expect(find.text('Pills'), findsOneWidget);
+    expect(find.text('Health'), findsWidgets);
+    expect(find.text('2 SCHEDULED'), findsOneWidget);
+  });
+
+  testWidgets('an overdue reminder gets its own accent section', (
+    tester,
+  ) async {
+    await setUpDi([
+      reminder('1', 'Bins', now.subtract(const Duration(hours: 2, minutes: 5))),
+    ]);
+    await _pump(tester);
+    expect(find.text('OVERDUE'), findsOneWidget);
+    expect(find.text('2h late'), findsOneWidget);
+    expect(find.text('1 SCHEDULED · 1 OVERDUE'), findsOneWidget);
+  });
+
+  testWidgets('a failed load says so instead of showing an empty list', (
+    tester,
+  ) async {
+    await setUpDi();
+    await _pump(
+      tester,
+      _FailingRepository([reminder('1', 'Pills', inDays(1, 8))]),
+    );
+    expect(find.text("Couldn't load your reminders"), findsOneWidget);
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pills'), findsOneWidget);
+  });
+
+  testWidgets('completing a one-off offers Undo, which restores it', (
+    tester,
+  ) async {
+    final (repo, _) = await setUpDi([
+      reminder('1', 'Call the dentist', inDays(1, 9)),
+    ]);
+    await _pump(tester);
+    await tester.tap(find.byType(CheckControl));
+    await tester.pump();
+    expect(find.text('Call the dentist done'), findsOneWidget);
+    expect(repo.all.single.isDone, isTrue);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(repo.all.single.isDone, isFalse);
+    expect(find.text('Undo'), findsNothing);
+  });
+
+  testWidgets('the Undo toast leaves after 5 s', (tester) async {
+    await setUpDi([reminder('1', 'Call the dentist', inDays(1, 9))]);
+    await _pump(tester);
+    await tester.tap(find.byType(CheckControl));
+    await tester.pump();
+    await tester.pump(HomeCubit.undoWindow);
+    expect(find.text('Undo'), findsNothing);
+  });
+
+  testWidgets('completing a repeat moves it forward with no toast', (
+    tester,
+  ) async {
+    final (repo, _) = await setUpDi([
+      reminder('1', 'Pills', inDays(0, 23), repeat: RepeatRule.daily),
+    ]);
+    await _pump(tester);
+    await tester.tap(find.byType(CheckControl));
+    await tester.pumpAndSettle();
+    expect(find.text('Undo'), findsNothing);
+    expect(repo.all.single.dueAt, inDays(1, 23));
+  });
+
+  testWidgets('swiping left reveals snooze and delete as words', (
+    tester,
+  ) async {
+    await setUpDi([reminder('1', 'Pills', inDays(1, 20))]);
+    await _pump(tester);
+    await tester.drag(find.text('Pills'), const Offset(-200, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('10m'), findsOneWidget);
+    expect(find.text('Del'), findsOneWidget);
+  });
+}

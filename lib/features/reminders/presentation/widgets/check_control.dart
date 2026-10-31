@@ -1,105 +1,90 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
-/// "The only circle in the system" — memo Design System · 04 Components.
+import '../../../../core/theme/tokens.dart';
+
+/// The only circle in the system; the logo's ring, made tappable.
 enum CheckState { idle, done, overdue }
 
 class CheckControl extends StatelessWidget {
-  const CheckControl({
-    super.key,
-    required this.state,
-    this.onTap,
-    this.size = 26,
-  });
+  const CheckControl({super.key, required this.state, this.onTap});
 
   final CheckState state;
   final VoidCallback? onTap;
-  final double size;
+
+  static const _size = 22.0;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final muted = scheme.onSurface.withValues(alpha: 0.35);
-
-    Widget circle;
-    switch (state) {
-      case CheckState.done:
-        circle = DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.primary,
-            shape: BoxShape.circle,
+    final c = MemoColors.of(context);
+    return Semantics(
+      button: true,
+      checked: state == CheckState.done,
+      label: state == CheckState.done ? 'Done' : 'Mark done',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox.square(
+          dimension: MemoSpace.hitMin,
+          child: Center(
+            child: CustomPaint(
+              size: const Size.square(_size),
+              painter: _RingPainter(state, c),
+            ),
           ),
-          child: Icon(Icons.check, size: size * 0.54, color: scheme.onPrimary),
-        );
-      case CheckState.overdue:
-        circle = _DashedCircle(
-          diameter: size,
-          color: scheme.primary.withValues(alpha: 0.45),
-        );
-      case CheckState.idle:
-        circle = DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: muted, width: 1.5),
-          ),
-        );
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: size + 18,
-        height: size + 18,
-        child: Center(
-          child: SizedBox(width: size, height: size, child: circle),
         ),
       ),
     );
   }
 }
 
-class _DashedCircle extends StatelessWidget {
-  const _DashedCircle({required this.diameter, required this.color});
-
-  final double diameter;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size.square(diameter),
-      painter: _DashedCirclePainter(color),
-    );
-  }
-}
-
-class _DashedCirclePainter extends CustomPainter {
-  _DashedCirclePainter(this.color);
-  final Color color;
+class _RingPainter extends CustomPainter {
+  _RingPainter(this.state, this.c);
+  final CheckState state;
+  final MemoColors c;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2 - 0.75;
+    final stroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    final radius = size.width / 2 - 1;
-    final center = size.center(Offset.zero);
-    const dashCount = 10;
-    const gapFraction = 0.45;
-    for (var i = 0; i < dashCount; i++) {
-      final startAngle = (i / dashCount) * 2 * 3.14159265;
-      final sweep = (2 * 3.14159265 / dashCount) * (1 - gapFraction);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweep,
-        false,
-        paint,
-      );
+    switch (state) {
+      case CheckState.idle:
+        canvas.drawCircle(center, radius, stroke..color = c.ink45);
+      case CheckState.overdue:
+        stroke.color = c.accent;
+        const dashes = 12;
+        const sweep = 2 * math.pi / dashes;
+        for (var i = 0; i < dashes; i++) {
+          canvas.drawArc(
+            Rect.fromCircle(center: center, radius: radius),
+            i * sweep,
+            sweep * 0.55,
+            false,
+            stroke,
+          );
+        }
+      case CheckState.done:
+        canvas.drawCircle(center, radius + 0.75, Paint()..color = c.accent);
+        final tick = Path()
+          ..moveTo(size.width * 0.3, size.height * 0.52)
+          ..lineTo(size.width * 0.44, size.height * 0.66)
+          ..lineTo(size.width * 0.71, size.height * 0.37);
+        canvas.drawPath(
+          tick,
+          Paint()
+            ..color = c.onAccent
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round,
+        );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _DashedCirclePainter old) => old.color != color;
+  bool shouldRepaint(_RingPainter old) => old.state != state || old.c != c;
 }

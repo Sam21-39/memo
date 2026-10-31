@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Label/value row for grouped cards — Date, Time, Next, Repeat, Created.
-/// memo Design System · Screens "New reminder" / "Detail".
+import '../../../../core/theme/tokens.dart';
+
+/// Label left in body, value right in a mono pill. Card owns the border.
 class KeyValueRow extends StatelessWidget {
   const KeyValueRow({
     super.key,
@@ -16,56 +17,55 @@ class KeyValueRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = MemoColors.of(context);
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: MemoType.bodyLarge.copyWith(
+                    color: c.ink,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
-            ),
-            child,
-          ],
+              child,
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// The dark/light rounded pill wrapping a mono value — e.g. "09:30", "Thu 27 Aug".
+/// A mono value in a pill. [active] inverts it: the field being edited, or a
+/// switch that is on.
 class PillValue extends StatelessWidget {
-  const PillValue(this.text, {super.key, this.emphasized = false});
+  const PillValue(this.text, {super.key, this.active = false});
 
   final String text;
-
-  /// True for the currently-active field (e.g. Time while editing).
-  final bool emphasized;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final c = MemoColors.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      height: 30,
+      padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space3),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: emphasized
-            ? scheme.onSurface
-            : scheme.onSurface.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(8),
+        color: active ? c.ink : c.ink6,
+        borderRadius: BorderRadius.circular(MemoRadius.pill),
       ),
       child: Text(
         text,
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontSize: 14,
-          color: emphasized ? scheme.surface : scheme.onSurface,
-        ),
+        style: MemoType.labelMedium.copyWith(color: active ? c.onInk : c.ink),
       ),
     );
   }

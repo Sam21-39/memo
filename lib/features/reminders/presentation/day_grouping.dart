@@ -21,14 +21,14 @@ GroupedReminders groupByDay(List<Reminder> upcoming, DateTime now) {
   final byDay = <DateTime, List<Reminder>>{};
 
   for (final reminder in upcoming) {
-    if (reminder.scheduledAt.isBefore(now)) {
+    if (reminder.dueAt.isBefore(now)) {
       overdue.add(reminder);
       continue;
     }
     final day = DateTime(
-      reminder.scheduledAt.year,
-      reminder.scheduledAt.month,
-      reminder.scheduledAt.day,
+      reminder.dueAt.year,
+      reminder.dueAt.month,
+      reminder.dueAt.day,
     );
     byDay.putIfAbsent(day, () => []).add(reminder);
   }

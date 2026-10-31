@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Mono, uppercase section label — "Time is the hierarchy": day headers,
-/// not cards, organise the list. memo Design System · Principle 01.
+import '../../../../core/theme/tokens.dart';
+
+/// Mono uppercase section label with an optional faint count. Time is the
+/// hierarchy: these headers, not cards, organise the list.
 class DaySectionHeader extends StatelessWidget {
   const DaySectionHeader({
     super.key,
@@ -13,31 +15,27 @@ class DaySectionHeader extends StatelessWidget {
   final String label;
   final int? count;
 
-  /// True for the "Overdue" header — rendered in accent color.
+  /// The Overdue header, in accent.
   final bool emphasize;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final color = emphasize ? scheme.primary : null;
+    final c = MemoColors.of(context);
+    final style = MemoType.labelSmall.copyWith(
+      color: emphasize ? c.accent : c.ink45,
+    );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.fromLTRB(
+        MemoSpace.space1,
+        0,
+        MemoSpace.space1,
+        MemoSpace.space2,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(color: color),
-          ),
-          if (count != null)
-            Text(
-              '$count',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.25),
-                letterSpacing: 0,
-              ),
-            ),
+          Text(label.toUpperCase(), style: style),
+          if (count != null) Text('$count', style: style),
         ],
       ),
     );
