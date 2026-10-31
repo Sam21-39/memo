@@ -11,7 +11,7 @@ import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 /// Device check for M1 on Android: a saved reminder reaches AlarmManager, the
 /// receiver fires, and the foreground service starts ringing it.
 ///
-///   fvm flutter test integration_test -d <android device>
+///   `fvm flutter test integration_test -d <android device>`
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
