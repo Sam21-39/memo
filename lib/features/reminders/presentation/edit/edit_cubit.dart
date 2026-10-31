@@ -25,6 +25,7 @@ class EditState {
     this.existing,
     this.status = EditStatus.editing,
     this.error,
+    this.notice,
     this.hasClip = false,
     this.draftClip = false,
     this.removeClip = false,
@@ -45,6 +46,9 @@ class EditState {
   final Reminder? existing;
   final EditStatus status;
   final String? error;
+
+  /// A neutral hint, e.g. "Hold the mic to record".
+  final String? notice;
 
   /// A clip will exist after save: the reminder's own, or a new recording.
   final bool hasClip;
@@ -82,6 +86,8 @@ class EditState {
     EditStatus? status,
     String? error,
     bool clearError = false,
+    String? notice,
+    bool clearNotice = false,
     bool? hasClip,
     bool? draftClip,
     bool? removeClip,
@@ -99,6 +105,7 @@ class EditState {
     existing: existing,
     status: status ?? this.status,
     error: clearError ? null : (error ?? this.error),
+    notice: clearNotice ? null : (notice ?? this.notice),
     hasClip: hasClip ?? this.hasClip,
     draftClip: draftClip ?? this.draftClip,
     removeClip: removeClip ?? this.removeClip,
@@ -159,34 +166,72 @@ class EditCubit extends Cubit<EditState> {
     return m.voicePath(state.existing!.id);
   }
 
+  /// The finger is on the mic. Start and release race: the release can land
+  /// while the recorder is still starting, so [stopRecording] only records
+  /// the intent and [startRecording] honours it once the start returns.
+  bool _holding = false;
+  final _clock = Stopwatch();
+
+  /// Shorter than this is a tap, not a note.
+  static const minLength = Duration(seconds: 1);
+
   Future<void> startRecording() async {
     final v = voice, m = media;
     if (v == null || m == null || state.recording) return;
-    if (!await v.start(m.draftVoicePath)) {
+    _holding = true;
+    if (!await v.hasPermission()) {
+      // Ask now, outside the hold, and let the next hold record.
+      final granted = await v.hasPermission(request: true);
       emit(
-        state.copyWith(
-          error: 'Microphone not allowed. Turn it on in Settings to record.',
-        ),
+        granted
+            ? state.copyWith(
+                notice: 'Microphone on. Hold the mic to record.',
+                clearError: true,
+              )
+            : state.copyWith(
+                error: 'Microphone not allowed. Turn it on in Settings.',
+                clearNotice: true,
+              ),
       );
       return;
     }
+    await v.start(m.draftVoicePath);
+    if (!_holding) {
+      await v.cancel();
+      emit(state.copyWith(notice: 'Hold the mic to record.'));
+      return;
+    }
+    _clock
+      ..reset()
+      ..start();
     emit(
       state.copyWith(
         recording: true,
         recorded: Duration.zero,
         clearError: true,
+        clearNotice: true,
       ),
     );
-    _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
-      final elapsed = Duration(seconds: t.tick);
-      emit(state.copyWith(recorded: elapsed));
-      if (elapsed >= VoiceClip.maxLength) stopRecording();
+    _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      final elapsed = _clock.elapsed;
+      if (elapsed >= VoiceClip.maxLength) {
+        stopRecording();
+      } else if (elapsed.inSeconds != state.recorded.inSeconds) {
+        emit(state.copyWith(recorded: elapsed));
+      }
     });
   }
 
   Future<void> stopRecording() async {
+    _holding = false;
     if (!state.recording) return;
     _ticker?.cancel();
+    _clock.stop();
+    if (_clock.elapsed < minLength) {
+      await voice?.cancel();
+      emit(state.copyWith(recording: false, notice: 'Hold the mic to record.'));
+      return;
+    }
     await voice?.stop();
     emit(
       state.copyWith(
@@ -194,6 +239,7 @@ class EditCubit extends Cubit<EditState> {
         hasClip: true,
         draftClip: true,
         removeClip: false,
+        recorded: _clock.elapsed,
       ),
     );
   }

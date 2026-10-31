@@ -10,8 +10,13 @@ class VoiceClip {
   /// iOS rings custom sounds only under 30 s; capped here for both.
   static const maxLength = Duration(seconds: 30);
 
-  Future<bool> start(String path) async {
-    if (!await _recorder.hasPermission()) return false;
+  /// [request] shows the OS prompt when not yet decided.
+  Future<bool> hasPermission({bool request = false}) =>
+      _recorder.hasPermission(request: request);
+
+  /// Call only once [hasPermission] is true: a prompt mid-hold would swallow
+  /// the release.
+  Future<void> start(String path) async {
     await _recorder.start(
       const RecordConfig(
         encoder: AudioEncoder.wav,
@@ -20,12 +25,14 @@ class VoiceClip {
       ),
       path: path,
     );
-    return true;
   }
 
   Future<void> stop() async {
     if (await _recorder.isRecording()) await _recorder.stop();
   }
+
+  /// Stops and deletes what was recorded.
+  Future<void> cancel() => _recorder.cancel();
 
   /// Completes when playback ends or is stopped.
   Future<void> play(String path) async {

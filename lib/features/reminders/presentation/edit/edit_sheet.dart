@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/app_prefs.dart';
@@ -210,6 +211,15 @@ class _EditFormState extends State<EditForm> {
                     const DaySectionHeader(label: 'Sound'),
                     _SoundCard(state: state),
                   ],
+                  if (state.notice != null &&
+                      state.status == EditStatus.editing)
+                    Padding(
+                      padding: const EdgeInsets.only(top: MemoSpace.space2),
+                      child: Text(
+                        state.notice!,
+                        style: MemoType.body.copyWith(color: c.ink70),
+                      ),
+                    ),
                   if (state.error != null && state.status == EditStatus.editing)
                     Padding(
                       padding: const EdgeInsets.only(top: MemoSpace.space2),
@@ -324,13 +334,18 @@ class _HoldToRecord extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
+    // Raw pointer events, not a long-press: a long-press waits 500 ms and the
+    // sheet's scrolling can cancel it mid-hold. Down records, up stops.
     return Semantics(
       button: true,
       label: 'Hold to record',
-      child: GestureDetector(
-        onLongPressStart: (_) => cubit.startRecording(),
-        onLongPressEnd: (_) => cubit.stopRecording(),
-        onLongPressCancel: cubit.stopRecording,
+      child: Listener(
+        onPointerDown: (_) {
+          HapticFeedback.selectionClick();
+          cubit.startRecording();
+        },
+        onPointerUp: (_) => cubit.stopRecording(),
+        onPointerCancel: (_) => cubit.stopRecording(),
         child: Container(
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
