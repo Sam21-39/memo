@@ -115,7 +115,7 @@ void main() {
     expect(saved.title, 'Call mum');
     expect(saved.dueAt, DateTime(2026, 11, 4, 18));
     expect(saved.hasVoice, isTrue);
-    expect(saved.voiceRings, isTrue);
+    expect(saved.readAloud, isTrue);
     expect(File(media.voicePath(saved.id)).existsSync(), isTrue);
   });
 

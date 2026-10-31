@@ -22,22 +22,23 @@ void main() {
       stopRinging: () async => stops++,
       play: (id) async => played.add(id),
       stop: () async {},
+      speak: (r) async => played.add('say:${r.id}'),
     );
 
     setUp(() {
       repo = InMemoryRepository([
-        reminder('p', 'Pills', due).copyWith(hasVoice: true, voiceRings: true),
+        reminder('p', 'Pills', due).copyWith(hasVoice: true, readAloud: true),
       ]);
       played = [];
       stops = 0;
     });
 
-    test('plays the clip once when nothing native is ringing', () async {
+    test('reads it aloud once when nothing native is sounding', () async {
       await build().load();
-      expect(played, ['p']);
+      expect(played, ['say:p']);
     });
 
-    test('does not play over a native alarm that is already looping', () async {
+    test('does not talk over a native alarm already sounding', () async {
       await build(ringing: true).load();
       expect(played, isEmpty);
     });

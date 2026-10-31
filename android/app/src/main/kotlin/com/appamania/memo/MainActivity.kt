@@ -35,6 +35,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
         SttPlugin(applicationContext, engine.dartExecutor.binaryMessenger)
+        TtsPlugin(applicationContext, engine.dartExecutor.binaryMessenger)
         MethodChannel(engine.dartExecutor.binaryMessenger, "memo/alarm").setMethodCallHandler { call, result ->
             val store = AlarmStore(this)
             when (call.method) {
@@ -68,6 +69,13 @@ class MainActivity : FlutterActivity() {
                     // occurrence now, Dart reschedules right after.
                     call.argument<String>("reminderId")?.let { AlarmArm.quietOccurrence(this, it) }
                     AlarmService.stop(this)
+                    result.success(null)
+                }
+                "canDrawOverlays" -> result.success(Settings.canDrawOverlays(this))
+                "openOverlaySettings" -> {
+                    startActivity(
+                        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")),
+                    )
                     result.success(null)
                 }
                 "canUseFullScreenIntent" -> result.success(

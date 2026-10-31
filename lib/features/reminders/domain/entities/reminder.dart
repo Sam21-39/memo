@@ -14,7 +14,7 @@ class Reminder {
     this.nagMin,
     this.nagCount = 0,
     this.hasVoice = false,
-    this.voiceRings = false,
+    this.readAloud = false,
     this.hasImage = false,
     this.needsSchedule = false,
     this.snoozedUntil,
@@ -46,8 +46,9 @@ class Reminder {
   /// A voice clip exists at `media/<id>.wav`.
   final bool hasVoice;
 
-  /// The clip is the alarm sound.
-  final bool voiceRings;
+  /// When it rings, the app's own voice reads it aloud (offline TTS), between
+  /// chimes. Stored in the `voice_rings` column.
+  final bool readAloud;
 
   /// A photo exists at `media/<id>.jpg`.
   final bool hasImage;
@@ -82,7 +83,7 @@ class Reminder {
     bool clearNag = false,
     int? nagCount,
     bool? hasVoice,
-    bool? voiceRings,
+    bool? readAloud,
     bool? hasImage,
     bool? needsSchedule,
     DateTime? snoozedUntil,
@@ -101,7 +102,7 @@ class Reminder {
       nagMin: clearNag ? null : (nagMin ?? this.nagMin),
       nagCount: nagCount ?? this.nagCount,
       hasVoice: hasVoice ?? this.hasVoice,
-      voiceRings: voiceRings ?? this.voiceRings,
+      readAloud: readAloud ?? this.readAloud,
       hasImage: hasImage ?? this.hasImage,
       needsSchedule: needsSchedule ?? this.needsSchedule,
       snoozedUntil: clearSnooze ? null : (snoozedUntil ?? this.snoozedUntil),

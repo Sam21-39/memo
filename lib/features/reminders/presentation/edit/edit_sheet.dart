@@ -48,7 +48,7 @@ Future<bool> showEditSheet(
         draft: draft,
         draftClip: draftClip,
         defaultNagMin: sl<AppPrefs>().defaultNagMin,
-        voiceRingsDefault: sl<AppPrefs>().voiceRingsDefault,
+        readAloudDefault: sl<AppPrefs>().readAloudDefault,
         media: sl<MediaStore>(),
         voice: sl<VoiceClip>(),
       ),
@@ -302,20 +302,8 @@ class _SoundCard extends StatelessWidget {
           const SizedBox(width: MemoSpace.space3),
           Expanded(
             child: Text(
-              '${MediaStore.clipLength(path)} · your voice',
+              '${MediaStore.clipLength(path)} · your note',
               style: mono,
-            ),
-          ),
-          Semantics(
-            button: true,
-            toggled: state.voiceRings,
-            label: 'Ring with this clip',
-            child: GestureDetector(
-              onTap: () => cubit.setVoiceRings(!state.voiceRings),
-              child: PillValue(
-                state.voiceRings ? 'Rings' : 'Silent',
-                active: state.voiceRings,
-              ),
             ),
           ),
           IconButton(
@@ -360,6 +348,14 @@ class _SoundCard extends StatelessWidget {
     }
     return SectionCard(
       children: [
+        KeyValueRow(
+          label: 'Read aloud when it rings',
+          onTap: () => cubit.setReadAloud(!state.readAloud),
+          child: PillValue(
+            state.readAloud ? 'On' : 'Off',
+            active: state.readAloud,
+          ),
+        ),
         ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 52),
           child: Padding(

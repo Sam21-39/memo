@@ -11,6 +11,7 @@ import '../features/reminders/data/alarm/native_alarm.dart';
 import '../features/reminders/data/media_store.dart';
 import '../features/reminders/data/reminder_db.dart';
 import '../features/reminders/data/reminder_repository_impl.dart';
+import '../features/reminders/data/spoken_reminder.dart';
 import '../features/reminders/data/voice_clip.dart';
 import '../features/reminders/domain/alarm/alarm_scheduler.dart';
 import '../features/reminders/domain/repositories/reminder_repository.dart';
@@ -49,15 +50,17 @@ Future<void> configureDependencies() async {
 
   // flutter_local_notifications still owns permission prompts and tap
   // delivery on both platforms; it rings only on iOS.
+  final spoken = SpokenReminder(gender: () => prefs.voiceGender);
+  sl.registerSingleton(spoken);
   final notifications = LocalNotificationScheduler(
     FlutterLocalNotificationsPlugin(),
     snoozeEnabled: flags.snooze,
-    soundFor: (r) =>
-        r.hasVoice && r.voiceRings ? '${r.id}.wav' : 'memo_ring.caf',
+    // Read aloud: the rendered chime + voice; else the Memō chime.
+    soundFor: (r) async => await spoken.soundFor(r) ?? 'memo_ring.caf',
   );
   await notifications.initialize(onBackground: onBackgroundNotification);
   final AlarmScheduler scheduler = Platform.isAndroid
-      ? AndroidAlarmScheduler(native, voicePath: media.voicePath)
+      ? AndroidAlarmScheduler(native, spoken)
       : notifications;
 
   final repository = ReminderRepositoryImpl(await ReminderDb.open());
@@ -70,7 +73,12 @@ Future<void> configureDependencies() async {
     )
     ..registerSingleton<ReminderRepository>(repository)
     ..registerSingleton(save)
-    ..registerSingleton(DeleteReminder(repository, scheduler, media.deleteFor))
+    ..registerSingleton(
+      DeleteReminder(repository, scheduler, (id) async {
+        await media.deleteFor(id);
+        await spoken.forget(id);
+      }),
+    )
     ..registerSingleton(SyncAlarms(repository, scheduler))
     ..registerSingleton(ApplyAlarmAction(repository, save));
 }

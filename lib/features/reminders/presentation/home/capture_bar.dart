@@ -304,13 +304,19 @@ class _Chips extends StatelessWidget {
               if (t != null) cubit.setTag(t.isEmpty ? null : t);
             },
           ),
+          _Chip(
+            label: state.readAloud ? 'Read aloud' : 'Silent',
+            dashed: !state.readAloud,
+            semantics: state.readAloud
+                ? 'Read aloud when it rings: on'
+                : 'Read aloud when it rings: off',
+            onTap: () => cubit.setReadAloud(!state.readAloud),
+          ),
           if (state.hasClip && media != null)
             _Chip(
               label:
-                  '${MediaStore.clipLength(media.draftVoicePath)} · '
-                  '${state.voiceRings ? 'Rings with voice' : 'Silent clip'}',
-              dashed: !state.voiceRings,
-              onTap: () => cubit.setVoiceRings(!state.voiceRings),
+                  '${MediaStore.clipLength(media.draftVoicePath)} · your note',
+              onTap: () => sl<VoiceClip>().play(media.draftVoicePath),
             ),
           _Chip(label: 'More', dashed: true, onTap: onMore),
         ],

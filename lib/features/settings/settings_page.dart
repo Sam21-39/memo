@@ -8,6 +8,7 @@ import '../../core/feature_flags/feature_flags.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/memo_nav_bar.dart';
 import '../../core/ui/minutes_sheet.dart';
+import '../reminders/data/spoken_reminder.dart';
 import '../reminders/presentation/widgets/day_section_header.dart';
 import '../reminders/presentation/widgets/key_value_row.dart';
 import '../reminders/presentation/widgets/section_card.dart';
@@ -92,6 +93,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               active: state.exactAlarms == true,
                             ),
                           ),
+                        if (state.overlay != null)
+                          KeyValueRow(
+                            label: 'Take over the screen',
+                            onTap: cubit.openOverlaySettings,
+                            child: PillValue(
+                              allowed(state.overlay),
+                              active: state.overlay == true,
+                            ),
+                          ),
                         if (state.fullScreen != null)
                           KeyValueRow(
                             label: 'Full-screen alarm',
@@ -126,15 +136,37 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         KeyValueRow(
-                          label: 'Ring with my voice',
-                          onTap: cubit.toggleVoiceRings,
+                          label: 'Read reminders aloud',
+                          onTap: cubit.toggleReadAloud,
                           child: PillValue(
-                            state.voiceRingsDefault ? 'On' : 'Off',
-                            active: state.voiceRingsDefault,
+                            state.readAloudDefault ? 'On' : 'Off',
+                            active: state.readAloudDefault,
+                          ),
+                        ),
+                        KeyValueRow(
+                          label: 'Voice',
+                          onTap: () async {
+                            final next = state.voiceGender == 'female'
+                                ? 'male'
+                                : 'female';
+                            await cubit.setVoiceGender(next);
+                            await sl<SpokenReminder>().preview(next);
+                          },
+                          child: PillValue(
+                            state.voiceGender == 'female' ? 'Female' : 'Male',
                           ),
                         ),
                       ],
                     ),
+                    if (state.overlay == false)
+                      Padding(
+                        padding: const EdgeInsets.only(top: MemoSpace.space2),
+                        child: Text(
+                          'Allow "Take over the screen" so an alarm fills the '
+                          'screen while you use the phone, not just a banner.',
+                          style: MemoType.body.copyWith(color: c.ink70),
+                        ),
+                      ),
                     if (state.notifications == false)
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),

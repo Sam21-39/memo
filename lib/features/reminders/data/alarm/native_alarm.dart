@@ -74,6 +74,13 @@ class NativeAlarm {
   Future<void> openFullScreenSettings() =>
       _call<void>('openFullScreenSettings');
 
+  /// Android: "Display over other apps", so an alarm can take the screen
+  /// while the phone is unlocked.
+  Future<bool> canDrawOverlays() async =>
+      await _call<bool>('canDrawOverlays') ?? true;
+
+  Future<void> openOverlaySettings() => _call<void>('openOverlaySettings');
+
   /// iOS: copy a clip into Library/Sounds so a notification can ring it.
   Future<void> installSound(String path, String id) =>
       _call<void>('installSound', {'path': path, 'id': id});

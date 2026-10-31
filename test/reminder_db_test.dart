@@ -90,7 +90,7 @@ void main() {
       nagMin: 10,
       nagCount: 2,
       hasVoice: true,
-      voiceRings: true,
+      readAloud: true,
       hasImage: true,
       needsSchedule: true,
       doneAt: DateTime(2026, 11, 3, 7, 5),
@@ -110,7 +110,7 @@ void main() {
     );
     expect([
       back.hasVoice,
-      back.voiceRings,
+      back.readAloud,
       back.hasImage,
       back.needsSchedule,
     ], everyElement(isTrue));

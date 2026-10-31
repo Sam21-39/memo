@@ -31,9 +31,15 @@ class AppPrefs {
   Future<void> setDefaultNagMin(int? minutes) =>
       _prefs.setInt('default_nag_min', minutes ?? 0);
 
-  bool get voiceRingsDefault => _prefs.getBool('voice_rings_default') ?? true;
-  Future<void> setVoiceRingsDefault(bool value) =>
-      _prefs.setBool('voice_rings_default', value);
+  /// New reminders are read aloud when they ring.
+  bool get readAloudDefault => _prefs.getBool('read_aloud_default') ?? true;
+  Future<void> setReadAloudDefault(bool value) =>
+      _prefs.setBool('read_aloud_default', value);
+
+  /// The app's speaking voice: 'female' or 'male'.
+  String get voiceGender => _prefs.getString('voice_gender') ?? 'female';
+  Future<void> setVoiceGender(String gender) =>
+      _prefs.setString('voice_gender', gender);
 
   /// Only 'solid' is honoured in v1.
   String? get chromeModeOverride => _prefs.getString('chrome_mode_override');

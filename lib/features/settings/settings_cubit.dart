@@ -12,9 +12,11 @@ class SettingsState {
     this.notifications,
     this.exactAlarms,
     this.fullScreen,
+    this.overlay,
     this.dictation,
+    this.voiceGender = 'female',
     this.defaultNagMin,
-    this.voiceRingsDefault = true,
+    this.readAloudDefault = true,
   });
 
   /// Null until read.
@@ -26,10 +28,14 @@ class SettingsState {
   /// Android 14+: the alarm may take over the lock screen. Null elsewhere.
   final bool? fullScreen;
 
+  /// Android: may take the screen while unlocked. Null elsewhere.
+  final bool? overlay;
+
   /// On-device speech-to-text exists here. Null until read.
   final bool? dictation;
+  final String voiceGender;
   final int? defaultNagMin;
-  final bool voiceRingsDefault;
+  final bool readAloudDefault;
 }
 
 /// Permission states are read live and refreshed when the app resumes, since
@@ -47,10 +53,11 @@ class SettingsCubit extends Cubit<SettingsState> {
     final exact = Platform.isAndroid
         ? await Permission.scheduleExactAlarm.isGranted
         : null;
-    bool? fullScreen;
+    bool? fullScreen, overlay;
     if (Platform.isAndroid) {
       try {
         fullScreen = await _native.canUseFullScreenIntent();
+        overlay = await _native.canDrawOverlays();
       } on NativeAlarmError {
         fullScreen = null;
       }
@@ -62,9 +69,11 @@ class SettingsCubit extends Cubit<SettingsState> {
         notifications: notifications,
         exactAlarms: exact,
         fullScreen: fullScreen,
+        overlay: overlay,
         dictation: dictation,
+        voiceGender: _prefs.voiceGender,
         defaultNagMin: _prefs.defaultNagMin,
-        voiceRingsDefault: _prefs.voiceRingsDefault,
+        readAloudDefault: _prefs.readAloudDefault,
       ),
     );
   }
@@ -88,13 +97,23 @@ class SettingsCubit extends Cubit<SettingsState> {
     await refresh();
   }
 
-  Future<void> toggleVoiceRings() async {
-    await _prefs.setVoiceRingsDefault(!_prefs.voiceRingsDefault);
+  Future<void> toggleReadAloud() async {
+    await _prefs.setReadAloudDefault(!_prefs.readAloudDefault);
     await refresh();
   }
 
   Future<void> setDefaultNag(int? minutes) async {
     await _prefs.setDefaultNagMin(minutes);
+    await refresh();
+  }
+
+  Future<void> openOverlaySettings() async {
+    await _native.openOverlaySettings();
+    await refresh();
+  }
+
+  Future<void> setVoiceGender(String gender) async {
+    await _prefs.setVoiceGender(gender);
     await refresh();
   }
 }

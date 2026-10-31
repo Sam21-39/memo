@@ -14,6 +14,7 @@ import 'features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'features/reminders/data/alarm/native_alarm.dart';
 import 'features/reminders/data/media_store.dart';
 import 'features/reminders/data/speech_to_text.dart';
+import 'features/reminders/data/spoken_reminder.dart';
 import 'features/reminders/data/voice_clip.dart';
 import 'features/reminders/domain/repositories/reminder_repository.dart';
 import 'features/reminders/domain/usecases/apply_alarm_action.dart';
@@ -63,7 +64,7 @@ GoRouter buildRouter(AppPrefs prefs) {
                   return home is HomeReady ? home.tagsInUse : const [];
                 },
                 defaultNagMin: sl<AppPrefs>().defaultNagMin,
-                voiceRingsDefault: sl<AppPrefs>().voiceRingsDefault,
+                readAloudDefault: sl<AppPrefs>().readAloudDefault,
               ),
             ),
           ],
@@ -106,6 +107,7 @@ GoRouter buildRouter(AppPrefs prefs) {
               },
               play: (id) => voice.play(media.voicePath(id)),
               stop: voice.stopPlaying,
+              speak: sl<SpokenReminder>().say,
             )..load(),
             child: AlarmPage(
               voicePath: media.voicePath,

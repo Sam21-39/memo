@@ -172,7 +172,7 @@ class _Body extends StatelessWidget {
                     const SizedBox(width: MemoSpace.space3),
                     Text(
                       '${MediaStore.clipLength(sl<MediaStore>().voicePath(reminder.id))}'
-                      ' · your voice${reminder.voiceRings ? ' · rings' : ''}',
+                      ' · your note',
                       style: MemoType.labelMedium.copyWith(color: c.ink70),
                     ),
                   ],

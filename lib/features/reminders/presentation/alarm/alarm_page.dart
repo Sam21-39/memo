@@ -121,7 +121,7 @@ class AlarmPage extends StatelessWidget {
                         const SizedBox(width: MemoSpace.space3),
                         Text(
                           '${MediaStore.clipLength(voicePath(reminder.id))}'
-                          ' · your voice${state.playing ? ' · playing' : ''}',
+                          ' · your note${state.playing ? ' · playing' : ''}',
                           style: MemoType.labelMedium.copyWith(color: c.ink70),
                         ),
                       ],

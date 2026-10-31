@@ -54,9 +54,9 @@ class LocalNotificationScheduler implements AlarmScheduler {
   /// Mirrors `FeatureFlags.snooze` — drives the alert's Snooze action.
   final bool snoozeEnabled;
 
-  /// The sound file name to ring with (installed in Library/Sounds), or null
-  /// for the default.
-  final String? Function(Reminder reminder)? soundFor;
+  /// The sound file name to ring with (in Library/Sounds or the bundle),
+  /// or null for the system default.
+  final Future<String?> Function(Reminder reminder)? soundFor;
 
   /// iOS only — see [syncAll]. Injectable so it can be tested off a device.
   final bool _capPending;
@@ -133,8 +133,9 @@ class LocalNotificationScheduler implements AlarmScheduler {
   @override
   Future<void> schedule(Reminder reminder) async {
     await cancel(reminder.id);
+    final sound = await soundFor?.call(reminder);
     for (final fire in firesFor(reminder, now: DateTime.now(), burst: _burst)) {
-      await _zoned(fire, reminder);
+      await _zoned(fire, reminder, sound);
     }
   }
 
@@ -151,8 +152,13 @@ class LocalNotificationScheduler implements AlarmScheduler {
       for (final r in live) ...firesFor(r, now: now, burst: _burst),
     ]..sort((a, b) => a.at.compareTo(b.at));
     final kept = _capPending ? fires.take(_iosPendingLimit) : fires;
+    final sounds = <String, String?>{};
     for (final fire in kept) {
-      await _zoned(fire, byId[fire.reminderId]!);
+      final r = byId[fire.reminderId]!;
+      final sound = sounds.containsKey(r.id)
+          ? sounds[r.id]
+          : sounds[r.id] = await soundFor?.call(r);
+      await _zoned(fire, r, sound);
     }
   }
 
@@ -169,13 +175,13 @@ class LocalNotificationScheduler implements AlarmScheduler {
     }
   }
 
-  Future<void> _zoned(AlarmFire fire, Reminder reminder) async {
+  Future<void> _zoned(AlarmFire fire, Reminder reminder, String? sound) async {
     await _plugin.zonedSchedule(
       id: fire.id,
       title: reminder.title,
       body: reminder.note,
       scheduledDate: tz.TZDateTime.from(fire.at, tz.local),
-      notificationDetails: _details(soundFor?.call(reminder)),
+      notificationDetails: _details(sound),
       payload: reminder.id,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: switch (fire.repeat) {

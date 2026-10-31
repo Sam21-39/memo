@@ -24,7 +24,7 @@ class CaptureState {
     this.tagOverride,
     this.tagCleared = false,
     this.hasClip = false,
-    this.voiceRings = true,
+    this.readAloud = true,
     this.recorded = Duration.zero,
     this.notice,
     this.error,
@@ -44,7 +44,7 @@ class CaptureState {
 
   /// A voice clip sits in the draft file.
   final bool hasClip;
-  final bool voiceRings;
+  final bool readAloud;
   final Duration recorded;
   final String? notice;
   final String? error;
@@ -73,7 +73,7 @@ class CaptureState {
     String? tagOverride,
     bool? tagCleared,
     bool? hasClip,
-    bool? voiceRings,
+    bool? readAloud,
     Duration? recorded,
     String? notice,
     bool clearNotice = false,
@@ -88,7 +88,7 @@ class CaptureState {
     tagOverride: tagOverride ?? this.tagOverride,
     tagCleared: tagCleared ?? this.tagCleared,
     hasClip: hasClip ?? this.hasClip,
-    voiceRings: voiceRings ?? this.voiceRings,
+    readAloud: readAloud ?? this.readAloud,
     recorded: recorded ?? this.recorded,
     notice: clearNotice ? null : (notice ?? this.notice),
     error: clearError ? null : (error ?? this.error),
@@ -105,11 +105,11 @@ class CaptureCubit extends Cubit<CaptureState> {
     required this.stt,
     required this.knownTags,
     this.defaultNagMin,
-    bool voiceRingsDefault = true,
+    bool readAloudDefault = true,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now,
-       _voiceRingsDefault = voiceRingsDefault,
-       super(CaptureState(voiceRings: voiceRingsDefault));
+       _readAloudDefault = readAloudDefault,
+       super(CaptureState(readAloud: readAloudDefault));
 
   final SaveReminder _save;
   final MediaStore? media;
@@ -119,7 +119,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   /// Read on every parse, so a tag added a moment ago matches "for work".
   final List<String> Function() knownTags;
   final int? defaultNagMin;
-  final bool _voiceRingsDefault;
+  final bool _readAloudDefault;
   final DateTime Function() _clock;
 
   late final HoldRecorder? _hold = (voice == null || media == null)
@@ -144,7 +144,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   /// The parse runs on every keystroke; it is sub-millisecond.
   void setText(String text) {
     if (text.trim().isEmpty && !state.hasClip) {
-      emit(const CaptureState().copyWith(voiceRings: state.voiceRings));
+      emit(const CaptureState().copyWith(readAloud: state.readAloud));
       return;
     }
     emit(
@@ -166,7 +166,7 @@ class CaptureCubit extends Cubit<CaptureState> {
         ? state.copyWith(tagCleared: true)
         : state.copyWith(tagOverride: tag, tagCleared: false),
   );
-  void setVoiceRings(bool value) => emit(state.copyWith(voiceRings: value));
+  void setReadAloud(bool value) => emit(state.copyWith(readAloud: value));
 
   Future<void> startRecording() async => _hold?.press();
 
@@ -222,7 +222,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   Future<void> discard() async {
     await _hold?.release();
     if (state.hasClip) await media?.discardDraft();
-    emit(CaptureState(voiceRings: _voiceRingsDefault));
+    emit(CaptureState(readAloud: _readAloudDefault));
   }
 
   /// The reminder the chips describe, unsaved: for Save, and for "More".
@@ -243,13 +243,10 @@ class CaptureCubit extends Cubit<CaptureState> {
   Future<void> save() async {
     if (!state.canSave) return;
     emit(state.copyWith(phase: CapturePhase.saving));
-    var reminder = draft();
+    var reminder = draft().copyWith(readAloud: state.readAloud);
     if (state.hasClip && media != null) {
       await media!.commitVoice(reminder.id);
-      reminder = reminder.copyWith(
-        hasVoice: true,
-        voiceRings: state.voiceRings,
-      );
+      reminder = reminder.copyWith(hasVoice: true);
     }
     String? error;
     try {
@@ -258,7 +255,7 @@ class CaptureCubit extends Cubit<CaptureState> {
       error = scheduleFailedMessage;
     }
     if (isClosed) return;
-    emit(CaptureState(voiceRings: _voiceRingsDefault, error: error));
+    emit(CaptureState(readAloud: _readAloudDefault, error: error));
   }
 
   @override

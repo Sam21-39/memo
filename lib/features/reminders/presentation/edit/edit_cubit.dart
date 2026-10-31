@@ -30,7 +30,7 @@ class EditState {
     this.hasClip = false,
     this.draftClip = false,
     this.removeClip = false,
-    this.voiceRings = true,
+    this.readAloud = true,
     this.recording = false,
     this.recorded = Duration.zero,
   });
@@ -59,7 +59,7 @@ class EditState {
 
   /// The saved clip should be deleted on save.
   final bool removeClip;
-  final bool voiceRings;
+  final bool readAloud;
   final bool recording;
   final Duration recorded;
 
@@ -92,7 +92,7 @@ class EditState {
     bool? hasClip,
     bool? draftClip,
     bool? removeClip,
-    bool? voiceRings,
+    bool? readAloud,
     bool? recording,
     Duration? recorded,
   }) => EditState(
@@ -110,7 +110,7 @@ class EditState {
     hasClip: hasClip ?? this.hasClip,
     draftClip: draftClip ?? this.draftClip,
     removeClip: removeClip ?? this.removeClip,
-    voiceRings: voiceRings ?? this.voiceRings,
+    readAloud: readAloud ?? this.readAloud,
     recording: recording ?? this.recording,
     recorded: recorded ?? this.recorded,
   );
@@ -123,7 +123,7 @@ class EditCubit extends Cubit<EditState> {
     Reminder? draft,
     bool draftClip = false,
     int? defaultNagMin,
-    bool voiceRingsDefault = true,
+    bool readAloudDefault = true,
     DateTime? now,
     this.media,
     this.voice,
@@ -135,7 +135,7 @@ class EditCubit extends Cubit<EditState> {
                  dueAt: _nextHour(now ?? DateTime.now()),
                  repeat: RepeatRule.none,
                  nagMin: defaultNagMin,
-                 voiceRings: voiceRingsDefault,
+                 readAloud: readAloudDefault,
                )
              : EditState(
                  title: existing.title,
@@ -147,9 +147,9 @@ class EditCubit extends Cubit<EditState> {
                  nagMin: existing.nagMin,
                  existing: existing,
                  hasClip: existing.hasVoice,
-                 voiceRings: existing.hasVoice
-                     ? existing.voiceRings
-                     : voiceRingsDefault,
+                 readAloud: existing.hasVoice
+                     ? existing.readAloud
+                     : readAloudDefault,
                ),
        );
 
@@ -218,7 +218,7 @@ class EditCubit extends Cubit<EditState> {
     );
   }
 
-  void setVoiceRings(bool value) => emit(state.copyWith(voiceRings: value));
+  void setReadAloud(bool value) => emit(state.copyWith(readAloud: value));
 
   @override
   Future<void> close() async {
@@ -302,9 +302,7 @@ class EditCubit extends Cubit<EditState> {
       await m.deleteVoice(reminder.id);
       reminder = reminder.copyWith(hasVoice: false);
     }
-    reminder = reminder.copyWith(
-      voiceRings: reminder.hasVoice && state.voiceRings,
-    );
+    reminder = reminder.copyWith(readAloud: state.readAloud);
     _saved = true;
     try {
       await _save(reminder);

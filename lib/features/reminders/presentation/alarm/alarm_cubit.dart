@@ -33,8 +33,8 @@ class AlarmState {
 }
 
 /// The ringing screen. Platform work comes in as functions so the Cubit is
-/// testable: [ringingNatively] (Android's service is looping the sound),
-/// [stopRinging], [play] / [stop] for the clip.
+/// testable: [ringingNatively] (a native alarm is already sounding),
+/// [stopRinging], [speak] (the app's voice), [play] / [stop] for the note.
 class AlarmCubit extends Cubit<AlarmState> {
   AlarmCubit(
     this.id,
@@ -44,6 +44,7 @@ class AlarmCubit extends Cubit<AlarmState> {
     required this.stopRinging,
     required this.play,
     required this.stop,
+    required this.speak,
   }) : super(const AlarmState());
 
   final String id;
@@ -53,9 +54,10 @@ class AlarmCubit extends Cubit<AlarmState> {
   final Future<void> Function() stopRinging;
   final Future<void> Function(String id) play;
   final Future<void> Function() stop;
+  final Future<void> Function(Reminder reminder) speak;
 
-  /// Loads the reminder and plays its clip once — unless the native alarm is
-  /// already looping it, which would play it twice.
+  /// Loads the reminder and reads it aloud once — unless a native alarm is
+  /// already sounding, which would talk over it. The note plays on tap.
   Future<void> load() async {
     final reminder = await _repository.getById(id);
     if (isClosed) return;
@@ -64,7 +66,7 @@ class AlarmCubit extends Cubit<AlarmState> {
       return;
     }
     emit(AlarmState(reminder: reminder));
-    if (reminder.hasVoice && !await ringingNatively(id)) await togglePlay();
+    if (reminder.readAloud && !await ringingNatively(id)) await speak(reminder);
   }
 
   Future<void> togglePlay() async {

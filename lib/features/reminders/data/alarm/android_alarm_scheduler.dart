@@ -2,45 +2,49 @@ import '../../domain/alarm/alarm_ids.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
+import '../spoken_reminder.dart';
 import 'native_alarm.dart';
 
 /// Android: AlarmManager exact alarms and a ringing foreground service, in
 /// Kotlin. Dart computes the fires; native stores them, re-arms repeats as
 /// they ring and re-arms everything after a reboot.
 class AndroidAlarmScheduler implements AlarmScheduler {
-  AndroidAlarmScheduler(this._native, {required this.voicePath});
+  AndroidAlarmScheduler(this._native, this._spoken);
 
   final NativeAlarm _native;
+  final SpokenReminder _spoken;
 
-  /// Absolute path of a reminder's clip, used when it rings with the voice.
-  final String Function(String reminderId) voicePath;
-
-  List<Map<String, Object?>> _entries(Reminder r, DateTime now) => [
-    for (final fire in firesFor(r, now: now))
-      {
-        'id': fire.id,
-        'at': fire.at.millisecondsSinceEpoch,
-        'repeat': fire.repeat.name,
-        'kind': fire.kind.name,
-        'group': fire.group,
-        'reminderId': r.id,
-        'title': r.title,
-        'body': r.note ?? '',
-        'sound': r.hasVoice && r.voiceRings ? voicePath(r.id) : null,
-        'snoozeId': AlarmIds.snooze(r.id),
-      },
-  ];
+  /// The reminder read aloud is rendered first, so the alarm can play it
+  /// with the app closed.
+  Future<List<Map<String, Object?>>> _entries(Reminder r, DateTime now) async {
+    final speech = await _spoken.soundFor(r);
+    return [
+      for (final fire in firesFor(r, now: now))
+        {
+          'id': fire.id,
+          'at': fire.at.millisecondsSinceEpoch,
+          'repeat': fire.repeat.name,
+          'kind': fire.kind.name,
+          'group': fire.group,
+          'reminderId': r.id,
+          'title': r.title,
+          'body': r.note ?? '',
+          'speech': speech,
+          'snoozeId': AlarmIds.snooze(r.id),
+        },
+    ];
+  }
 
   @override
-  Future<void> schedule(Reminder reminder) =>
-      _native.schedule(reminder.id, _entries(reminder, DateTime.now()));
+  Future<void> schedule(Reminder reminder) async =>
+      _native.schedule(reminder.id, await _entries(reminder, DateTime.now()));
 
   @override
   Future<void> cancel(String reminderId) => _native.cancel(reminderId);
 
   @override
-  Future<void> syncAll(List<Reminder> live) {
+  Future<void> syncAll(List<Reminder> live) async {
     final now = DateTime.now();
-    return _native.replaceAll([for (final r in live) ..._entries(r, now)]);
+    await _native.replaceAll([for (final r in live) ...await _entries(r, now)]);
   }
 }
