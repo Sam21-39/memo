@@ -52,7 +52,8 @@ Future<void> configureDependencies() async {
   final notifications = LocalNotificationScheduler(
     FlutterLocalNotificationsPlugin(),
     snoozeEnabled: flags.snooze,
-    soundFor: (r) => r.hasVoice && r.voiceRings ? '${r.id}.wav' : null,
+    soundFor: (r) =>
+        r.hasVoice && r.voiceRings ? '${r.id}.wav' : 'memo_ring.caf',
   );
   await notifications.initialize(onBackground: onBackgroundNotification);
   final AlarmScheduler scheduler = Platform.isAndroid

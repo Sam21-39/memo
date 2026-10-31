@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -21,7 +20,7 @@ import java.io.File
 
 /**
  * Rings like an alarm: a full-screen-intent notification over the lock
- * screen and the voice clip (or the default alarm sound) looping on the alarm
+ * screen and the voice clip (or the Memō ring) looping on the alarm
  * stream until Done, Snooze or two minutes pass. Done and Snooze tapped here
  * are queued for Dart; a snooze also arms its one-off so it rings even if the
  * app is never opened.
@@ -72,7 +71,7 @@ class AlarmService : Service() {
             setDataSource(
                 this@AlarmService,
                 sound?.let { Uri.fromFile(File(it)) }
-                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
+                    ?: Uri.parse("android.resource://$packageName/${R.raw.memo_ring}"),
             )
             isLooping = true
             prepare()
