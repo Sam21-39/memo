@@ -33,7 +33,7 @@ class MemoApp extends StatelessWidget {
         snoozeEnabled: sl<FeatureFlags>().snooze,
       )..load(),
       child: MaterialApp(
-        title: 'memo',
+        title: 'Memō',
         navigatorKey: navigatorKey,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
