@@ -27,5 +27,11 @@ import flutter_local_notifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "SttPlugin") {
       SttPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "TtsPlugin") {
+      TtsPlugin.register(with: registrar)
+    }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlarmKitPlugin") {
+      AlarmKitPlugin.register(with: registrar)
+    }
   }
 }
