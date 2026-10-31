@@ -253,19 +253,7 @@ class _SoundCard extends StatelessWidget {
     String secs(Duration d) => '0:${d.inSeconds.toString().padLeft(2, '0')}';
 
     final Widget row;
-    if (state.recording) {
-      row = Row(
-        children: [
-          Text(
-            '● ${secs(state.recorded)}',
-            style: mono.copyWith(color: c.accent),
-          ),
-          Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
-          const Spacer(),
-          Text('Release to stop', style: mono),
-        ],
-      );
-    } else if (state.hasClip) {
+    if (state.hasClip && !state.recording) {
       final path = cubit.clipPath!;
       row = Row(
         children: [
@@ -305,10 +293,27 @@ class _SoundCard extends StatelessWidget {
         ],
       );
     } else {
+      // One row for idle and recording, the mic in the same slot: rebuilding
+      // it mid-hold would lose the release and the clip would run to 30 s.
       row = Row(
         children: [
-          Expanded(child: Text('Hold to record a voice note', style: mono)),
-          _HoldToRecord(cubit: cubit),
+          Expanded(
+            child: state.recording
+                ? Row(
+                    children: [
+                      Text(
+                        '● ${secs(state.recorded)}',
+                        style: mono.copyWith(color: c.accent),
+                      ),
+                      Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
+                      const Spacer(),
+                      Text('Release to stop', style: mono),
+                    ],
+                  )
+                : Text('Hold to record a voice note', style: mono),
+          ),
+          const SizedBox(width: MemoSpace.space3),
+          _HoldToRecord(cubit: cubit, active: state.recording),
         ],
       );
     }
@@ -327,9 +332,12 @@ class _SoundCard extends StatelessWidget {
 }
 
 class _HoldToRecord extends StatelessWidget {
-  const _HoldToRecord({required this.cubit});
+  const _HoldToRecord({required this.cubit, this.active = false});
 
   final EditCubit cubit;
+
+  /// Recording: the button grows so the hold reads as live.
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -346,10 +354,15 @@ class _HoldToRecord extends StatelessWidget {
         },
         onPointerUp: (_) => cubit.stopRecording(),
         onPointerCancel: (_) => cubit.stopRecording(),
-        child: Container(
+        child: AnimatedContainer(
+          duration: MemoMotion.fast,
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
-          decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: active ? c.accentPressed : c.accent,
+            shape: BoxShape.circle,
+            border: active ? Border.all(color: c.accentSoft, width: 4) : null,
+          ),
           child: Icon(Icons.mic_none_rounded, color: c.onAccent, size: 20),
         ),
       ),

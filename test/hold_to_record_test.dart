@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_cubit.dart';
+import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
 
 import 'fakes.dart';
 
@@ -103,5 +106,38 @@ void main() {
     expect(voice.recording, isFalse);
     expect(cubit.state.recording, isFalse);
     expect(cubit.state.notice, contains('Hold the mic'));
+  });
+
+  testWidgets('releasing the real mic button stops the recording', (
+    tester,
+  ) async {
+    await setUpDi();
+    await tester.pumpWidget(
+      themed(
+        Scaffold(
+          body: BlocProvider.value(
+            value: cubit,
+            child: const EditForm(knownTags: []),
+          ),
+        ),
+      ),
+    );
+    final mic = find.byIcon(Icons.mic_none_rounded);
+    await tester.ensureVisible(mic);
+    await tester.pumpAndSettle();
+
+    final finger = await tester.startGesture(tester.getCenter(mic));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 1100)),
+    );
+    await tester.pump();
+    expect(cubit.state.recording, isTrue);
+    expect(mic, findsOneWidget, reason: 'the mic must stay under the finger');
+
+    await finger.up();
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    expect(cubit.state.recording, isFalse);
+    expect(cubit.state.hasClip, isTrue);
   });
 }
