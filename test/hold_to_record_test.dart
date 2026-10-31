@@ -13,9 +13,7 @@ import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
 import 'fakes.dart';
 
 class _FakeVoice implements VoiceClip {
-  _FakeVoice({this.allowed = true});
-
-  bool allowed;
+  bool allowed = true;
   bool asked = false;
   bool recording = false;
   bool cancelled = false;
