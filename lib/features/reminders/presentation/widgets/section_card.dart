@@ -1,40 +1,30 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/tokens.dart';
 
-/// Grouped rows on one surface, hairline-separated. No drop shadow —
-/// elevation is a hairline and a change of surface.
+/// Grouped rows on one surface: hairline border, hairline separators, no
+/// shadow. [tinted] is the overdue card's accent-soft ground.
 class SectionCard extends StatelessWidget {
-  const SectionCard({
-    super.key,
-    required this.children,
-    this.background,
-    this.borderColor,
-  });
+  const SectionCard({super.key, required this.children, this.tinted = false});
 
   final List<Widget> children;
-  final Color? background;
-  final Color? borderColor;
+  final bool tinted;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final c = MemoColors.of(context);
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: background ?? scheme.surface,
-        border: Border.all(color: borderColor ?? scheme.outline),
-        borderRadius: BorderRadius.circular(AppRadius.card),
+        // Tint over surface, so the card matches its (opaque) rows exactly.
+        color: tinted ? Color.alphaBlend(c.accentSoft, c.surface) : c.surface,
+        border: Border.all(color: c.hairline),
+        borderRadius: BorderRadius.circular(MemoRadius.card),
       ),
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: scheme.outline.withValues(alpha: 0.6),
-              ),
+            if (i > 0) Divider(color: c.hairline),
             children[i],
           ],
         ],

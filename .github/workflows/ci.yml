@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
 
 jobs:
@@ -17,7 +17,14 @@ jobs:
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
+      - run: dart run tool/gen_tokens.dart --check
+      - name: No colour literal outside tokens.dart
+        run: "! grep -rn 'Color(0x' lib | grep -v lib/core/theme/tokens.dart"
       - run: flutter test
+      - name: Repeat arithmetic across DST
+        run: |
+          TZ=Europe/London flutter test test/fire_plan_test.dart test/usecases_test.dart
+          TZ=America/New_York flutter test test/fire_plan_test.dart test/usecases_test.dart
 
   build-android:
     needs: analyze-test

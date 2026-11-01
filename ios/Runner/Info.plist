@@ -28,6 +28,14 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Memō rings your reminders as alarms, on the lock screen and through Focus.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Memō records the voice note you hold the mic for. It stays on this phone.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Memō turns your voice note into its title, on this phone. Nothing is sent anywhere.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

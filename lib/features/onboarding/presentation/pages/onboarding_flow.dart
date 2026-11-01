@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/di/injection.dart';
+import '../../../../core/di.dart';
+import '../../../../core/theme/tokens.dart';
 import '../../domain/onboarding_repository.dart';
 import '../cubit/onboarding_cubit.dart';
 import 'permission_primer_page.dart';
@@ -52,10 +53,11 @@ class _OnboardingPagesState extends State<_OnboardingPages> {
       physics: const NeverScrollableScrollPhysics(),
       children: [
         WelcomePage(
-          onGetStarted: () => _controller.nextPage(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOut,
+          onContinue: () => _controller.nextPage(
+            duration: MemoMotion.slow,
+            curve: MemoMotion.curve,
           ),
+          onSkip: cubit.skip,
         ),
         PermissionPrimerPage(
           onContinue: cubit.requestPermissionAndFinish,

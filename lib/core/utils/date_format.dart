@@ -32,17 +32,25 @@ String formatLongDate(DateTime date) =>
 bool isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
-/// "Today · Wed 26 Aug", "Tomorrow · Thu 27 Aug", else "Fri 28 Aug".
+/// "Today", "Tomorrow", "Yesterday", else "Tue 3 Nov".
 String dayHeaderLabel(DateTime day, DateTime now) {
-  final tomorrow = DateTime(now.year, now.month, now.day + 1);
-  if (isSameDay(day, now)) return 'Today · ${formatDate(day)}';
-  if (isSameDay(day, tomorrow)) return 'Tomorrow · ${formatDate(day)}';
+  if (isSameDay(day, now)) return 'Today';
+  if (isSameDay(day, DateTime(now.year, now.month, now.day + 1))) {
+    return 'Tomorrow';
+  }
+  if (isSameDay(day, DateTime(now.year, now.month, now.day - 1))) {
+    return 'Yesterday';
+  }
   return formatDate(day);
 }
 
-/// "2h late", "15m late", "3d late" — the overdue row's trailing phrase.
+/// "Today 20:00", "Tue 3 Nov 09:30".
+String formatWhen(DateTime at, DateTime now) =>
+    '${isSameDay(at, now) ? 'Today' : formatDate(at)} ${formatTime(at)}';
+
+/// "2h late", "12 min late", "3d late" — the overdue row's trailing phrase.
 String formatLateness(Duration late) {
   if (late.inDays >= 1) return '${late.inDays}d late';
   if (late.inHours >= 1) return '${late.inHours}h late';
-  return '${late.inMinutes.clamp(1, 59)}m late';
+  return '${late.inMinutes.clamp(1, 59)} min late';
 }

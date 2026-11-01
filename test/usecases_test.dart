@@ -6,18 +6,18 @@ import 'package:memo/features/reminders/domain/usecases/create_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/snooze_reminder.dart';
 
 Reminder _reminder({
-  DateTime? scheduledAt,
+  DateTime? dueAt,
   RepeatRule repeat = RepeatRule.none,
-  bool isDone = false,
+  DateTime? doneAt,
 }) {
-  final at = scheduledAt ?? DateTime(2026, 8, 26, 8, 30);
+  final at = dueAt ?? DateTime(2026, 8, 26, 8, 30);
   return Reminder(
     id: '1',
     title: 'Water the fig tree',
-    scheduledAt: at,
+    dueAt: at,
     createdAt: DateTime(2026, 8, 1),
     repeat: repeat,
-    isDone: isDone,
+    doneAt: doneAt,
   );
 }
 
@@ -28,7 +28,7 @@ void main() {
     test('trims the title and drops a blank note', () {
       final result = create(
         title: '  Renew passport  ',
-        scheduledAt: DateTime(2026, 8, 27, 9, 30),
+        dueAt: DateTime(2026, 8, 27, 9, 30),
         now: DateTime(2026, 8, 26, 12),
         note: '   ',
       );
@@ -48,20 +48,20 @@ void main() {
         now: now,
         by: const Duration(minutes: 10),
       );
-      expect(result.scheduledAt, DateTime(2026, 8, 26, 10, 10));
+      expect(result.dueAt, DateTime(2026, 8, 26, 10, 10));
     });
 
     test('tomorrow keeps the reminder own time of day', () {
       final result = snooze(
-        _reminder(scheduledAt: DateTime(2026, 8, 26, 8, 30)),
+        _reminder(dueAt: DateTime(2026, 8, 26, 8, 30)),
         now: DateTime(2026, 8, 26, 10),
       );
-      expect(result.scheduledAt, DateTime(2026, 8, 27, 8, 30));
+      expect(result.dueAt, DateTime(2026, 8, 27, 8, 30));
     });
 
     test('reopens a completed reminder', () {
       final result = snooze(
-        _reminder(isDone: true),
+        _reminder(doneAt: DateTime(2026, 8, 20)),
         now: DateTime(2026, 8, 26, 10),
         by: const Duration(hours: 1),
       );
@@ -83,20 +83,20 @@ void main() {
         now: DateTime(2026, 8, 26, 9),
       );
       expect(result.isDone, isFalse);
-      expect(result.scheduledAt, DateTime(2026, 8, 27, 8, 30));
+      expect(result.dueAt, DateTime(2026, 8, 27, 8, 30));
     });
 
     test('a stale repeat rolls forward past now, not just one step', () {
       // Scheduled three days ago; completing it today must land in the future.
       final result = complete(
         _reminder(
-          scheduledAt: DateTime(2026, 8, 23, 8, 30),
+          dueAt: DateTime(2026, 8, 23, 8, 30),
           repeat: RepeatRule.daily,
         ),
         now: DateTime(2026, 8, 26, 9),
       );
-      expect(result.scheduledAt.isAfter(DateTime(2026, 8, 26, 9)), isTrue);
-      expect(result.scheduledAt, DateTime(2026, 8, 27, 8, 30));
+      expect(result.dueAt.isAfter(DateTime(2026, 8, 26, 9)), isTrue);
+      expect(result.dueAt, DateTime(2026, 8, 27, 8, 30));
     });
   });
 
