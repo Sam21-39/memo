@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../l10n/strings.dart';
 
 /// Swipe right → complete. Swipe left → reveal snooze (optional) + delete.
 /// memo Design System · "Swipe actions". Pass [onSnooze] null when the
@@ -77,12 +78,13 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
     return Semantics(
       customSemanticsActions: {
         if (widget.onComplete != null)
-          const CustomSemanticsAction(label: 'Mark done'): widget.onComplete!,
+          const CustomSemanticsAction(label: S.commonMarkDone):
+              widget.onComplete!,
         if (widget.onSnooze != null)
-          const CustomSemanticsAction(label: 'Snooze 10 minutes'):
+          const CustomSemanticsAction(label: S.commonSnoozeTenMinutes):
               widget.onSnooze!,
         if (widget.onDelete != null)
-          const CustomSemanticsAction(label: 'Delete'): widget.onDelete!,
+          const CustomSemanticsAction(label: S.commonDelete): widget.onDelete!,
       },
       child: GestureDetector(
         onHorizontalDragUpdate: (details) {
@@ -139,14 +141,14 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
                     if (widget.onSnooze != null)
                       _ActionButton(
                         color: c.ink6,
-                        label: '10m',
+                        label: S.snoozeTenMinutes,
                         labelColor: c.ink,
                         onTap: widget.onSnooze,
                       ),
                     if (widget.onDelete != null)
                       _ActionButton(
                         color: c.destructive,
-                        label: 'Del',
+                        label: S.commonDeleteShort,
                         labelColor: c.onAccent,
                         onTap: widget.onDelete,
                       ),

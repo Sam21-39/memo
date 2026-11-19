@@ -10,7 +10,7 @@ import '../../domain/entities/repeat_rule.dart';
 import '../../domain/usecases/create_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
-import '../home/home_cubit.dart' show scheduleFailedMessage;
+import '../../../../l10n/strings.dart';
 
 enum EditStatus { editing, saving, saved }
 
@@ -67,11 +67,15 @@ class EditState {
   bool get canSave =>
       (title.trim().isNotEmpty || hasClip) &&
       !recording &&
-      status == EditStatus.editing;
+      status == EditStatus.editing &&
+      !pastBlocked(DateTime.now());
 
   /// A repeat rolls forward, so only a one-off can sit in the past — and it
-  /// would never ring.
+  /// would never ring. An unchanged old one-off may still be saved.
   bool isPastOneOff(DateTime now) => !repeat.repeats && dueAt.isBefore(now);
+
+  bool pastBlocked(DateTime now) =>
+      isPastOneOff(now) && (existing == null || dueAt != existing!.dueAt);
 
   EditState copyWith({
     String? title,
@@ -127,15 +131,19 @@ class EditCubit extends Cubit<EditState> {
     DateTime? now,
     this.media,
     this.voice,
-  }) : super(
+  }) : _inheritedDraft = draftClip,
+       super(
          existing == null
              ? EditState(
-                 title: '',
-                 note: '',
-                 dueAt: _nextHour(now ?? DateTime.now()),
-                 repeat: RepeatRule.none,
-                 nagMin: defaultNagMin,
-                 readAloud: readAloudDefault,
+                 title: draft?.title ?? '',
+                 note: draft?.note ?? '',
+                 dueAt: draft?.dueAt ?? _nextHour(now ?? DateTime.now()),
+                 repeat: draft?.repeat ?? RepeatRule.none,
+                 tag: draft?.tag,
+                 nagMin: draft == null ? defaultNagMin : draft.nagMin,
+                 readAloud: draft?.readAloud ?? readAloudDefault,
+                 hasClip: draftClip,
+                 draftClip: draftClip,
                )
              : EditState(
                  title: existing.title,
@@ -159,6 +167,9 @@ class EditCubit extends Cubit<EditState> {
   final MediaStore? media;
   final VoiceClip? voice;
   bool _saved = false;
+
+  /// The clip came from the capture bar; its draft is that bar's to clean up.
+  final bool _inheritedDraft;
 
   /// Where the clip shown in the sheet lives right now.
   String? get clipPath {
@@ -223,7 +234,7 @@ class EditCubit extends Cubit<EditState> {
   @override
   Future<void> close() async {
     await _hold?.dispose();
-    if (!_saved) await media?.discardDraft();
+    if (!_saved && !_inheritedDraft) await media?.discardDraft();
     return super.close();
   }
 
@@ -265,7 +276,7 @@ class EditCubit extends Cubit<EditState> {
     final existing = state.existing;
     final title = state.title.trim().isNotEmpty
         ? state.title
-        : 'Voice note · ${MediaStore.clipLength(clipPath ?? '')}';
+        : S.voiceNoteTitle(MediaStore.clipLength(clipPath ?? ''));
     var reminder =
         existing?.copyWith(
           title: title.trim(),
@@ -293,25 +304,38 @@ class EditCubit extends Cubit<EditState> {
           tag: state.tag,
           nagMin: state.nagMin,
         ).copyWith(preAlarmMin: state.preAlarmMin);
-    // Media first, so the scheduler sees the clip it should ring.
-    final m = media;
-    if (m != null && state.draftClip) {
-      await m.commitVoice(reminder.id);
-      reminder = reminder.copyWith(hasVoice: true);
-    } else if (m != null && state.removeClip) {
-      await m.deleteVoice(reminder.id);
-      reminder = reminder.copyWith(hasVoice: false);
-    }
-    reminder = reminder.copyWith(readAloud: state.readAloud);
-    _saved = true;
+    var committed = false;
     try {
+      // Media first, so the scheduler sees the clip it should ring.
+      final m = media;
+      if (m != null && state.draftClip) {
+        committed = await m.commitVoice(reminder.id);
+        reminder = reminder.copyWith(hasVoice: committed);
+      } else if (m != null && state.removeClip) {
+        // The file goes only after the row is saved.
+        reminder = reminder.copyWith(hasVoice: false);
+      }
+      reminder = reminder.copyWith(readAloud: state.readAloud);
+      _saved = true;
       await _save(reminder);
+      await media?.dropBackup(reminder.id);
+      if (state.removeClip && !state.draftClip) {
+        await media?.deleteVoice(reminder.id);
+      }
       emit(state.copyWith(status: EditStatus.saved));
     } on ScheduleFailure {
       // The row is saved and flagged for retry; say so, then close.
-      emit(
-        state.copyWith(status: EditStatus.saved, error: scheduleFailedMessage),
-      );
+      await media?.dropBackup(reminder.id);
+      if (state.removeClip && !state.draftClip) {
+        await media?.deleteVoice(reminder.id);
+      }
+      emit(state.copyWith(status: EditStatus.saved, error: S.scheduleFailed));
+    } catch (_) {
+      if (committed) await media!.uncommitVoice(reminder.id);
+      _saved = false;
+      if (!isClosed) {
+        emit(state.copyWith(status: EditStatus.editing, error: S.saveFailed));
+      }
     }
   }
 }

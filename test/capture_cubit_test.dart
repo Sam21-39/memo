@@ -133,11 +133,63 @@ void main() {
     expect(repo.all.single.hasVoice, isTrue);
   });
 
+  test('a voice-only clip saves even as the clock moves on', () async {
+    var t = now;
+    final cubit = CaptureCubit(
+      SaveReminder(repo, scheduler),
+      media: media,
+      voice: _Voice(),
+      stt: _Stt(''),
+      knownTags: () => const [],
+      clock: () => t = t.add(const Duration(seconds: 1)),
+    );
+    await cubit.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    await cubit.stopRecording();
+    await pumpEventQueue();
+    await cubit.save();
+    expect(cubit.state.error, isNull);
+    expect(repo.all.single.dueAt.minute, 0);
+    expect(repo.all.single.dueAt.isAfter(now), isTrue);
+  });
+
   test('a schedule failure is shown, the row kept for retry', () async {
     scheduler.fail = true;
     final cubit = build()..setText('Bins at 7pm');
     await cubit.save();
     expect(cubit.state.error, isNotNull);
     expect(repo.all.single.needsSchedule, isTrue);
+  });
+
+  test('a draft that vanished after More saves without a clip', () async {
+    final cubit = build(transcript: 'Bins at 7pm');
+    await cubit.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    await cubit.stopRecording();
+    await pumpEventQueue();
+    File(media.draftVoicePath).deleteSync();
+    await cubit.save();
+    expect(repo.all.single.hasVoice, isFalse);
+  });
+
+  test('Settings defaults apply to the next capture without restart', () async {
+    int? nag = 10;
+    var aloud = true;
+    final cubit = CaptureCubit(
+      SaveReminder(repo, scheduler),
+      media: media,
+      voice: _Voice(),
+      stt: _Stt(''),
+      knownTags: () => const [],
+      clock: () => now,
+      defaultNagMin: () => nag,
+      readAloudDefault: () => aloud,
+    );
+    nag = null;
+    aloud = false;
+    cubit.setText('Bins at 7pm');
+    await cubit.save();
+    expect(repo.all.single.nagMin, isNull);
+    expect(repo.all.single.readAloud, isFalse);
   });
 }

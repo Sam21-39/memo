@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../../l10n/strings.dart';
 
 /// The logo ring, spinning: ink-45 ring with an accent arc. 22 inline, 44 on
 /// an empty screen. Paired with one mono word ("Listening", "Saving").
@@ -44,7 +45,7 @@ class _MemoLoaderState extends State<MemoLoader>
     );
     final label = widget.label;
     return Semantics(
-      label: label ?? 'Working',
+      label: label ?? S.commonWorking,
       liveRegion: true,
       child: label == null
           ? ring

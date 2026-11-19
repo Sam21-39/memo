@@ -23,6 +23,7 @@ import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
 import '../widgets/weekday_selector.dart';
 import 'edit_cubit.dart';
+import '../../../../l10n/strings.dart';
 
 /// Artboard Edit-Reminder: create or edit in a sheet over Home or Detail.
 /// Saves (write + schedule) itself; a schedule failure is shown, then the
@@ -108,11 +109,11 @@ class _EditFormState extends State<EditForm> {
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(foregroundColor: c.ink),
-                  child: const Text('Cancel'),
+                  child: const Text(S.commonCancel),
                 ),
                 Expanded(
                   child: Text(
-                    isNew ? 'New reminder' : 'Edit reminder',
+                    isNew ? S.editNew : S.editExisting,
                     textAlign: TextAlign.center,
                     style: MemoType.bodyLarge.copyWith(
                       color: c.ink,
@@ -122,7 +123,7 @@ class _EditFormState extends State<EditForm> {
                 ),
                 TextButton(
                   onPressed: state.canSave ? cubit.save : null,
-                  child: const Text('Save'),
+                  child: const Text(S.commonSave),
                 ),
               ],
             ),
@@ -137,9 +138,7 @@ class _EditFormState extends State<EditForm> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: cubit.setTitle,
                     style: MemoType.bodyLarge.copyWith(color: c.ink),
-                    decoration: const InputDecoration(
-                      hintText: 'Remind me to…',
-                    ),
+                    decoration: const InputDecoration(hintText: S.reminderHint),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -148,14 +147,14 @@ class _EditFormState extends State<EditForm> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: cubit.setNote,
                     style: MemoType.body.copyWith(color: c.ink),
-                    decoration: const InputDecoration(hintText: 'Add a note'),
+                    decoration: const InputDecoration(hintText: S.editNoteHint),
                   ),
                   const SizedBox(height: MemoSpace.space6),
-                  const DaySectionHeader(label: 'When'),
+                  const DaySectionHeader(label: S.fieldWhen),
                   SectionCard(
                     children: [
                       KeyValueRow(
-                        label: 'Time',
+                        label: S.fieldTime,
                         onTap: () async {
                           final t = await pickTime(context, state.dueAt);
                           if (t != null) cubit.setDueAt(t);
@@ -163,7 +162,7 @@ class _EditFormState extends State<EditForm> {
                         child: PillValue(formatTime(state.dueAt), active: true),
                       ),
                       KeyValueRow(
-                        label: 'Date',
+                        label: S.fieldDate,
                         onTap: () async {
                           final d = await pickDate(context, state.dueAt);
                           if (d != null) cubit.setDueAt(d);
@@ -174,12 +173,12 @@ class _EditFormState extends State<EditForm> {
                       ),
                       if (flags.preAlarm)
                         KeyValueRow(
-                          label: 'Pre-alarm',
+                          label: S.fieldPreAlarm,
                           onTap: () async {
                             final m = await showMinutesSheet(
                               context,
-                              title: 'Pre-alarm',
-                              body: 'An early heads-up before it rings.',
+                              title: S.fieldPreAlarm,
+                              body: S.editPreAlarmBody,
                               presets: const [5, 15, 30, 60],
                               current: state.preAlarmMin,
                               label: preAlarmLabel,
@@ -188,20 +187,18 @@ class _EditFormState extends State<EditForm> {
                           },
                           child: PillValue(
                             state.preAlarmMin == null
-                                ? 'Off'
+                                ? S.commonOff
                                 : preAlarmLabel(state.preAlarmMin!),
                           ),
                         ),
                       if (flags.nag)
                         KeyValueRow(
-                          label: 'Nag until done',
+                          label: S.editNagTitle,
                           onTap: () async {
                             final m = await showMinutesSheet(
                               context,
-                              title: 'Nag until done',
-                              body:
-                                  'Rings again up to 6 times, until you '
-                                  'mark it done.',
+                              title: S.editNagTitle,
+                              body: S.editNagBody,
                               presets: const [5, 10, 30],
                               current: state.nagMin,
                               label: nagLabel,
@@ -210,29 +207,28 @@ class _EditFormState extends State<EditForm> {
                           },
                           child: PillValue(
                             state.nagMin == null
-                                ? 'Off'
+                                ? S.commonOff
                                 : nagLabel(state.nagMin!),
                           ),
                         ),
                     ],
                   ),
-                  if (state.isPastOneOff(DateTime.now()))
+                  if (state.pastBlocked(DateTime.now()))
                     Padding(
                       padding: const EdgeInsets.only(top: MemoSpace.space2),
                       child: Text(
-                        'That time has passed. It will show as overdue and '
-                        'will not ring.',
+                        S.timePassed,
                         style: MemoType.body.copyWith(color: c.destructive),
                       ),
                     ),
                   if (flags.repeatReminders) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Repeat'),
+                    const DaySectionHeader(label: S.fieldRepeat),
                     _RepeatPicker(state: state),
                   ],
                   if (flags.tags) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Tag'),
+                    const DaySectionHeader(label: S.fieldTag),
                     _TagPicker(
                       knownTags: widget.knownTags,
                       selected: state.tag,
@@ -241,7 +237,7 @@ class _EditFormState extends State<EditForm> {
                   ],
                   if (cubit.media != null && cubit.voice != null) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Sound'),
+                    const DaySectionHeader(label: S.editSound),
                     _SoundCard(state: state),
                   ],
                   if (state.notice != null &&
@@ -291,7 +287,7 @@ class _SoundCard extends StatelessWidget {
       row = Row(
         children: [
           IconButton(
-            tooltip: 'Play voice note',
+            tooltip: S.voicePlay,
             onPressed: () => sl<VoiceClip>().play(path),
             style: IconButton.styleFrom(
               fixedSize: const Size.square(36),
@@ -301,13 +297,10 @@ class _SoundCard extends StatelessWidget {
           ),
           const SizedBox(width: MemoSpace.space3),
           Expanded(
-            child: Text(
-              '${MediaStore.clipLength(path)} · your note',
-              style: mono,
-            ),
+            child: Text(S.clipNote(MediaStore.clipLength(path)), style: mono),
           ),
           IconButton(
-            tooltip: 'Delete voice note',
+            tooltip: S.voiceDelete,
             onPressed: cubit.deleteClip,
             icon: Icon(Icons.close_rounded, color: c.ink45, size: 18),
           ),
@@ -323,14 +316,17 @@ class _SoundCard extends StatelessWidget {
                 ? Row(
                     children: [
                       Text(
-                        '● ${secs(state.recorded)}',
+                        S.captureElapsed(secs(state.recorded)),
                         style: mono.copyWith(color: c.accent),
                       ),
-                      Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
+                      Text(
+                        S.editRecordingMax(secs(VoiceClip.maxLength)),
+                        style: mono,
+                      ),
                       const SizedBox(width: MemoSpace.space3),
                       Expanded(
                         child: Text(
-                          'Release to stop',
+                          S.editReleaseToStop,
                           textAlign: TextAlign.end,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -339,7 +335,7 @@ class _SoundCard extends StatelessWidget {
                       ),
                     ],
                   )
-                : Text('Hold to record a voice note', style: mono),
+                : Text(S.editHoldToRecordNote, style: mono),
           ),
           const SizedBox(width: MemoSpace.space3),
           _HoldToRecord(cubit: cubit, active: state.recording),
@@ -349,10 +345,10 @@ class _SoundCard extends StatelessWidget {
     return SectionCard(
       children: [
         KeyValueRow(
-          label: 'Read aloud when it rings',
+          label: S.editReadAloudWhenRings,
           onTap: () => cubit.setReadAloud(!state.readAloud),
           child: PillValue(
-            state.readAloud ? 'On' : 'Off',
+            state.readAloud ? S.commonOn : S.commonOff,
             active: state.readAloud,
           ),
         ),
@@ -383,7 +379,7 @@ class _HoldToRecord extends StatelessWidget {
     // sheet's scrolling can cancel it mid-hold. Down records, up stops.
     return Semantics(
       button: true,
-      label: 'Hold to record',
+      label: S.captureHoldToRecord,
       child: Listener(
         onPointerDown: (_) {
           HapticFeedback.selectionClick();
@@ -501,7 +497,11 @@ class _TagPicker extends StatelessWidget {
             // Tapping the selected tag clears it: one flat tag, optional.
             onTap: () => onChanged(tag == selected ? null : tag),
           ),
-        TagChip(label: '+ New', dashed: true, onTap: () => _addTag(context)),
+        TagChip(
+          label: S.editNewTagChip,
+          dashed: true,
+          onTap: () => _addTag(context),
+        ),
       ],
     );
   }
@@ -529,20 +529,20 @@ class _NewTagDialogState extends State<_NewTagDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('New tag'),
+      title: const Text(S.editNewTagTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(hintText: 'Home, Work, Health…'),
+        decoration: const InputDecoration(hintText: S.editTagHint),
         onSubmitted: (_) => _submit(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(S.commonCancel),
         ),
-        TextButton(onPressed: _submit, child: const Text('Add')),
+        TextButton(onPressed: _submit, child: const Text(S.commonAdd)),
       ],
     );
   }

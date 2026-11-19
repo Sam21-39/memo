@@ -189,7 +189,7 @@ ParsedReminder parseReminder(
   if (take(
         RegExp(
           r'\bin\s+(an?|\d+(?:\.\d+)?|half\s+an?)\s*'
-          r'(minutes?|mins?|m|hours?|hrs?|h|days?|weeks?)\b',
+          r'(minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|months?|mos?|years?|yrs?|y)\b',
         ),
       )
       case final m?) {
@@ -200,31 +200,38 @@ ParsedReminder parseReminder(
         ? 1.0
         : double.parse(qty);
     final unit = m.group(2)!;
-    exact = switch (unit[0]) {
-      'm' => now.add(Duration(minutes: amount.round())),
-      'h' => now.add(Duration(minutes: (amount * 60).round())),
-      'd' => DateTime(
-        now.year,
-        now.month,
-        now.day + amount.round(),
-        now.hour,
-        now.minute,
-      ),
-      _ => DateTime(
-        now.year,
-        now.month,
-        now.day + 7 * amount.round(),
-        now.hour,
-        now.minute,
-      ),
-    };
+    final n = amount.round();
+    exact = unit.startsWith('mo')
+        ? _addMonths(now, n)
+        : unit.startsWith('y')
+        ? _addMonths(now, 12 * n)
+        : switch (unit[0]) {
+            'm' => now.add(Duration(minutes: n)),
+            'h' => now.add(Duration(minutes: (amount * 60).round())),
+            'd' => DateTime(
+              now.year,
+              now.month,
+              now.day + n,
+              now.hour,
+              now.minute,
+            ),
+            _ => DateTime(
+              now.year,
+              now.month,
+              now.day + 7 * n,
+              now.hour,
+              now.minute,
+            ),
+          };
     timeSpans.add(spanOf(m));
   }
 
   // ── Date ────────────────────────────────────────────────────────────────
   DateTime? day;
+  var fromWeekday = false;
   final today = DateTime(now.year, now.month, now.day);
   if (exact == null) {
+    final beforeDate = work;
     if (take(RegExp(r'\b(?:day\s+after\s+tomorrow)\b')) case final m?) {
       day = DateTime(now.year, now.month, now.day + 2);
       timeSpans.add(spanOf(m));
@@ -235,40 +242,79 @@ ParsedReminder parseReminder(
       day = today;
       timeSpans.add(spanOf(m));
     } else if (take(
-          RegExp(r'\b(\d{1,2})(?:st|nd|rd|th)?\s+(' + _monthAlt + r')\b'),
+          RegExp(
+            r'\b(\d{1,2})(?:st|nd|rd|th)?\s+(' +
+                _monthAlt +
+                r')(?:\s+(\d{4}))?\b',
+          ),
         )
         case final m?) {
-      day = _futureDate(int.parse(m.group(1)!), _months[m.group(2)]!, today);
-      timeSpans.add(spanOf(m));
+      final mo = _months[m.group(2)]!;
+      final d = int.parse(m.group(1)!);
+      day = m.group(3) == null
+          ? _futureDate(d, mo, today)
+          : _explicitDate(int.parse(m.group(3)!), mo, d);
+      if (day == null) {
+        work = beforeDate;
+      } else {
+        timeSpans.add(spanOf(m));
+      }
     } else if (take(
-          RegExp(r'\b(' + _monthAlt + r')\s+(\d{1,2})(?:st|nd|rd|th)?\b'),
+          RegExp(
+            r'\b(' +
+                _monthAlt +
+                r')\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?\b',
+          ),
         )
         case final m?) {
-      day = _futureDate(int.parse(m.group(2)!), _months[m.group(1)]!, today);
-      timeSpans.add(spanOf(m));
+      final mo = _months[m.group(1)]!;
+      final d = int.parse(m.group(2)!);
+      day = m.group(3) == null
+          ? _futureDate(d, mo, today)
+          : _explicitDate(int.parse(m.group(3)!), mo, d);
+      if (day == null) {
+        work = beforeDate;
+      } else {
+        timeSpans.add(spanOf(m));
+      }
     } else if (take(RegExp(r'\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b'))
         case final m?) {
       // Day first: the owner's locale (India, UK) writes 03/11 for 3 Nov.
       final d = int.parse(m.group(1)!), mo = int.parse(m.group(2)!);
+      final y = m.group(3);
       if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
-        final y = m.group(3);
         day = y == null
             ? _futureDate(d, mo, today)
-            : DateTime(
+            : _explicitDate(
                 y.length == 2 ? 2000 + int.parse(y) : int.parse(y),
                 mo,
                 d,
               );
+      }
+      if (day == null) {
+        work = beforeDate;
+      } else {
         timeSpans.add(spanOf(m));
       }
-    } else if (repeat.type == RepeatType.none) {
-      // "on friday", "next fri", "friday" — only when it is not a repeat.
+    } else if (take(RegExp(r'\b(?:on\s+)?the\s+(\d{1,2})(?:st|nd|rd|th)\b'))
+        case final m?) {
+      day = _nextOrdinal(int.parse(m.group(1)!), today);
+      if (day == null) {
+        work = beforeDate;
+      } else {
+        timeSpans.add(spanOf(m));
+      }
+    }
+    // "on friday", "next fri", "friday" — only when it is not a repeat, and
+    // no date was taken (a rejected "31/04 friday" still reads friday).
+    if (day == null && repeat.type == RepeatType.none) {
       if (take(RegExp(r'\b(?:on\s+|next\s+|this\s+)?(' + _dayAlt + r')\b'))
           case final m?) {
         final target = _weekdays[m.group(1)]!;
         var ahead = (target - now.weekday) % 7;
         if (m.group(0)!.startsWith('next') && ahead == 0) ahead = 7;
         day = DateTime(now.year, now.month, now.day + ahead);
+        fromWeekday = true;
         timeSpans.add(spanOf(m));
       }
     }
@@ -367,12 +413,22 @@ ParsedReminder parseReminder(
   } else if (day != null) {
     // A date with no time: 09:00, shown as a guess.
     due = DateTime(day.year, day.month, day.day, 9);
+    if (!fromWeekday && !due.isAfter(now)) {
+      // Today, and 09:00 already passed: the same guess as no date at all.
+      final soon = now.add(const Duration(minutes: 30));
+      due = DateTime(soon.year, soon.month, soon.day, soon.hour + 1);
+    }
     guessed = true;
   } else {
     // Nothing: the next whole hour at least 30 min away, shown as a guess.
     final soon = now.add(const Duration(minutes: 30));
     due = DateTime(soon.year, soon.month, soon.day, soon.hour + 1);
     guessed = true;
+  }
+
+  // "friday" said on a Friday after the time means next Friday.
+  if (fromWeekday && !due.isAfter(now)) {
+    due = DateTime(due.year, due.month, due.day + 7, due.hour, due.minute);
   }
 
   // A weekly rule with no date starts on its first picked day.
@@ -404,10 +460,41 @@ String? _matchTag(String word, List<String> knownTags) {
   return null;
 }
 
-/// The next [d]/[mo] that is today or later.
-DateTime _futureDate(int d, int mo, DateTime today) {
-  final thisYear = DateTime(today.year, mo, d);
-  return thisYear.isBefore(today) ? DateTime(today.year + 1, mo, d) : thisYear;
+bool _valid(int y, int m, int d) {
+  final t = DateTime(y, m, d);
+  return t.month == m && t.day == d;
+}
+
+/// The next [d]/[mo] that is today or later; null when none exists within
+/// four years (29 Feb 2027 has no 29th, so 29 Feb rolls to 2028).
+DateTime? _futureDate(int d, int mo, DateTime today) {
+  for (var y = today.year; y <= today.year + 4; y++) {
+    if (!_valid(y, mo, d)) continue;
+    final t = DateTime(y, mo, d);
+    if (!t.isBefore(today)) return t;
+  }
+  return null;
+}
+
+/// A date with its year given: null when the day does not exist (29 Feb 2027).
+DateTime? _explicitDate(int y, int mo, int d) =>
+    _valid(y, mo, d) ? DateTime(y, mo, d) : null;
+
+/// The next [n]th of a month that is today or later; null for a day no
+/// month has (the 31st of a 30-day month is skipped, not rolled).
+DateTime? _nextOrdinal(int n, DateTime today) {
+  for (var i = 0; i <= 12; i++) {
+    final t = DateTime(today.year, today.month + i, n);
+    if (t.day == n && !t.isBefore(today)) return t;
+  }
+  return null;
+}
+
+/// Same wall-clock time, [n] months on; the day clamps to the month's end.
+DateTime _addMonths(DateTime t, int n) {
+  final month = t.month + n;
+  final lastDay = DateTime(t.year, month + 1, 0).day;
+  return DateTime(t.year, month, t.day.clamp(1, lastDay), t.hour, t.minute);
 }
 
 /// Characters of [input] that survived in [work], with leftover glue words

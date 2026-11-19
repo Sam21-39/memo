@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../l10n/strings.dart';
 
 /// The only circle in the system; the logo's ring, made tappable.
 enum CheckState { idle, done, overdue }
@@ -21,7 +22,7 @@ class CheckControl extends StatelessWidget {
     return Semantics(
       button: true,
       checked: state == CheckState.done,
-      label: state == CheckState.done ? 'Done' : 'Mark done',
+      label: state == CheckState.done ? S.commonDone : S.commonMarkDone,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,

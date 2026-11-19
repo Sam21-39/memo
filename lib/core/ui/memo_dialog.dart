@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../../l10n/strings.dart';
 
 /// Two-action confirm. iOS: a Cupertino alert. Android: a Material dialog
 /// (radius 28, right-aligned text actions). Returns true when confirmed.
@@ -25,7 +26,7 @@ Future<bool> showMemoConfirm(
             actions: [
               CupertinoDialogAction(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: const Text(S.commonCancel),
               ),
               CupertinoDialogAction(
                 isDestructiveAction: destructive,
@@ -47,7 +48,7 @@ Future<bool> showMemoConfirm(
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 style: TextButton.styleFrom(foregroundColor: c.ink),
-                child: const Text('Cancel'),
+                child: const Text(S.commonCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),

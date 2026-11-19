@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../l10n/strings.dart';
 
 class SnoozePreset {
   const SnoozePreset(this.label, this.duration);
@@ -11,9 +12,9 @@ class SnoozePreset {
 }
 
 const defaultSnoozePresets = [
-  SnoozePreset('10m', Duration(minutes: 10)),
-  SnoozePreset('1h', Duration(hours: 1)),
-  SnoozePreset('Tomorrow', null),
+  SnoozePreset(S.snoozeTenMinutes, Duration(minutes: 10)),
+  SnoozePreset(S.snoozeOneHour, Duration(hours: 1)),
+  SnoozePreset(S.dateTomorrow, null),
 ];
 
 /// Three equal outlined buttons, 44 high, mono values. Order is fixed.

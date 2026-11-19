@@ -6,6 +6,7 @@ import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_dialog.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/ui/minutes_sheet.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
@@ -21,6 +22,7 @@ import '../widgets/key_value_row.dart';
 import '../widgets/section_card.dart';
 import '../widgets/snooze_preset_row.dart';
 import 'detail_cubit.dart';
+import '../../../../l10n/strings.dart';
 
 /// Artboard Detail. Reached from a row or a notification tap.
 class DetailPage extends StatelessWidget {
@@ -59,7 +61,7 @@ class _Missing extends StatelessWidget {
         Expanded(
           child: Center(
             child: Text(
-              'This reminder no longer exists.',
+              S.reminderMissing,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
           ),
@@ -75,11 +77,11 @@ class _Body extends StatelessWidget {
   final Reminder reminder;
 
   static String _repeatLabel(RepeatRule repeat) {
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const names = S.weekdaysShort;
     return switch (repeat.type) {
-      RepeatType.none => 'Never',
-      RepeatType.daily => 'Daily',
-      RepeatType.weekly when repeat.weekdays.isEmpty => 'Weekly',
+      RepeatType.none => S.repeatNever,
+      RepeatType.daily => S.repeatDaily,
+      RepeatType.weekly when repeat.weekdays.isEmpty => S.repeatWeekly,
       RepeatType.weekly =>
         (repeat.weekdays.toList()..sort()).map((d) => names[d - 1]).join(', '),
     };
@@ -90,14 +92,13 @@ class _Body extends StatelessWidget {
     final navigator = Navigator.of(context);
     final confirmed = await showMemoConfirm(
       context,
-      title: 'Delete this reminder?',
-      body: 'It will not ring. There is no undo.',
-      confirm: 'Delete',
+      title: S.detailDeleteTitle,
+      body: S.detailDeleteBody,
+      confirm: S.commonDelete,
       destructive: true,
     );
     if (!confirmed) return;
-    await cubit.delete();
-    navigator.pop();
+    if (await cubit.delete()) navigator.pop();
   }
 
   @override
@@ -105,158 +106,169 @@ class _Body extends StatelessWidget {
     final c = MemoColors.of(context);
     final flags = sl<FeatureFlags>();
     final cubit = context.read<DetailCubit>();
-    final now = DateTime.now();
     final tag = flags.tags ? reminder.tag : null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        MemoNavBar(
-          actionLabel: 'Edit',
-          onAction: () async {
-            final tags = await _knownTags();
-            if (!context.mounted) return;
-            await showEditSheet(context, existing: reminder, knownTags: tags);
-          },
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              MemoSpace.gutter,
-              MemoSpace.space6,
-              MemoSpace.gutter,
-              MemoSpace.space6,
-            ),
-            children: [
-              DaySectionHeader(
-                label: reminder.isDone
-                    ? 'Done'
-                    : reminder.isOverdue(now)
-                    ? '${formatWhen(reminder.ringsAt, now)} · '
-                          '${formatLateness(now.difference(reminder.ringsAt))}'
-                    : formatWhen(reminder.ringsAt, now),
-                emphasize: reminder.isOverdue(now),
+    return ValueListenableBuilder<DateTime>(
+      valueListenable: MinuteClock.instance,
+      builder: (context, now, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MemoNavBar(
+            actionLabel: S.commonEdit,
+            onAction: () async {
+              final tags = await _knownTags();
+              if (!context.mounted) return;
+              await showEditSheet(context, existing: reminder, knownTags: tags);
+            },
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                MemoSpace.gutter,
+                MemoSpace.space6,
+                MemoSpace.gutter,
+                MemoSpace.space6,
               ),
-              Semantics(
-                header: true,
-                child: Text(
-                  reminder.title,
-                  style: MemoType.display.copyWith(color: c.ink),
+              children: [
+                DaySectionHeader(
+                  label: reminder.isDone
+                      ? S.commonDone
+                      : reminder.isOverdue(now)
+                      ? S.whenLate(
+                          formatWhen(reminder.ringsAt, now),
+                          formatLateness(now.difference(reminder.ringsAt)),
+                        )
+                      : formatWhen(reminder.ringsAt, now),
+                  emphasize: reminder.isOverdue(now),
                 ),
-              ),
-              if (reminder.note != null) ...[
-                const SizedBox(height: MemoSpace.space2),
-                Text(
-                  reminder.note!,
-                  style: MemoType.body.copyWith(color: c.ink70),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    reminder.title,
+                    style: MemoType.display.copyWith(color: c.ink),
+                  ),
                 ),
-              ],
-              if (reminder.hasVoice) ...[
-                const SizedBox(height: MemoSpace.space4),
-                Row(
+                if (reminder.note != null) ...[
+                  const SizedBox(height: MemoSpace.space2),
+                  Text(
+                    reminder.note!,
+                    style: MemoType.body.copyWith(color: c.ink70),
+                  ),
+                ],
+                if (reminder.hasVoice) ...[
+                  const SizedBox(height: MemoSpace.space4),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: S.voicePlay,
+                        onPressed: () => sl<VoiceClip>().play(
+                          sl<MediaStore>().voicePath(reminder.id),
+                        ),
+                        style: IconButton.styleFrom(
+                          fixedSize: const Size.square(36),
+                          backgroundColor: c.ink6,
+                        ),
+                        icon: Icon(
+                          Icons.play_arrow_rounded,
+                          color: c.ink,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: MemoSpace.space3),
+                      Text(
+                        S.clipNote(
+                          MediaStore.clipLength(
+                            sl<MediaStore>().voicePath(reminder.id),
+                          ),
+                        ),
+                        style: MemoType.labelMedium.copyWith(color: c.ink70),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: MemoSpace.space6),
+                SectionCard(
                   children: [
-                    IconButton(
-                      tooltip: 'Play voice note',
-                      onPressed: () => sl<VoiceClip>().play(
-                        sl<MediaStore>().voicePath(reminder.id),
-                      ),
-                      style: IconButton.styleFrom(
-                        fixedSize: const Size.square(36),
-                        backgroundColor: c.ink6,
-                      ),
-                      icon: Icon(
-                        Icons.play_arrow_rounded,
-                        color: c.ink,
-                        size: 18,
+                    KeyValueRow(
+                      label: S.detailNext,
+                      child: PillValue(
+                        reminder.isDone
+                            ? S.commonDone
+                            : formatWhen(reminder.ringsAt, now),
                       ),
                     ),
-                    const SizedBox(width: MemoSpace.space3),
-                    Text(
-                      '${MediaStore.clipLength(sl<MediaStore>().voicePath(reminder.id))}'
-                      ' · your note',
-                      style: MemoType.labelMedium.copyWith(color: c.ink70),
+                    if (flags.repeatReminders)
+                      KeyValueRow(
+                        label: S.fieldRepeat,
+                        child: PillValue(_repeatLabel(reminder.repeat)),
+                      ),
+                    if (flags.nag)
+                      KeyValueRow(
+                        label: S.detailNag,
+                        child: PillValue(
+                          reminder.nagMin == null
+                              ? S.commonOff
+                              : nagLabel(reminder.nagMin!),
+                        ),
+                      ),
+                    if (flags.preAlarm && reminder.preAlarmMin != null)
+                      KeyValueRow(
+                        label: S.fieldPreAlarm,
+                        child: PillValue(preAlarmLabel(reminder.preAlarmMin!)),
+                      ),
+                    if (tag != null)
+                      KeyValueRow(
+                        label: S.fieldTag,
+                        child: TagChip(label: tag, dotColor: tagColor(tag)),
+                      ),
+                    KeyValueRow(
+                      label: S.detailCreated,
+                      child: PillValue(formatDate(reminder.createdAt)),
                     ),
                   ],
                 ),
-              ],
-              const SizedBox(height: MemoSpace.space6),
-              SectionCard(
-                children: [
-                  KeyValueRow(
-                    label: 'Next',
-                    child: PillValue(
-                      reminder.isDone
-                          ? 'Done'
-                          : formatWhen(reminder.ringsAt, now),
-                    ),
-                  ),
-                  if (flags.repeatReminders)
-                    KeyValueRow(
-                      label: 'Repeat',
-                      child: PillValue(_repeatLabel(reminder.repeat)),
-                    ),
-                  if (flags.nag)
-                    KeyValueRow(
-                      label: 'Nag',
-                      child: PillValue(
-                        reminder.nagMin == null
-                            ? 'Off'
-                            : nagLabel(reminder.nagMin!),
-                      ),
-                    ),
-                  if (flags.preAlarm && reminder.preAlarmMin != null)
-                    KeyValueRow(
-                      label: 'Pre-alarm',
-                      child: PillValue(preAlarmLabel(reminder.preAlarmMin!)),
-                    ),
-                  if (tag != null)
-                    KeyValueRow(
-                      label: 'Tag',
-                      child: TagChip(label: tag, dotColor: tagColor(tag)),
-                    ),
-                  KeyValueRow(
-                    label: 'Created',
-                    child: PillValue(formatDate(reminder.createdAt)),
+                if (flags.snooze && !reminder.isDone) ...[
+                  const SizedBox(height: MemoSpace.space6),
+                  const DaySectionHeader(label: S.detailSnooze),
+                  SnoozePresetRow(
+                    onSelect: (preset) => cubit.snooze(preset.duration),
                   ),
                 ],
-              ),
-              if (flags.snooze && !reminder.isDone) ...[
-                const SizedBox(height: MemoSpace.space6),
-                const DaySectionHeader(label: 'Snooze'),
-                SnoozePresetRow(
-                  onSelect: (preset) => cubit.snooze(preset.duration),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              MemoSpace.gutter,
+              0,
+              MemoSpace.gutter,
+              MemoSpace.space4,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton(
+                  onPressed: reminder.isDone ? cubit.reopen : cubit.complete,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: c.onAccent,
+                  ),
+                  child: Text(
+                    reminder.isDone ? S.commonReopen : S.commonMarkDone,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () => _delete(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: c.destructive,
+                  ),
+                  child: const Text(S.commonDelete),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            MemoSpace.gutter,
-            0,
-            MemoSpace.gutter,
-            MemoSpace.space4,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-                onPressed: reminder.isDone ? cubit.reopen : cubit.complete,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: c.onAccent,
-                ),
-                child: Text(reminder.isDone ? 'Reopen' : 'Mark done'),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: () => _delete(context),
-                style: OutlinedButton.styleFrom(foregroundColor: c.destructive),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

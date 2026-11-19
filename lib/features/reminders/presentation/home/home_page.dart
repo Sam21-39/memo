@@ -8,6 +8,7 @@ import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/memo_toast.dart';
+import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
@@ -22,6 +23,7 @@ import 'capture_bar.dart';
 import 'capture_cubit.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
+import '../../../../l10n/strings.dart';
 
 /// Artboards Home-Empty, Home-List, Home-Filter-Toast, Home-Dark,
 /// Swipe-States.
@@ -37,6 +39,7 @@ class _HomePageState extends State<HomePage> {
   // only as fresh as the last build.
   late final _lifecycle = AppLifecycleListener(
     onResume: () => context.read<HomeCubit>().load(),
+    onHide: () => context.read<HomeCubit>().commitPendingDelete(),
   );
 
   @override
@@ -63,79 +66,96 @@ class _HomePageState extends State<HomePage> {
           ..showSnackBar(SnackBar(content: Text(error)));
         context.read<HomeCubit>().clearError();
       },
-      builder: (context, state) {
-        final now = DateTime.now();
-        final ready = state is HomeReady ? state : null;
-        final grouped = groupByDay(ready?.upcoming ?? const [], now);
-        return Scaffold(
-          body: SafeArea(
-            bottom: false,
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _Header(ready: ready, overdue: grouped.overdue.length),
-                    if (flags.tags && (ready?.filterTags.isNotEmpty ?? false))
-                      _TagFilterBar(state: ready!),
-                    Expanded(
-                      child: switch (state) {
-                        HomeLoading() => const SizedBox.shrink(),
-                        HomeFailure() => const _FailureState(),
-                        HomeReady() when grouped.isEmpty => const _EmptyState(),
-                        HomeReady() => _ReminderList(
-                          grouped: grouped,
-                          now: now,
-                        ),
-                      },
-                    ),
-                  ],
-                ),
-                if (ready?.undo != null)
-                  Positioned(
-                    left: MemoSpace.gutter,
-                    right: MemoSpace.gutter,
-                    bottom:
-                        MediaQuery.paddingOf(context).bottom +
-                        MemoSpace.barHeight +
-                        MemoSpace.space8,
-                    child: MemoToast(
-                      message: '${ready!.undo!.title} done',
-                      action: 'Undo',
-                      onAction: context.read<HomeCubit>().undo,
-                    ),
-                  ),
-                // Expanded capture dims the list; a tap outside closes the
-                // keyboard, or the bar itself when nothing was typed.
-                BlocBuilder<CaptureCubit, CaptureState>(
-                  buildWhen: (a, b) => a.expanded != b.expanded,
-                  builder: (context, capture) => capture.expanded
-                      ? Positioned.fill(
-                          child: GestureDetector(
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              final cubit = context.read<CaptureCubit>();
-                              if (cubit.state.text.trim().isEmpty &&
-                                  !cubit.state.hasClip) {
-                                cubit.discard();
-                              }
-                            },
-                            child: ColoredBox(color: MemoColors.scrim),
+      builder: (context, state) => ValueListenableBuilder<DateTime>(
+        valueListenable: MinuteClock.instance,
+        builder: (context, now, _) {
+          final ready = state is HomeReady ? state : null;
+          final grouped = groupByDay(ready?.upcoming ?? const [], now);
+          return Scaffold(
+            body: SafeArea(
+              bottom: false,
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Header(ready: ready, overdue: grouped.overdue.length),
+                      if (flags.tags && (ready?.filterTags.isNotEmpty ?? false))
+                        _TagFilterBar(state: ready!),
+                      Expanded(
+                        child: switch (state) {
+                          HomeLoading() => const SizedBox.shrink(),
+                          HomeFailure() => const _FailureState(),
+                          HomeReady() when grouped.isEmpty =>
+                            const _EmptyState(),
+                          HomeReady() => _ReminderList(
+                            grouped: grouped,
+                            now: now,
                           ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: CaptureBar(knownTags: ready?.tagsInUse ?? const []),
-                ),
-              ],
+                        },
+                      ),
+                    ],
+                  ),
+                  if (ready?.pendingDelete != null)
+                    Positioned(
+                      left: MemoSpace.gutter,
+                      right: MemoSpace.gutter,
+                      bottom:
+                          MediaQuery.paddingOf(context).bottom +
+                          MemoSpace.barHeight +
+                          MemoSpace.space8,
+                      child: MemoToast(
+                        message: S.homeDeleted(ready!.pendingDelete!.title),
+                        action: S.commonUndo,
+                        onAction: context.read<HomeCubit>().undoDelete,
+                      ),
+                    )
+                  else if (ready?.undo != null)
+                    Positioned(
+                      left: MemoSpace.gutter,
+                      right: MemoSpace.gutter,
+                      bottom:
+                          MediaQuery.paddingOf(context).bottom +
+                          MemoSpace.barHeight +
+                          MemoSpace.space8,
+                      child: MemoToast(
+                        message: S.homeCompleted(ready!.undo!.title),
+                        action: S.commonUndo,
+                        onAction: context.read<HomeCubit>().undo,
+                      ),
+                    ),
+                  // Expanded capture dims the list; a tap outside closes the
+                  // keyboard, or the bar itself when nothing was typed.
+                  BlocBuilder<CaptureCubit, CaptureState>(
+                    buildWhen: (a, b) => a.expanded != b.expanded,
+                    builder: (context, capture) => capture.expanded
+                        ? Positioned.fill(
+                            child: GestureDetector(
+                              onTap: () {
+                                FocusScope.of(context).unfocus();
+                                final cubit = context.read<CaptureCubit>();
+                                if (cubit.state.text.trim().isEmpty &&
+                                    !cubit.state.hasClip) {
+                                  cubit.discard();
+                                }
+                              },
+                              child: ColoredBox(color: MemoColors.scrim),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: CaptureBar(knownTags: ready?.tagsInUse ?? const []),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -153,11 +173,8 @@ class _Header extends StatelessWidget {
     final summary = ready == null
         ? ''
         : scheduled == 0
-        ? 'Nothing scheduled'
-        : [
-            '$scheduled scheduled',
-            if (overdue > 0) '$overdue overdue',
-          ].join(' · ');
+        ? S.homeSummaryNone
+        : S.homeSummary(scheduled, overdue);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         MemoSpace.gutter,
@@ -189,12 +206,12 @@ class _Header extends StatelessWidget {
           ),
           MemoIconButton(
             icon: Icons.check_rounded,
-            label: 'Done',
+            label: S.commonDone,
             onPressed: () => context.push('/done'),
           ),
           MemoIconButton(
             icon: Icons.settings_outlined,
-            label: 'Settings',
+            label: S.settingsTitle,
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -224,7 +241,7 @@ class _TagFilterBar extends StatelessWidget {
         ),
         children: [
           TagChip(
-            label: 'All',
+            label: S.homeAll,
             selected: selected == null,
             onTap: () => cubit.filterByTag(null),
           ),
@@ -263,7 +280,7 @@ class _ReminderList extends StatelessWidget {
       children: [
         if (grouped.overdue.isNotEmpty) ...[
           DaySectionHeader(
-            label: 'Overdue',
+            label: S.homeOverdue,
             count: grouped.overdue.length,
             emphasize: true,
           ),
@@ -323,7 +340,7 @@ class _Row extends StatelessWidget {
       onSnooze: flags.snooze
           ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
           : null,
-      onDelete: () => cubit.delete(reminder.id),
+      onDelete: () => cubit.delete(reminder),
       child: ReminderRow(
         title: reminder.title,
         state: overdue ? CheckState.overdue : CheckState.idle,
@@ -355,12 +372,12 @@ class _EmptyState extends StatelessWidget {
             const EmptyRing(),
             const SizedBox(height: MemoSpace.space4),
             Text(
-              'Nothing scheduled',
+              S.homeEmptyTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space1),
             Text(
-              'Bins, pills, that call.\nType below to add one.',
+              S.homeEmptyBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
@@ -384,20 +401,19 @@ class _FailureState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your reminders",
+              S.homeLoadFailedTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space2),
             Text(
-              'They are still saved on this device. '
-              'Alarms already scheduled keep firing.',
+              S.homeLoadFailedBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
             const SizedBox(height: MemoSpace.space6),
             OutlinedButton(
               onPressed: () => context.read<HomeCubit>().load(),
-              child: const Text('Try again'),
+              child: const Text(S.commonTryAgain),
             ),
           ],
         ),

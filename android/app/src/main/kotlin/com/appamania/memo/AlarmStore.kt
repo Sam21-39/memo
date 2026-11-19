@@ -32,6 +32,13 @@ class AlarmStore(context: Context) {
 
     fun remove(id: Int) = save(all().filter { it.getInt("id") != id })
 
+    /** The time zone the plan was last armed in; a change re-walls repeats. */
+    var zone: String?
+        get() = prefs.getString("zone", null)
+        set(value) {
+            prefs.edit().putString("zone", value).apply()
+        }
+
     fun appendAction(reminderId: String, action: String) {
         val queue = JSONArray(prefs.getString("actions", "[]"))
         queue.put(

@@ -160,6 +160,36 @@ void main() {
     expect(find.text('Del'), findsOneWidget);
   });
 
+  testWidgets('swipe delete hides the row, Undo restores it', (tester) async {
+    final (repo, _) = await setUpDi([reminder('1', 'Pills', inDays(1, 20))]);
+    await _pump(tester);
+    await tester.drag(find.text('Pills'), const Offset(-200, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Del'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pills'), findsNothing);
+    expect(find.text('Pills deleted'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pills'), findsOneWidget);
+    expect(repo.all.single.id, '1');
+  });
+
+  testWidgets('swipe delete is final once the Undo window ends', (
+    tester,
+  ) async {
+    final (repo, _) = await setUpDi([reminder('1', 'Pills', inDays(1, 20))]);
+    await _pump(tester);
+    await tester.drag(find.text('Pills'), const Offset(-200, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Del'));
+    await tester.pump(HomeCubit.undoWindow);
+    await tester.pumpAndSettle();
+    expect(repo.all, isEmpty);
+    expect(find.text('Pills deleted'), findsNothing);
+  });
+
   testWidgets('typing in the bar shows parsed chips, Save writes it', (
     tester,
   ) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../../l10n/strings.dart';
 
 /// "‹ Back" on the left, an optional accent text action on the right.
 class MemoNavBar extends StatelessWidget {
@@ -18,7 +19,7 @@ class MemoNavBar extends StatelessWidget {
         children: [
           TextButton(
             onPressed: () => Navigator.of(context).maybePop(),
-            child: const Text('‹ Back'),
+            child: const Text(S.commonBack),
           ),
           if (actionLabel != null)
             TextButton(onPressed: onAction, child: Text(actionLabel!)),

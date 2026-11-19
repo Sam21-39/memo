@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
 import 'memo_sheet.dart';
+import '../../l10n/strings.dart';
 
 /// Pick a number of minutes from presets, Off, or any custom number.
 /// Returns 0 for Off, the minutes otherwise, null when dismissed.
@@ -98,7 +99,7 @@ class _MinutesPickerState extends State<_MinutesPicker> {
       shrinkWrap: true,
       children: [
         SheetHeading(widget.title, body: widget.body),
-        option('Off', 0),
+        option(S.commonOff, 0),
         for (final m in widget.presets) option(widget.label(m), m),
         const SizedBox(height: MemoSpace.space2),
         Row(
@@ -109,11 +110,16 @@ class _MinutesPickerState extends State<_MinutesPicker> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 style: MemoType.body.copyWith(color: c.ink),
-                decoration: const InputDecoration(hintText: 'Custom minutes'),
+                decoration: const InputDecoration(
+                  hintText: S.minutesCustomHint,
+                ),
                 onSubmitted: (_) => _submitCustom(),
               ),
             ),
-            TextButton(onPressed: _submitCustom, child: const Text('Set')),
+            TextButton(
+              onPressed: _submitCustom,
+              child: const Text(S.commonSet),
+            ),
           ],
         ),
       ],
@@ -121,6 +127,6 @@ class _MinutesPickerState extends State<_MinutesPicker> {
   }
 }
 
-String nagLabel(int m) => 'Every $m min';
+String nagLabel(int m) => S.everyMinutes(m);
 String preAlarmLabel(int m) =>
-    m % 60 == 0 ? '${m ~/ 60} h before' : '$m min before';
+    m % 60 == 0 ? S.hoursBefore(m ~/ 60) : S.minutesBefore(m);

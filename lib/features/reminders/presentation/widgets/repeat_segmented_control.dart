@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../l10n/strings.dart';
 
 enum RepeatOption { none, daily, weekly, custom }
 
@@ -17,10 +18,10 @@ class RepeatSegmentedControl extends StatelessWidget {
   final ValueChanged<RepeatOption> onChanged;
 
   static const _labels = {
-    RepeatOption.none: 'None',
-    RepeatOption.daily: 'Daily',
-    RepeatOption.weekly: 'Weekly',
-    RepeatOption.custom: 'Custom',
+    RepeatOption.none: S.repeatNone,
+    RepeatOption.daily: S.repeatDaily,
+    RepeatOption.weekly: S.repeatWeekly,
+    RepeatOption.custom: S.repeatCustom,
   };
 
   @override

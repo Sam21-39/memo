@@ -2,16 +2,20 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
+import '../../domain/usecases/reopen_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
+import '../../../../l10n/strings.dart';
 
 class ArchiveState {
-  const ArchiveState({this.done = const [], this.query = ''});
+  const ArchiveState({this.done = const [], this.query = '', this.error});
 
   /// Completed one-offs, most recently completed first.
   final List<Reminder> done;
   final String query;
+  final String? error;
 
   /// ponytail: in-memory match over title and note. A personal archive is
   /// hundreds of rows; add an index when someone's is not.
@@ -48,8 +52,23 @@ class ArchiveCubit extends Cubit<ArchiveState> {
   void search(String query) =>
       emit(ArchiveState(done: state.done, query: query));
 
-  Future<void> reopen(Reminder reminder) =>
-      _save(reminder.copyWith(clearDone: true));
+  Future<void> reopen(Reminder reminder) async {
+    try {
+      await _save(const ReopenReminder()(reminder, now: DateTime.now()));
+    } on ScheduleFailure {
+      _fail(S.scheduleFailed);
+    } catch (_) {
+      _fail(S.saveFailed);
+    }
+  }
+
+  void _fail(String message) {
+    if (!isClosed) {
+      emit(ArchiveState(done: state.done, query: state.query, error: message));
+    }
+  }
+
+  void clearError() => emit(ArchiveState(done: state.done, query: state.query));
 
   @override
   Future<void> close() {

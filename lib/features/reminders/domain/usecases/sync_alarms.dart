@@ -29,13 +29,18 @@ class SyncAlarms {
           clearSnooze: true,
         );
       }
-      if (current.needsSchedule) {
-        current = current.copyWith(needsSchedule: false);
-      }
       if (!identical(current, reminder)) await _repository.save(current);
       live.add(current);
     }
     live.sort((a, b) => a.dueAt.compareTo(b.dueAt));
     await _scheduler.syncAll(live);
+    // Re-read: an edit saved while syncAll ran must not be overwritten.
+    for (final r in live) {
+      if (!r.needsSchedule) continue;
+      final fresh = await _repository.getById(r.id);
+      if (fresh != null && fresh.needsSchedule) {
+        await _repository.save(fresh.copyWith(needsSchedule: false));
+      }
+    }
   }
 }

@@ -41,6 +41,11 @@ class AppPrefs {
   Future<void> setVoiceGender(String gender) =>
       _prefs.setString('voice_gender', gender);
 
+  /// The zone repeats were last walled in; a change re-walls them.
+  String? get lastTimeZone => _prefs.getString('last_time_zone');
+  Future<void> setLastTimeZone(String zone) =>
+      _prefs.setString('last_time_zone', zone);
+
   /// Only 'solid' is honoured in v1.
   String? get chromeModeOverride => _prefs.getString('chrome_mode_override');
 }

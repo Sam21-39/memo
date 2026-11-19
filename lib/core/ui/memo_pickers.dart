@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 import 'memo_sheet.dart';
+import '../../l10n/strings.dart';
 
 /// Native pickers: CupertinoDatePicker inside a Memō sheet on iOS, Material
 /// date and time pickers on Android. Returns null when dismissed.
@@ -89,7 +90,7 @@ Future<DateTime?> _cupertino(
         const SizedBox(height: MemoSpace.space4),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(value),
-          child: const Text('Done'),
+          child: const Text(S.commonDone),
         ),
       ],
     ),

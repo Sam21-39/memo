@@ -28,6 +28,8 @@ class InMemoryRepository implements ReminderRepository {
 
   List<Reminder> _reminders;
   final _changes = StreamController<void>.broadcast();
+  bool failSave = false;
+  bool failDelete = false;
 
   List<Reminder> get all => List.unmodifiable(_reminders);
 
@@ -44,12 +46,14 @@ class InMemoryRepository implements ReminderRepository {
 
   @override
   Future<void> save(Reminder reminder) async {
+    if (failSave) throw StateError('db');
     _reminders = [..._reminders.where((r) => r.id != reminder.id), reminder];
     _changes.add(null);
   }
 
   @override
   Future<void> delete(String id) async {
+    if (failDelete) throw StateError('db');
     _reminders = _reminders.where((r) => r.id != id).toList();
     _changes.add(null);
   }
@@ -61,6 +65,7 @@ class FakeScheduler implements AlarmScheduler {
   final cancelled = <String>[];
   List<Reminder>? synced;
   bool fail = false;
+  bool failSync = false;
 
   @override
   Future<void> schedule(Reminder reminder) async {
@@ -72,7 +77,10 @@ class FakeScheduler implements AlarmScheduler {
   Future<void> cancel(String reminderId) async => cancelled.add(reminderId);
 
   @override
-  Future<void> syncAll(List<Reminder> live) async => synced = live;
+  Future<void> syncAll(List<Reminder> live) async {
+    if (failSync) throw StateError('sync');
+    synced = live;
+  }
 }
 
 Reminder reminder(

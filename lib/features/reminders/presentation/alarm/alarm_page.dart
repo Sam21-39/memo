@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../data/media_store.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/snooze_preset_row.dart';
 import 'alarm_cubit.dart';
+import '../../../../l10n/strings.dart';
 
 /// Artboards Alarm and Android-Alarm: one-handed, readable without glasses,
 /// over the lock screen on Android.
@@ -41,7 +43,7 @@ class AlarmPage extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Text(
-                        'This reminder no longer exists.',
+                        S.reminderMissing,
                         style: MemoType.body.copyWith(color: c.ink70),
                       ),
                     ),
@@ -53,90 +55,100 @@ class AlarmPage extends StatelessWidget {
         }
         if (reminder == null) return const Scaffold();
         final cubit = context.read<AlarmCubit>();
-        final now = DateTime.now();
-        final late = now.difference(reminder.ringsAt);
-        return Scaffold(
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                MemoSpace.gutter,
-                MemoSpace.space6,
-                MemoSpace.gutter,
-                MemoSpace.space4,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return ValueListenableBuilder<DateTime>(
+          valueListenable: MinuteClock.instance,
+          builder: (context, now, _) {
+            final late = now.difference(reminder.ringsAt);
+            return Scaffold(
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    MemoSpace.gutter,
+                    MemoSpace.space6,
+                    MemoSpace.gutter,
+                    MemoSpace.space4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const DaySectionHeader(label: 'Reminder'),
-                      if (late.inMinutes >= 1)
-                        Text(
-                          formatLateness(late),
-                          style: MemoType.labelSmall.copyWith(color: c.accent),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const DaySectionHeader(label: S.alarmReminder),
+                          if (late.inMinutes >= 1)
+                            Text(
+                              formatLateness(late),
+                              style: MemoType.labelSmall.copyWith(
+                                color: c.accent,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: MemoSpace.space6),
+                      Text(
+                        formatTime(reminder.ringsAt),
+                        style: MemoType.clock.copyWith(color: c.ink),
+                      ),
+                      const SizedBox(height: MemoSpace.space3),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          reminder.title,
+                          style: MemoType.display.copyWith(color: c.ink),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: MemoSpace.space6),
-                  Text(
-                    formatTime(reminder.ringsAt),
-                    style: MemoType.clock.copyWith(color: c.ink),
-                  ),
-                  const SizedBox(height: MemoSpace.space3),
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      reminder.title,
-                      style: MemoType.display.copyWith(color: c.ink),
-                    ),
-                  ),
-                  if (reminder.note != null) ...[
-                    const SizedBox(height: MemoSpace.space2),
-                    Text(
-                      reminder.note!,
-                      style: MemoType.body.copyWith(color: c.ink70),
-                    ),
-                  ],
-                  if (reminder.hasVoice) ...[
-                    const SizedBox(height: MemoSpace.gutter),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: cubit.togglePlay,
-                          tooltip: state.playing
-                              ? 'Stop voice note'
-                              : 'Play voice note',
-                          style: IconButton.styleFrom(
-                            fixedSize: const Size.square(MemoSpace.hitMin),
-                            backgroundColor: c.accent,
-                            foregroundColor: c.onAccent,
-                          ),
-                          icon: Icon(
-                            state.playing
-                                ? Icons.stop_rounded
-                                : Icons.play_arrow_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: MemoSpace.space3),
+                      ),
+                      if (reminder.note != null) ...[
+                        const SizedBox(height: MemoSpace.space2),
                         Text(
-                          '${MediaStore.clipLength(voicePath(reminder.id))}'
-                          ' · your note${state.playing ? ' · playing' : ''}',
-                          style: MemoType.labelMedium.copyWith(color: c.ink70),
+                          reminder.note!,
+                          style: MemoType.body.copyWith(color: c.ink70),
                         ),
                       ],
-                    ),
-                  ],
-                  const Spacer(),
-                  SnoozePresetRow(
-                    onSelect: (preset) => cubit.snooze(preset.duration),
+                      if (reminder.hasVoice) ...[
+                        const SizedBox(height: MemoSpace.gutter),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: cubit.togglePlay,
+                              tooltip: state.playing
+                                  ? S.voiceStop
+                                  : S.voicePlay,
+                              style: IconButton.styleFrom(
+                                fixedSize: const Size.square(MemoSpace.hitMin),
+                                backgroundColor: c.accent,
+                                foregroundColor: c.onAccent,
+                              ),
+                              icon: Icon(
+                                state.playing
+                                    ? Icons.stop_rounded
+                                    : Icons.play_arrow_rounded,
+                              ),
+                            ),
+                            const SizedBox(width: MemoSpace.space3),
+                            Text(
+                              S.alarmClip(
+                                MediaStore.clipLength(voicePath(reminder.id)),
+                                state.playing,
+                              ),
+                              style: MemoType.labelMedium.copyWith(
+                                color: c.ink70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const Spacer(),
+                      SnoozePresetRow(
+                        onSelect: (preset) => cubit.snooze(preset.duration),
+                      ),
+                      const SizedBox(height: MemoSpace.space3),
+                      SlideToDone(onDone: cubit.done),
+                    ],
                   ),
-                  const SizedBox(height: MemoSpace.space3),
-                  SlideToDone(onDone: cubit.done),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -164,7 +176,7 @@ class _SlideToDoneState extends State<SlideToDone> {
     final c = MemoColors.of(context);
     return Semantics(
       button: true,
-      label: 'Mark done',
+      label: S.commonMarkDone,
       onTap: widget.onDone,
       excludeSemantics: true,
       child: LayoutBuilder(
@@ -182,7 +194,7 @@ class _SlideToDoneState extends State<SlideToDone> {
               children: [
                 Center(
                   child: Text(
-                    'Slide to mark done',
+                    S.alarmSlideToDone,
                     style: MemoType.button.copyWith(color: c.accentPressed),
                   ),
                 ),

@@ -44,7 +44,7 @@ void main() {
     final cubit = EditCubit(sl<SaveReminder>())
       ..setDueAt(DateTime.now().subtract(const Duration(hours: 1)));
     await _pump(tester, cubit: cubit);
-    expect(find.textContaining('will not ring'), findsOneWidget);
+    expect(find.textContaining('Pick a later time'), findsOneWidget);
 
     cubit.setRepeat(RepeatRule.daily);
     await tester.pumpAndSettle();

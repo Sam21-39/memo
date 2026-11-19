@@ -46,6 +46,7 @@ class MainActivity : FlutterActivity() {
                     val fires = entries(call.argument<String>("fires")!!)
                     store.save(store.all().filter { it.getString("reminderId") != reminderId } + fires)
                     fires.forEach { AlarmArm.arm(this, it) }
+                    store.zone = java.time.ZoneId.systemDefault().id
                     result.success(null)
                 }
                 "cancel" -> {
@@ -60,15 +61,15 @@ class MainActivity : FlutterActivity() {
                     val fires = entries(call.argument<String>("fires")!!)
                     store.save(fires)
                     fires.forEach { AlarmArm.arm(this, it) }
+                    store.zone = java.time.ZoneId.systemDefault().id
                     result.success(null)
                 }
                 "drainActions" -> result.success(store.drainActions())
                 "ringing" -> result.success(AlarmService.ringing)
                 "stopRinging" -> {
-                    // The Alarm screen handled it: quiet the rest of this
-                    // occurrence now, Dart reschedules right after.
-                    call.argument<String>("reminderId")?.let { AlarmArm.quietOccurrence(this, it) }
-                    AlarmService.stop(this)
+                    // The Alarm screen handled it: the service quiets the rest of
+                    // this occurrence, Dart reschedules right after.
+                    AlarmService.stop(this, call.argument<String>("reminderId"))
                     result.success(null)
                 }
                 "canDrawOverlays" -> result.success(Settings.canDrawOverlays(this))

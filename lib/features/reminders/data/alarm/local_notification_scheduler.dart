@@ -9,6 +9,7 @@ import '../../domain/alarm/alarm_ids.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
+import '../../../../l10n/strings.dart';
 
 /// What the user tapped on a delivered notification.
 enum NotificationAction { open, done, snooze }
@@ -87,9 +88,13 @@ class LocalNotificationScheduler implements AlarmScheduler {
             DarwinNotificationCategory(
               _iosCategoryId,
               actions: [
-                DarwinNotificationAction.plain(_doneActionId, 'Done'),
+                // l10n: native
+                DarwinNotificationAction.plain(_doneActionId, S.commonDone),
                 if (snoozeEnabled)
-                  DarwinNotificationAction.plain(_snoozeActionId, 'Snooze 10m'),
+                  DarwinNotificationAction.plain(
+                    _snoozeActionId,
+                    S.notifSnooze,
+                  ),
               ],
             ),
           ],
@@ -195,21 +200,22 @@ class LocalNotificationScheduler implements AlarmScheduler {
   NotificationDetails _details(String? sound) => NotificationDetails(
     android: AndroidNotificationDetails(
       _channelId,
-      'Reminders',
-      channelDescription: 'Scheduled reminder alarms',
+      // l10n: native
+      S.notifChannelName,
+      channelDescription: S.notifChannelDescription,
       importance: Importance.max,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       actions: [
         const AndroidNotificationAction(
           _doneActionId,
-          'Done',
+          S.commonDone, // l10n: native
           showsUserInterface: true,
         ),
         if (snoozeEnabled)
           const AndroidNotificationAction(
             _snoozeActionId,
-            'Snooze 10m',
+            S.notifSnooze, // l10n: native
             showsUserInterface: true,
           ),
       ],

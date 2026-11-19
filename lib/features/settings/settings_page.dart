@@ -13,6 +13,7 @@ import '../reminders/presentation/widgets/day_section_header.dart';
 import '../reminders/presentation/widgets/key_value_row.dart';
 import '../reminders/presentation/widgets/section_card.dart';
 import 'settings_cubit.dart';
+import '../../l10n/strings.dart';
 
 /// Artboard Settings. Rows for features not yet shipped stay hidden behind
 /// their flags; Phase 2 is the one greyed forward reference.
@@ -47,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final cubit = context.read<SettingsCubit>();
     final glass = ChromeModeScope.of(context) == ChromeMode.glass;
     String allowed(bool? v) =>
-        v == null ? '…' : (v ? 'Allowed' : 'Not allowed');
+        v == null ? '…' : (v ? S.settingsAllowed : S.settingsNotAllowed);
 
     return Scaffold(
       body: SafeArea(
@@ -68,16 +69,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     Semantics(
                       header: true,
                       child: Text(
-                        'Settings',
+                        S.settingsTitle,
                         style: MemoType.display.copyWith(color: c.ink),
                       ),
                     ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Alarms'),
+                    const DaySectionHeader(label: S.settingsAlarms),
                     SectionCard(
                       children: [
                         KeyValueRow(
-                          label: 'Notifications',
+                          label: S.settingsNotifications,
                           onTap: cubit.requestNotifications,
                           child: PillValue(
                             allowed(state.notifications),
@@ -86,7 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         if (state.exactAlarms != null)
                           KeyValueRow(
-                            label: 'Exact alarms',
+                            label: S.settingsExactAlarms,
                             onTap: cubit.requestExactAlarms,
                             child: PillValue(
                               allowed(state.exactAlarms),
@@ -95,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.alarmKit != null)
                           KeyValueRow(
-                            label: 'Full-screen alarms',
+                            label: S.settingsFullScreenAlarms,
                             onTap: cubit.requestAlarms,
                             child: PillValue(
                               allowed(state.alarmKit),
@@ -104,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.overlay != null)
                           KeyValueRow(
-                            label: 'Take over the screen',
+                            label: S.settingsTakeOver,
                             onTap: cubit.openOverlaySettings,
                             child: PillValue(
                               allowed(state.overlay),
@@ -113,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.fullScreen != null)
                           KeyValueRow(
-                            label: 'Full-screen alarm',
+                            label: S.settingsFullScreenAlarm,
                             onTap: cubit.openFullScreenSettings,
                             child: PillValue(
                               allowed(state.fullScreen),
@@ -122,14 +123,12 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (flags.nag)
                           KeyValueRow(
-                            label: 'Default nag',
+                            label: S.settingsDefaultNag,
                             onTap: () async {
                               final m = await showMinutesSheet(
                                 context,
-                                title: 'Default nag',
-                                body:
-                                    'New reminders ring again this often '
-                                    'until done. Each one can change it.',
+                                title: S.settingsDefaultNag,
+                                body: S.settingsDefaultNagBody,
                                 presets: const [5, 10, 30],
                                 current: state.defaultNagMin,
                                 label: nagLabel,
@@ -140,20 +139,20 @@ class _SettingsPageState extends State<SettingsPage> {
                             },
                             child: PillValue(
                               state.defaultNagMin == null
-                                  ? 'Off'
+                                  ? S.commonOff
                                   : nagLabel(state.defaultNagMin!),
                             ),
                           ),
                         KeyValueRow(
-                          label: 'Read reminders aloud',
+                          label: S.settingsReadAloud,
                           onTap: cubit.toggleReadAloud,
                           child: PillValue(
-                            state.readAloudDefault ? 'On' : 'Off',
+                            state.readAloudDefault ? S.commonOn : S.commonOff,
                             active: state.readAloudDefault,
                           ),
                         ),
                         KeyValueRow(
-                          label: 'Voice',
+                          label: S.settingsVoice,
                           onTap: () async {
                             final next = state.voiceGender == 'female'
                                 ? 'male'
@@ -162,7 +161,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             await sl<SpokenReminder>().preview(next);
                           },
                           child: PillValue(
-                            state.voiceGender == 'female' ? 'Female' : 'Male',
+                            state.voiceGender == 'female'
+                                ? S.settingsFemale
+                                : S.settingsMale,
                           ),
                         ),
                       ],
@@ -171,8 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          'Allow "Take over the screen" so an alarm fills the '
-                          'screen while you use the phone, not just a banner.',
+                          S.settingsTakeOverHint,
                           style: MemoType.body.copyWith(color: c.ink70),
                         ),
                       ),
@@ -180,29 +180,28 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          'Without this a reminder can be saved but never '
-                          'heard.',
+                          S.settingsNotificationsHint,
                           style: MemoType.body.copyWith(color: c.destructive),
                         ),
                       ),
                     if (flags.voiceCapture || flags.imageCapture) ...[
                       const SizedBox(height: MemoSpace.space6),
-                      const DaySectionHeader(label: 'Capture'),
+                      const DaySectionHeader(label: S.settingsCapture),
                       SectionCard(
                         children: [
                           if (flags.voiceCapture)
                             KeyValueRow(
-                              label: 'Dictation language',
+                              label: S.settingsDictation,
                               child: PillValue(
                                 state.dictation == false
-                                    ? 'Not on this phone'
-                                    : 'English',
+                                    ? S.settingsDictationNone
+                                    : S.settingsEnglish,
                               ),
                             ),
                           if (flags.imageCapture)
                             const KeyValueRow(
-                              label: 'Read photos on device',
-                              child: PillValue('On', active: true),
+                              label: S.settingsReadPhotos,
+                              child: PillValue(S.commonOn, active: true),
                             ),
                         ],
                       ),
@@ -211,49 +210,47 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          'This phone has no on-device speech model, so a '
-                          'held voice note keeps its clip and rings, but is '
-                          'titled "Voice note". Nothing is sent to a server.',
+                          S.settingsNoSpeechModel,
                           style: MemoType.body.copyWith(color: c.ink70),
                         ),
                       ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Look'),
+                    const DaySectionHeader(label: S.settingsLook),
                     SectionCard(
                       children: [
                         const KeyValueRow(
-                          label: 'Appearance',
-                          child: PillValue('System'),
+                          label: S.settingsAppearance,
+                          child: PillValue(S.settingsSystem),
                         ),
                         KeyValueRow(
-                          label: 'Glass chrome',
+                          label: S.settingsGlass,
                           child: PillValue(
-                            glass ? 'Follows iOS' : 'Solid',
+                            glass ? S.settingsFollowsIos : S.settingsSolid,
                             active: glass,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Phase 2'),
+                    const DaySectionHeader(label: S.settingsPhase2),
                     const Opacity(
                       opacity: 0.5,
                       child: SectionCard(
                         children: [
                           KeyValueRow(
-                            label: 'Cloud sync',
-                            child: PillValue('Soon'),
+                            label: S.settingsCloudSync,
+                            child: PillValue(S.settingsSoon),
                           ),
                           KeyValueRow(
-                            label: 'Shared reminders',
-                            child: PillValue('Soon'),
+                            label: S.settingsShared,
+                            child: PillValue(S.settingsSoon),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: MemoSpace.space6),
                     Text(
-                      'Memō $appVersion · Nothing leaves this phone.',
+                      S.settingsFooter(appVersion),
                       style: MemoType.labelMedium.copyWith(color: c.ink70),
                     ),
                   ],

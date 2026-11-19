@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../data/voice_clip.dart';
+import '../../../../l10n/strings.dart';
 
 /// What a hold produced.
 sealed class HoldResult {
@@ -63,18 +64,15 @@ class HoldRecorder {
       final granted = await _voice.hasPermission(request: true);
       onResult(
         granted
-            ? const HoldDropped('Microphone on. Hold the mic to record.')
-            : const HoldDropped(
-                'Microphone not allowed. Turn it on in Settings.',
-                denied: true,
-              ),
+            ? const HoldDropped(S.holdMicOn)
+            : const HoldDropped(S.holdMicDenied, denied: true),
       );
       return;
     }
     await _voice.start(_path);
     if (!_holding) {
       await _voice.cancel();
-      onResult(const HoldDropped('Hold the mic to record.'));
+      onResult(const HoldDropped(S.holdHint));
       return;
     }
     _recording = true;
@@ -101,7 +99,7 @@ class HoldRecorder {
     final elapsed = _clock.elapsed;
     if (elapsed < minLength) {
       await _voice.cancel();
-      onResult(const HoldDropped('Hold the mic to record.'));
+      onResult(const HoldDropped(S.holdHint));
     } else {
       await _voice.stop();
       onResult(HoldKept(elapsed));

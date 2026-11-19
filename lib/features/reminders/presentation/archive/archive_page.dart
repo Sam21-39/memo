@@ -10,6 +10,7 @@ import '../widgets/check_control.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/section_card.dart';
 import 'archive_cubit.dart';
+import '../../../../l10n/strings.dart';
 
 /// Artboard Done-Archive: completed one-offs by day, searchable.
 class ArchivePage extends StatelessWidget {
@@ -20,79 +21,93 @@ class ArchivePage extends StatelessWidget {
     final c = MemoColors.of(context);
     final cubit = context.read<ArchiveCubit>();
     return Scaffold(
-      body: SafeArea(
-        child: BlocBuilder<ArchiveCubit, ArchiveState>(
-          builder: (context, state) {
-            final now = DateTime.now();
-            final weekStart = DateTime(now.year, now.month, now.day - 6);
-            final groups = <DateTime, List<Reminder>>{};
-            for (final r in state.visible) {
-              final d = r.doneAt!;
-              groups
-                  .putIfAbsent(DateTime(d.year, d.month, d.day), () => [])
-                  .add(r);
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const MemoNavBar(),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      MemoSpace.gutter,
-                      MemoSpace.space6,
-                      MemoSpace.gutter,
-                      MemoSpace.space8,
-                    ),
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          'Done',
-                          style: MemoType.display.copyWith(color: c.ink),
-                        ),
+      body: BlocListener<ArchiveCubit, ArchiveState>(
+        listenWhen: (a, b) => b.error != null,
+        listener: (context, state) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.error!)));
+          context.read<ArchiveCubit>().clearError();
+        },
+        child: SafeArea(
+          child: BlocBuilder<ArchiveCubit, ArchiveState>(
+            builder: (context, state) {
+              final now = DateTime.now();
+              final weekStart = DateTime(now.year, now.month, now.day - 6);
+              final groups = <DateTime, List<Reminder>>{};
+              for (final r in state.visible) {
+                final d = r.doneAt!;
+                groups
+                    .putIfAbsent(DateTime(d.year, d.month, d.day), () => [])
+                    .add(r);
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const MemoNavBar(),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        MemoSpace.gutter,
+                        MemoSpace.space6,
+                        MemoSpace.gutter,
+                        MemoSpace.space8,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${state.completedSince(weekStart)} this week'
-                            .toUpperCase(),
-                        style: MemoType.labelSmall.copyWith(color: c.ink45),
-                      ),
-                      const SizedBox(height: MemoSpace.gutter),
-                      TextField(
-                        onChanged: cubit.search,
-                        style: MemoType.body.copyWith(color: c.ink),
-                        decoration: const InputDecoration(
-                          hintText: 'Search done',
-                        ),
-                      ),
-                      if (state.visible.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: MemoSpace.space8),
+                      children: [
+                        Semantics(
+                          header: true,
                           child: Text(
-                            state.query.isEmpty
-                                ? 'Nothing completed yet.'
-                                : 'Nothing matches.',
-                            textAlign: TextAlign.center,
-                            style: MemoType.body.copyWith(color: c.ink70),
+                            S.commonDone,
+                            style: MemoType.display.copyWith(color: c.ink),
                           ),
                         ),
-                      for (final entry in groups.entries) ...[
-                        const SizedBox(height: MemoSpace.space6),
-                        DaySectionHeader(label: dayHeaderLabel(entry.key, now)),
-                        SectionCard(
-                          children: [
-                            for (final r in entry.value)
-                              _DoneRow(reminder: r, onReopen: cubit.reopen),
-                          ],
+                        const SizedBox(height: 6),
+                        Text(
+                          S
+                              .archiveThisWeek(state.completedSince(weekStart))
+                              .toUpperCase(),
+                          style: MemoType.labelSmall.copyWith(color: c.ink45),
                         ),
+                        const SizedBox(height: MemoSpace.gutter),
+                        TextField(
+                          onChanged: cubit.search,
+                          style: MemoType.body.copyWith(color: c.ink),
+                          decoration: const InputDecoration(
+                            hintText: S.archiveSearchHint,
+                          ),
+                        ),
+                        if (state.visible.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: MemoSpace.space8,
+                            ),
+                            child: Text(
+                              state.query.isEmpty
+                                  ? S.archiveEmpty
+                                  : S.archiveNoMatch,
+                              textAlign: TextAlign.center,
+                              style: MemoType.body.copyWith(color: c.ink70),
+                            ),
+                          ),
+                        for (final entry in groups.entries) ...[
+                          const SizedBox(height: MemoSpace.space6),
+                          DaySectionHeader(
+                            label: dayHeaderLabel(entry.key, now),
+                          ),
+                          SectionCard(
+                            children: [
+                              for (final r in entry.value)
+                                _DoneRow(reminder: r, onReopen: cubit.reopen),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -137,7 +152,7 @@ class _DoneRow extends StatelessWidget {
                 ],
               ),
             ),
-            TagChip(label: 'Reopen', onTap: () => onReopen(reminder)),
+            TagChip(label: S.commonReopen, onTap: () => onReopen(reminder)),
           ],
         ),
       ),

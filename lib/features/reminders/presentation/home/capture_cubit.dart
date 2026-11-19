@@ -10,7 +10,7 @@ import '../../domain/parser/reminder_parser.dart';
 import '../../domain/usecases/create_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
-import 'home_cubit.dart' show scheduleFailedMessage;
+import '../../../../l10n/strings.dart';
 
 enum CapturePhase { idle, typing, recording, transcribing, saving }
 
@@ -95,6 +95,9 @@ class CaptureState {
   );
 }
 
+int? _noNag() => null;
+bool _yes() => true;
+
 /// The capture bar: type, say or (M4) snap → one string → one parser → chips
 /// the user confirms → Save writes and schedules in one use case.
 class CaptureCubit extends Cubit<CaptureState> {
@@ -104,12 +107,11 @@ class CaptureCubit extends Cubit<CaptureState> {
     required this.voice,
     required this.stt,
     required this.knownTags,
-    this.defaultNagMin,
-    bool readAloudDefault = true,
+    this.defaultNagMin = _noNag,
+    this.readAloudDefault = _yes,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now,
-       _readAloudDefault = readAloudDefault,
-       super(CaptureState(readAloud: readAloudDefault));
+       super(CaptureState(readAloud: readAloudDefault()));
 
   final SaveReminder _save;
   final MediaStore? media;
@@ -118,8 +120,9 @@ class CaptureCubit extends Cubit<CaptureState> {
 
   /// Read on every parse, so a tag added a moment ago matches "for work".
   final List<String> Function() knownTags;
-  final int? defaultNagMin;
-  final bool _readAloudDefault;
+  // Getters, not values: Settings can change them while the bar lives.
+  final int? Function() defaultNagMin;
+  final bool Function() readAloudDefault;
   final DateTime Function() _clock;
 
   late final HoldRecorder? _hold = (voice == null || media == null)
@@ -152,6 +155,7 @@ class CaptureCubit extends Cubit<CaptureState> {
         phase: CapturePhase.typing,
         text: text,
         parsed: parseReminder(text, now: _clock(), knownTags: knownTags()),
+        readAloud: state.phase == CapturePhase.idle ? readAloudDefault() : null,
         clearError: true,
         clearNotice: true,
       ),
@@ -205,7 +209,7 @@ class CaptureCubit extends Cubit<CaptureState> {
           emit(
             state.copyWith(
               phase: CapturePhase.typing,
-              notice: 'Saved as a voice note. Type a title if you like.',
+              notice: S.captureVoiceSaved,
             ),
           );
         }
@@ -219,43 +223,72 @@ class CaptureCubit extends Cubit<CaptureState> {
     }
   }
 
+  /// The draft can vanish while the edit sheet had it ("More"); drop the chip.
+  void syncClip() {
+    if (state.hasClip && !(media?.hasDraft ?? false)) {
+      emit(state.copyWith(hasClip: false));
+      if (state.text.trim().isEmpty) {
+        emit(CaptureState(readAloud: state.readAloud));
+      }
+    }
+  }
+
   Future<void> discard() async {
     await _hold?.release();
     if (state.hasClip) await media?.discardDraft();
-    emit(CaptureState(readAloud: _readAloudDefault));
+    emit(CaptureState(readAloud: readAloudDefault()));
   }
 
   /// The reminder the chips describe, unsaved: for Save, and for "More".
   Reminder draft() {
     final title = state.title.isNotEmpty
         ? state.title
-        : 'Voice note · ${MediaStore.clipLength(media?.draftVoicePath ?? '')}';
+        : S.voiceNoteTitle(MediaStore.clipLength(media?.draftVoicePath ?? ''));
+    final now = _clock();
+    // Voice-only: the next whole hour at least 30 min away, as the parser guesses.
+    final soon = now.add(const Duration(minutes: 30));
     return const CreateReminder()(
       title: title,
-      dueAt: state.dueAt ?? _clock(),
-      now: _clock(),
+      dueAt:
+          state.dueAt ??
+          DateTime(soon.year, soon.month, soon.day, soon.hour + 1),
+      now: now,
       repeat: state.repeat,
       tag: state.tag,
-      nagMin: defaultNagMin,
+      nagMin: defaultNagMin(),
     );
   }
 
   Future<void> save() async {
     if (!state.canSave) return;
-    emit(state.copyWith(phase: CapturePhase.saving));
-    var reminder = draft().copyWith(readAloud: state.readAloud);
-    if (state.hasClip && media != null) {
-      await media!.commitVoice(reminder.id);
-      reminder = reminder.copyWith(hasVoice: true);
+    final candidate = draft();
+    if (state.dueAt != null &&
+        !candidate.repeat.repeats &&
+        candidate.dueAt.isBefore(_clock())) {
+      emit(state.copyWith(error: S.timePassed));
+      return;
     }
+    emit(state.copyWith(phase: CapturePhase.saving));
+    var reminder = candidate.copyWith(readAloud: state.readAloud);
+    var committed = false;
     String? error;
     try {
+      if (state.hasClip && media != null) {
+        committed = await media!.commitVoice(reminder.id);
+        reminder = reminder.copyWith(hasVoice: committed);
+      }
       await _save(reminder);
     } on ScheduleFailure {
-      error = scheduleFailedMessage;
+      error = S.scheduleFailed;
+    } catch (_) {
+      if (committed) await media!.uncommitVoice(reminder.id);
+      if (!isClosed) {
+        emit(state.copyWith(phase: CapturePhase.typing, error: S.saveFailed));
+      }
+      return;
     }
     if (isClosed) return;
-    emit(CaptureState(readAloud: _readAloudDefault, error: error));
+    emit(CaptureState(readAloud: readAloudDefault(), error: error));
   }
 
   @override

@@ -11,6 +11,7 @@ import '../widgets/key_value_row.dart';
 import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
 import '../widgets/weekday_selector.dart';
+import '../../../../l10n/strings.dart';
 
 /// Time chip: date and time rows over the native pickers.
 Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
@@ -22,11 +23,11 @@ Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SheetHeading('When'),
+          const SheetHeading(S.fieldWhen),
           SectionCard(
             children: [
               KeyValueRow(
-                label: 'Time',
+                label: S.fieldTime,
                 onTap: () async {
                   final t = await pickTime(context, value);
                   if (t != null) setState(() => value = t);
@@ -34,7 +35,7 @@ Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
                 child: PillValue(formatTime(value), active: true),
               ),
               KeyValueRow(
-                label: 'Date',
+                label: S.fieldDate,
                 onTap: () async {
                   final d = await pickDate(context, value);
                   if (d != null) setState(() => value = d);
@@ -46,7 +47,7 @@ Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
           const SizedBox(height: MemoSpace.space6),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(value),
-            child: const Text('Done'),
+            child: const Text(S.commonDone),
           ),
         ],
       ),
@@ -74,10 +75,7 @@ Future<RepeatRule?> showRepeatSheet(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SheetHeading(
-            'Repeat',
-            body: 'Done moves it to the next time instead of archiving.',
-          ),
+          const SheetHeading(S.fieldRepeat, body: S.repeatSheetBody),
           RepeatSegmentedControl(
             value: option(),
             onChanged: (o) => setState(
@@ -112,7 +110,7 @@ Future<RepeatRule?> showRepeatSheet(
           const SizedBox(height: MemoSpace.space6),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(rule),
-            child: const Text('Done'),
+            child: const Text(S.commonDone),
           ),
         ],
       ),
@@ -138,10 +136,7 @@ Future<String?> showTagSheet(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SheetHeading(
-              'Tag',
-              body: 'One per reminder. Colour comes from the name.',
-            ),
+            const SheetHeading(S.fieldTag, body: S.tagSheetBody),
             Wrap(
               spacing: MemoSpace.space2,
               runSpacing: MemoSpace.space2,
@@ -160,7 +155,7 @@ Future<String?> showTagSheet(
             TextField(
               textCapitalization: TextCapitalization.words,
               style: MemoType.body.copyWith(color: c.ink),
-              decoration: const InputDecoration(hintText: 'New tag…'),
+              decoration: const InputDecoration(hintText: S.tagNewHint),
               onSubmitted: (name) {
                 final t = name.trim();
                 if (t.isEmpty) return;
@@ -173,7 +168,7 @@ Future<String?> showTagSheet(
             const SizedBox(height: MemoSpace.space6),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(selected ?? ''),
-              child: const Text('Done'),
+              child: const Text(S.commonDone),
             ),
           ],
         );

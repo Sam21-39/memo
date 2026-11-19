@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import 'core/app_prefs.dart';
 import 'core/chrome/chrome_mode.dart';
@@ -14,6 +16,7 @@ import 'features/reminders/data/alarm/ios_alarm_scheduler.dart';
 import 'features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'features/reminders/data/alarm/native_alarm.dart';
 import 'features/reminders/data/media_store.dart';
+import 'features/reminders/data/rewall_repeats.dart';
 import 'features/reminders/data/speech_to_text.dart';
 import 'features/reminders/data/spoken_reminder.dart';
 import 'features/reminders/data/voice_clip.dart';
@@ -34,6 +37,7 @@ import 'features/reminders/presentation/home/home_state.dart';
 import 'features/reminders/presentation/home/home_page.dart';
 import 'features/settings/settings_cubit.dart';
 import 'features/settings/settings_page.dart';
+import 'l10n/strings.dart';
 
 GoRouter buildRouter(AppPrefs prefs) {
   late final GoRouter router;
@@ -64,8 +68,8 @@ GoRouter buildRouter(AppPrefs prefs) {
                   final home = context.read<HomeCubit>().state;
                   return home is HomeReady ? home.tagsInUse : const [];
                 },
-                defaultNagMin: sl<AppPrefs>().defaultNagMin,
-                readAloudDefault: sl<AppPrefs>().readAloudDefault,
+                defaultNagMin: () => sl<AppPrefs>().defaultNagMin,
+                readAloudDefault: () => sl<AppPrefs>().readAloudDefault,
               ),
             ),
           ],
@@ -201,6 +205,19 @@ class _MemoAppState extends State<MemoApp> {
           setState(() => _reduceTransparency = reduce);
         }
       }
+      try {
+        final zone = (await FlutterTimezone.getLocalTimezone()).identifier;
+        final last = sl<AppPrefs>().lastTimeZone;
+        // Saved before the re-wall: a half-done re-wall must never run again
+        // from the old zone, which would shift the rows that already moved.
+        if (last != zone) await sl<AppPrefs>().setLastTimeZone(zone);
+        if (last != null && last != zone) {
+          tz.setLocalLocation(tz.getLocation(zone));
+          await sl<RewallRepeats>()(last, zone);
+        }
+      } catch (_) {
+        // Repeats keep their old wall clock until the next launch; sync goes on.
+      }
     } on NativeAlarmError {
       // The queue stays native-side; the next resume tries again.
     } finally {
@@ -239,7 +256,7 @@ class _MemoAppState extends State<MemoApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Memō',
+      title: S.appName,
       debugShowCheckedModeBanner: false,
       theme: MemoTheme.light,
       darkTheme: MemoTheme.dark,

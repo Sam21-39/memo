@@ -7,9 +7,10 @@ import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
 import '../../domain/usecases/complete_reminder.dart';
 import '../../domain/usecases/delete_reminder.dart';
+import '../../domain/usecases/reopen_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../../domain/usecases/snooze_reminder.dart';
-import '../home/home_cubit.dart' show scheduleFailedMessage;
+import '../../../../l10n/strings.dart';
 
 sealed class DetailState {
   const DetailState();
@@ -59,19 +60,33 @@ class DetailCubit extends Cubit<DetailState> {
       await _save(change(current.reminder, DateTime.now()));
     } on ScheduleFailure {
       final now = state;
-      if (now is DetailReady) emit(now.copyWith(error: scheduleFailedMessage));
+      if (now is DetailReady) emit(now.copyWith(error: S.scheduleFailed));
+    } catch (_) {
+      final now = state;
+      if (now is DetailReady) emit(now.copyWith(error: S.saveFailed));
     }
   }
 
   Future<void> complete() =>
       _write((r, now) => const CompleteReminder()(r, now: now));
 
-  Future<void> reopen() => _write((r, _) => r.copyWith(clearDone: true));
+  Future<void> reopen() =>
+      _write((r, now) => const ReopenReminder()(r, now: now));
 
   Future<void> snooze(Duration? by) =>
       _write((r, now) => const SnoozeReminder()(r, now: now, by: by));
 
-  Future<void> delete() => _delete(id);
+  /// False when the row is still there, so the page stays open.
+  Future<bool> delete() async {
+    try {
+      await _delete(id);
+      return true;
+    } catch (_) {
+      final now = state;
+      if (now is DetailReady) emit(now.copyWith(error: S.deleteFailed));
+      return false;
+    }
+  }
 
   @override
   Future<void> close() {

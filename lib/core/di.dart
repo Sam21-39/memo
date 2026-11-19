@@ -12,6 +12,7 @@ import '../features/reminders/data/alarm/native_alarm.dart';
 import '../features/reminders/data/media_store.dart';
 import '../features/reminders/data/reminder_db.dart';
 import '../features/reminders/data/reminder_repository_impl.dart';
+import '../features/reminders/data/rewall_repeats.dart';
 import '../features/reminders/data/spoken_reminder.dart';
 import '../features/reminders/data/voice_clip.dart';
 import '../features/reminders/domain/alarm/alarm_scheduler.dart';
@@ -83,5 +84,6 @@ Future<void> configureDependencies() async {
       }),
     )
     ..registerSingleton(SyncAlarms(repository, scheduler))
+    ..registerSingleton(RewallRepeats(repository))
     ..registerSingleton(ApplyAlarmAction(repository, save));
 }

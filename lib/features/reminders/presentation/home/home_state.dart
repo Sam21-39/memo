@@ -19,6 +19,7 @@ class HomeReady extends HomeState {
     required this.reminders,
     this.tagFilter,
     this.undo,
+    this.pendingDelete,
     this.error,
   });
 
@@ -31,13 +32,19 @@ class HomeReady extends HomeState {
   /// A one-off just completed, as it was before — the Undo toast restores it.
   final Reminder? undo;
 
+  /// A swiped-away reminder: hidden now, deleted when the Undo window ends.
+  final Reminder? pendingDelete;
+
   /// Inline error, e.g. a schedule failure.
   final String? error;
 
   /// Live reminders under the current filter.
   List<Reminder> get upcoming => [
     for (final r in reminders)
-      if (!r.isDone && (tagFilter == null || r.tag == tagFilter)) r,
+      if (!r.isDone &&
+          r.id != pendingDelete?.id &&
+          (tagFilter == null || r.tag == tagFilter))
+        r,
   ];
 
   /// Every tag ever used: what the tag pickers offer.
@@ -57,12 +64,17 @@ class HomeReady extends HomeState {
     bool clearFilter = false,
     Reminder? undo,
     bool clearUndo = false,
+    Reminder? pendingDelete,
+    bool clearPendingDelete = false,
     String? error,
     bool clearError = false,
   }) => HomeReady(
     reminders: reminders ?? this.reminders,
     tagFilter: clearFilter ? null : (tagFilter ?? this.tagFilter),
     undo: clearUndo ? null : (undo ?? this.undo),
+    pendingDelete: clearPendingDelete
+        ? null
+        : (pendingDelete ?? this.pendingDelete),
     error: clearError ? null : (error ?? this.error),
   );
 }
