@@ -179,7 +179,7 @@ Override `addListener`/`removeListener` (call super), use `hasListeners` to dete
 - Test `test/minute_clock_test.dart`: pump a `ValueListenableBuilder` showing `now.minute`, `tester.pump(Duration(minutes: 1, seconds: 1))`
   → rebuilt; unmount → `MinuteClock.instance.hasListeners == false`.
 
-### A3 + A4 Android `android/app/src/main/kotlin/com/appamania/memo/AlarmService.kt`
+### A3 + A4 Android `android/app/src/main/kotlin/in/appamania/memo/AlarmService.kt`
 State: `private var current: JSONObject? = null`, `private val queue = ArrayDeque<JSONObject>()`.
 - `notifId(reminderId) = (reminderId.hashCode() and 0x3FFFFFFF) or 0x10000000`;
   `missedId(reminderId) = notifId(reminderId) xor 0x20000000`. Delete `NOTIFICATION_ID`.

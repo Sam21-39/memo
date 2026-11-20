@@ -1,4 +1,4 @@
-package com.appamania.memo
+package `in`.appamania.memo
 
 import android.app.KeyguardManager
 import android.app.Notification
@@ -277,9 +277,9 @@ class AlarmService : Service() {
     }
 
     companion object {
-        const val ACTION_DONE = "com.appamania.memo.DONE"
-        const val ACTION_SNOOZE = "com.appamania.memo.SNOOZE"
-        private const val ACTION_STOP = "com.appamania.memo.STOP"
+        const val ACTION_DONE = "in.appamania.memo.DONE"
+        const val ACTION_SNOOZE = "in.appamania.memo.SNOOZE"
+        private const val ACTION_STOP = "in.appamania.memo.STOP"
         private const val CHANNEL = "alarm"
         private const val MISSED_CHANNEL = "missed"
         private const val TIMEOUT_MS = 120_000L

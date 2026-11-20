@@ -1,4 +1,4 @@
-package com.appamania.memo
+package `in`.appamania.memo
 
 import android.content.BroadcastReceiver
 import android.content.Context
