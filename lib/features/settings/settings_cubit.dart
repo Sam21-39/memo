@@ -249,8 +249,8 @@ class SettingsCubit extends Cubit<SettingsState> {
           dueAt: now.add(const Duration(seconds: 10)),
           createdAt: now,
           nagMin: null,
-          // V7: spoken text is English-only until it is localised.
-          readAloud: _prefs.readAloudDefault && interfaceLanguage() == 'en',
+          // The speech plan decides per title and phone; no voice, no speech.
+          readAloud: _prefs.readAloudDefault,
         ),
       );
     } on ScheduleFailure {

@@ -23,6 +23,7 @@ import '../widgets/day_section_header.dart';
 import '../widgets/key_value_row.dart';
 import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
+import '../widgets/voice_notice.dart';
 import '../widgets/weekday_selector.dart';
 import 'edit_cubit.dart';
 import '../../../../l10n/l10n.dart';
@@ -511,22 +512,36 @@ class _SoundCard extends StatelessWidget {
         ],
       );
     }
-    return SectionCard(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        KeyValueRow(
-          label: context.l10n.editReadAloudWhenRings,
-          onTap: () => cubit.setReadAloud(!state.readAloud),
-          child: PillValue(
-            state.readAloud ? context.l10n.commonOn : context.l10n.commonOff,
-            active: state.readAloud,
-          ),
+        SectionCard(
+          children: [
+            KeyValueRow(
+              label: context.l10n.editReadAloudWhenRings,
+              onTap: () => cubit.setReadAloud(!state.readAloud),
+              child: PillValue(
+                state.readAloud
+                    ? context.l10n.commonOn
+                    : context.l10n.commonOff,
+                active: state.readAloud,
+              ),
+            ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: MemoSpace.space4,
+                ),
+                child: Align(alignment: Alignment.centerLeft, child: row),
+              ),
+            ),
+          ],
         ),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 52),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space4),
-            child: Align(alignment: Alignment.centerLeft, child: row),
-          ),
+        VoiceNotice(
+          title: state.title,
+          readAloud: state.readAloud,
+          hasVoice: state.hasClip,
         ),
       ],
     );

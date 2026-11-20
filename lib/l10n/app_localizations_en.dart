@@ -1059,4 +1059,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editOptionalBody =>
       'These are optional. Most reminders only need what and when.';
+
+  @override
+  String get settingsSpeaking => 'Speaking language';
+
+  @override
+  String get settingsReadAloudVoice => 'Read-aloud voice';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get sttInstalled => 'Offline on this phone';
+
+  @override
+  String get sttDownloadable => 'Needs a download in phone settings';
+
+  @override
+  String get sttUnavailable => 'Not available on this phone';
+
+  @override
+  String get sttOneLanguage =>
+      'Memō listens in one language at a time. Automatic detection is not available yet.';
+
+  @override
+  String get voiceTitle => 'Read-aloud voice';
+
+  @override
+  String get voiceBody =>
+      'When a reminder rings, Memō can read its title aloud. It reads your words as written; it does not translate them.';
+
+  @override
+  String get voiceFollow => 'Follow reminder language';
+
+  @override
+  String get voiceFollowHint => 'Hindi reminders in Hindi, English in English';
+
+  @override
+  String get voiceFollowShort => 'Follow reminder';
+
+  @override
+  String voiceMissing(String language) {
+    return 'No offline $language voice on this phone';
+  }
+
+  @override
+  String get voicePreview => 'Preview: “Take medicine”';
+
+  @override
+  String get voicePreviewFailed =>
+      'No offline voice for that language, so nothing was played.';
+
+  @override
+  String get voiceNotInstalled => 'Not installed';
+
+  @override
+  String get voiceGenderHint => 'English voices';
+
+  @override
+  String get voiceHowTo => 'How to install a voice';
+
+  @override
+  String get voiceHowToAndroid =>
+      'Open your phone’s settings, then Text-to-speech output, then the settings of your engine and install the voice for the language. Choose an offline voice.';
+
+  @override
+  String get voiceHowToIos =>
+      'Open Settings, then Accessibility, Spoken Content, Voices. Pick the language and download a voice.';
+
+  @override
+  String get voiceOpenSettings => 'Open text-to-speech settings';
+
+  @override
+  String voiceNotice(String language) {
+    return 'No $language voice on this phone. It rings with the chime.';
+  }
+
+  @override
+  String voiceNoticeNote(String language) {
+    return 'No $language voice on this phone. It rings with your voice note.';
+  }
 }

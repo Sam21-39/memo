@@ -1887,6 +1887,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These are optional. Most reminders only need what and when.'**
   String get editOptionalBody;
+
+  /// V7 Settings row and language page section
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking language'**
+  String get settingsSpeaking;
+
+  /// V7 Settings row
+  ///
+  /// In en, this message translates to:
+  /// **'Read-aloud voice'**
+  String get settingsReadAloudVoice;
+
+  /// V7 Language name in a sentence
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// V7 Speaking language availability
+  ///
+  /// In en, this message translates to:
+  /// **'Offline on this phone'**
+  String get sttInstalled;
+
+  /// V7 Speaking language availability
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a download in phone settings'**
+  String get sttDownloadable;
+
+  /// V7 Speaking language availability
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this phone'**
+  String get sttUnavailable;
+
+  /// V7 Speaking language footer
+  ///
+  /// In en, this message translates to:
+  /// **'Memō listens in one language at a time. Automatic detection is not available yet.'**
+  String get sttOneLanguage;
+
+  /// V7 Read-aloud voice page title
+  ///
+  /// In en, this message translates to:
+  /// **'Read-aloud voice'**
+  String get voiceTitle;
+
+  /// V7 Read-aloud voice page
+  ///
+  /// In en, this message translates to:
+  /// **'When a reminder rings, Memō can read its title aloud. It reads your words as written; it does not translate them.'**
+  String get voiceBody;
+
+  /// V7 Read-aloud voice option
+  ///
+  /// In en, this message translates to:
+  /// **'Follow reminder language'**
+  String get voiceFollow;
+
+  /// V7 Read-aloud voice option hint
+  ///
+  /// In en, this message translates to:
+  /// **'Hindi reminders in Hindi, English in English'**
+  String get voiceFollowHint;
+
+  /// V7 Settings row value
+  ///
+  /// In en, this message translates to:
+  /// **'Follow reminder'**
+  String get voiceFollowShort;
+
+  /// V7 Read-aloud voice option hint when absent
+  ///
+  /// In en, this message translates to:
+  /// **'No offline {language} voice on this phone'**
+  String voiceMissing(String language);
+
+  /// V7 Read-aloud voice preview button
+  ///
+  /// In en, this message translates to:
+  /// **'Preview: “Take medicine”'**
+  String get voicePreview;
+
+  /// V7 Read-aloud voice preview message
+  ///
+  /// In en, this message translates to:
+  /// **'No offline voice for that language, so nothing was played.'**
+  String get voicePreviewFailed;
+
+  /// V7 Read-aloud voice status
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed'**
+  String get voiceNotInstalled;
+
+  /// V7 Read-aloud voice gender hint
+  ///
+  /// In en, this message translates to:
+  /// **'English voices'**
+  String get voiceGenderHint;
+
+  /// V7 Read-aloud voice help link
+  ///
+  /// In en, this message translates to:
+  /// **'How to install a voice'**
+  String get voiceHowTo;
+
+  /// V7 Read-aloud voice help, Android
+  ///
+  /// In en, this message translates to:
+  /// **'Open your phone’s settings, then Text-to-speech output, then the settings of your engine and install the voice for the language. Choose an offline voice.'**
+  String get voiceHowToAndroid;
+
+  /// V7 Read-aloud voice help, iOS
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings, then Accessibility, Spoken Content, Voices. Pick the language and download a voice.'**
+  String get voiceHowToIos;
+
+  /// V7 Read-aloud voice help button
+  ///
+  /// In en, this message translates to:
+  /// **'Open text-to-speech settings'**
+  String get voiceOpenSettings;
+
+  /// V7 Notice under a read-aloud reminder with no voice
+  ///
+  /// In en, this message translates to:
+  /// **'No {language} voice on this phone. It rings with the chime.'**
+  String voiceNotice(String language);
+
+  /// V7 Notice under a read-aloud reminder with no voice, with a voice note
+  ///
+  /// In en, this message translates to:
+  /// **'No {language} voice on this phone. It rings with your voice note.'**
+  String voiceNoticeNote(String language);
 }
 
 class _AppLocalizationsDelegate

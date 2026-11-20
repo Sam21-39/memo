@@ -15,7 +15,6 @@ import '../../core/ui/memo_sheet.dart';
 import '../../core/ui/memo_toast.dart';
 import '../../core/ui/minutes_sheet.dart';
 import '../../l10n/l10n.dart';
-import '../reminders/data/spoken_reminder.dart';
 import '../reminders/presentation/widgets/day_section_header.dart';
 import '../reminders/presentation/widgets/key_value_row.dart';
 import '../reminders/presentation/widgets/section_card.dart';
@@ -200,21 +199,24 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                 ),
                               ),
-                              // ponytail: V7 replaces this with the Read-aloud
-                              // voice page.
                               KeyValueRow(
-                                label: l.settingsVoice,
-                                onTap: () async {
-                                  final next = state.voiceGender == 'female'
-                                      ? 'male'
-                                      : 'female';
-                                  await cubit.setVoiceGender(next);
-                                  await sl<SpokenReminder>().preview(next);
-                                },
-                                child: PillValue(
-                                  state.voiceGender == 'female'
-                                      ? l.settingsFemale
-                                      : l.settingsMale,
+                                label: l.settingsSpeaking,
+                                onTap: () => context.push('/settings/language'),
+                                child: Flexible(
+                                  child: PillValue(
+                                    endonyms[appState.inputLocale]!,
+                                  ),
+                                ),
+                              ),
+                              KeyValueRow(
+                                label: l.settingsReadAloudVoice,
+                                onTap: () => context.push('/settings/voice'),
+                                child: Flexible(
+                                  child: PillValue(
+                                    appState.playbackLocale == 'follow'
+                                        ? l.voiceFollowShort
+                                        : endonyms[appState.playbackLocale]!,
+                                  ),
                                 ),
                               ),
                             ],

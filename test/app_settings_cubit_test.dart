@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import 'package:memo/core/di.dart';
 import 'package:memo/features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'package:memo/features/reminders/data/alarm/native_alarm.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/spoken_reminder.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
 import 'package:memo/l10n/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +32,12 @@ class _Notifications extends LocalNotificationScheduler {
 
 /// The real shell (MemoApp, real router, real locale resolution) over fakes.
 Future<void> _pumpApp(WidgetTester tester, String pref, String route) async {
+  // The Speaking language list asks the phone what it can recognise.
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+        const MethodChannel('memo/stt'),
+        (_) async => 'unavailable',
+      );
   await setUpDi();
   SharedPreferences.setMockInitialValues({
     'onboarding_done': true,
@@ -40,6 +48,7 @@ Future<void> _pumpApp(WidgetTester tester, String pref, String route) async {
     ..unregister<AppPrefs>()
     ..registerSingleton<AppPrefs>(prefs)
     ..registerSingleton(AppSettingsCubit(prefs))
+    ..registerSingleton(SpokenReminder(gender: () => 'female'))
     ..registerSingleton<LocalNotificationScheduler>(_Notifications())
     ..registerSingleton(const NativeAlarm())
     ..registerSingleton(MediaStore(Directory.systemTemp.createTempSync('app')))
@@ -134,7 +143,7 @@ void main() {
 
   testWidgets('picking Hindi re-renders, navigation survives', (tester) async {
     await _pumpApp(tester, 'en', '/settings/language');
-    await tester.tap(find.text('हिन्दी'));
+    await tester.tap(find.text('हिन्दी').first);
     await tester.pumpAndSettle();
     expect(sl<AppPrefs>().interfaceLocale, 'hi');
     expect(find.text('हिन्दी'), findsWidgets);

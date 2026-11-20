@@ -169,9 +169,8 @@ class RecordingPanel extends StatelessWidget {
         ],
       ),
       const SizedBox(height: MemoSpace.space2),
-      // ponytail: English only until V7 lets the input language change.
       Text(
-        l.recOnThisPhone(endonyms['en']!),
+        l.recOnThisPhone(endonyms[context.read<CaptureCubit>().inputLocale()]!),
         style: MemoType.body.copyWith(color: c.ink70),
       ),
       const SizedBox(height: MemoSpace.space4),
@@ -196,7 +195,7 @@ class RecordingPanel extends StatelessWidget {
     final l = context.l10n;
     final cubit = context.read<CaptureCubit>();
     final failure = state.failure;
-    final language = endonyms['en']!;
+    final language = endonyms[context.read<CaptureCubit>().inputLocale()]!;
     return [
       Semantics(
         liveRegion: true,

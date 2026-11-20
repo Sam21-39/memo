@@ -57,9 +57,11 @@ class _Voice implements VoiceClip {
 
 class _EmptyStt implements SpeechToText {
   @override
-  Future<bool> available() async => true;
+  Future<bool> available(String tag) async => true;
   @override
-  Future<String> transcribeFile(String path) async => '';
+  Future<String> availability(String tag) async => 'installed';
+  @override
+  Future<String> transcribeFile(String path, String tag) async => '';
 }
 
 Future<void> _show(
@@ -226,7 +228,7 @@ void main() {
             stopRinging: () async {},
             play: (_) async {},
             stop: () async {},
-            speak: (_) async {},
+            speak: (_) async => true,
           )..load(),
           child: AlarmPage(voicePath: (id) => id, onClose: () {}),
         ),

@@ -1473,5 +1473,112 @@
   "editOptionalBody": "These are optional. Most reminders only need what and when.",
   "@editOptionalBody": {
     "description": "Edit reminder sheet"
+  },
+  "settingsSpeaking": "Speaking language",
+  "@settingsSpeaking": {
+    "description": "V7 Settings row and language page section"
+  },
+  "settingsReadAloudVoice": "Read-aloud voice",
+  "@settingsReadAloudVoice": {
+    "description": "V7 Settings row"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "V7 Language name in a sentence"
+  },
+  "sttInstalled": "Offline on this phone",
+  "@sttInstalled": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttDownloadable": "Needs a download in phone settings",
+  "@sttDownloadable": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttUnavailable": "Not available on this phone",
+  "@sttUnavailable": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttOneLanguage": "Memō listens in one language at a time. Automatic detection is not available yet.",
+  "@sttOneLanguage": {
+    "description": "V7 Speaking language footer"
+  },
+  "voiceTitle": "Read-aloud voice",
+  "@voiceTitle": {
+    "description": "V7 Read-aloud voice page title"
+  },
+  "voiceBody": "When a reminder rings, Memō can read its title aloud. It reads your words as written; it does not translate them.",
+  "@voiceBody": {
+    "description": "V7 Read-aloud voice page"
+  },
+  "voiceFollow": "Follow reminder language",
+  "@voiceFollow": {
+    "description": "V7 Read-aloud voice option"
+  },
+  "voiceFollowHint": "Hindi reminders in Hindi, English in English",
+  "@voiceFollowHint": {
+    "description": "V7 Read-aloud voice option hint"
+  },
+  "voiceFollowShort": "Follow reminder",
+  "@voiceFollowShort": {
+    "description": "V7 Settings row value"
+  },
+  "voiceMissing": "No offline {language} voice on this phone",
+  "@voiceMissing": {
+    "description": "V7 Read-aloud voice option hint when absent",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicePreview": "Preview: “Take medicine”",
+  "@voicePreview": {
+    "description": "V7 Read-aloud voice preview button"
+  },
+  "voicePreviewFailed": "No offline voice for that language, so nothing was played.",
+  "@voicePreviewFailed": {
+    "description": "V7 Read-aloud voice preview message"
+  },
+  "voiceNotInstalled": "Not installed",
+  "@voiceNotInstalled": {
+    "description": "V7 Read-aloud voice status"
+  },
+  "voiceGenderHint": "English voices",
+  "@voiceGenderHint": {
+    "description": "V7 Read-aloud voice gender hint"
+  },
+  "voiceHowTo": "How to install a voice",
+  "@voiceHowTo": {
+    "description": "V7 Read-aloud voice help link"
+  },
+  "voiceHowToAndroid": "Open your phone’s settings, then Text-to-speech output, then the settings of your engine and install the voice for the language. Choose an offline voice.",
+  "@voiceHowToAndroid": {
+    "description": "V7 Read-aloud voice help, Android"
+  },
+  "voiceHowToIos": "Open Settings, then Accessibility, Spoken Content, Voices. Pick the language and download a voice.",
+  "@voiceHowToIos": {
+    "description": "V7 Read-aloud voice help, iOS"
+  },
+  "voiceOpenSettings": "Open text-to-speech settings",
+  "@voiceOpenSettings": {
+    "description": "V7 Read-aloud voice help button"
+  },
+  "voiceNotice": "No {language} voice on this phone. It rings with the chime.",
+  "@voiceNotice": {
+    "description": "V7 Notice under a read-aloud reminder with no voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceNoticeNote": "No {language} voice on this phone. It rings with your voice note.",
+  "@voiceNoticeNote": {
+    "description": "V7 Notice under a read-aloud reminder with no voice, with a voice note",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
   }
 }

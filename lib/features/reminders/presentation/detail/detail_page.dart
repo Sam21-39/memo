@@ -14,6 +14,7 @@ import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
+import '../widgets/voice_notice.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/usecases/complete_reminder.dart';
 import '../repeat_label.dart';
@@ -161,6 +162,11 @@ class _Body extends StatelessWidget {
                     style: MemoType.body.copyWith(color: c.ink70),
                   ),
                 ],
+                VoiceNotice(
+                  title: reminder.title,
+                  readAloud: reminder.readAloud,
+                  hasVoice: reminder.hasVoice,
+                ),
                 if (reminder.hasVoice) ...[
                   const SizedBox(height: MemoSpace.space4),
                   Row(

@@ -14,14 +14,20 @@ void main() {
 
   testWidgets('a spoken clip comes back as text, on device', (tester) async {
     const stt = SpeechToText();
-    if (!await stt.available()) {
+    // The matrix for the phone under test: read it in the test log.
+    for (final lang in ['en', 'hi', 'bn']) {
+      // ignore: avoid_print
+      print('STT $lang: ${await stt.availability(sttTag(lang))}');
+    }
+    final tag = sttTag('en');
+    if (!await stt.available(tag)) {
       markTestSkipped('No on-device speech model on this device.');
       return;
     }
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/pills.wav')
       ..writeAsBytesSync(base64Decode(pillsWavBase64));
-    final text = (await stt.transcribeFile(file.path)).toLowerCase();
+    final text = (await stt.transcribeFile(file.path, tag)).toLowerCase();
     // Synthetic speech: exact words vary, but both sides of the pause must
     // arrive — speech after a pause is a new segment.
     expect(text, anyOf(contains('mum'), contains('mom'), contains('call')));

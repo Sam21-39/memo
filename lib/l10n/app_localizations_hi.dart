@@ -1058,4 +1058,85 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get editOptionalBody =>
       'ये वैकल्पिक हैं। ज़्यादातर रिमाइंडर को बस क्या और कब चाहिए।';
+
+  @override
+  String get settingsSpeaking => 'बोलने की भाषा';
+
+  @override
+  String get settingsReadAloudVoice => 'पढ़कर सुनाने की आवाज़';
+
+  @override
+  String get languageEnglish => 'अंग्रेज़ी';
+
+  @override
+  String get sttInstalled => 'इस फ़ोन पर ऑफ़लाइन';
+
+  @override
+  String get sttDownloadable => 'फ़ोन की सेटिंग में डाउनलोड करना होगा';
+
+  @override
+  String get sttUnavailable => 'इस फ़ोन पर उपलब्ध नहीं';
+
+  @override
+  String get sttOneLanguage =>
+      'Memō एक बार में एक ही भाषा सुनता है। अपने-आप पहचान अभी उपलब्ध नहीं है।';
+
+  @override
+  String get voiceTitle => 'पढ़कर सुनाने की आवाज़';
+
+  @override
+  String get voiceBody =>
+      'रिमाइंडर बजने पर Memō उसका शीर्षक पढ़कर सुना सकता है। यह आपके शब्द जैसे लिखे हैं वैसे ही पढ़ता है; अनुवाद नहीं करता।';
+
+  @override
+  String get voiceFollow => 'रिमाइंडर की भाषा के अनुसार';
+
+  @override
+  String get voiceFollowHint =>
+      'हिन्दी रिमाइंडर हिन्दी में, अंग्रेज़ी अंग्रेज़ी में';
+
+  @override
+  String get voiceFollowShort => 'रिमाइंडर के अनुसार';
+
+  @override
+  String voiceMissing(String language) {
+    return 'इस फ़ोन पर $language की ऑफ़लाइन आवाज़ नहीं है';
+  }
+
+  @override
+  String get voicePreview => 'सुनें: “दवा लीजिए”';
+
+  @override
+  String get voicePreviewFailed =>
+      'उस भाषा की कोई ऑफ़लाइन आवाज़ नहीं है, इसलिए कुछ नहीं बजा।';
+
+  @override
+  String get voiceNotInstalled => 'इंस्टॉल नहीं है';
+
+  @override
+  String get voiceGenderHint => 'अंग्रेज़ी आवाज़ें';
+
+  @override
+  String get voiceHowTo => 'आवाज़ कैसे इंस्टॉल करें';
+
+  @override
+  String get voiceHowToAndroid =>
+      'फ़ोन की सेटिंग खोलें, फिर टेक्स्ट-टू-स्पीच आउटपुट, फिर अपने इंजन की सेटिंग में जाकर उस भाषा की आवाज़ इंस्टॉल करें। ऑफ़लाइन आवाज़ चुनें।';
+
+  @override
+  String get voiceHowToIos =>
+      'सेटिंग खोलें, फिर एक्सेसिबिलिटी, स्पोकन कंटेंट, आवाज़ें। भाषा चुनें और एक आवाज़ डाउनलोड करें।';
+
+  @override
+  String get voiceOpenSettings => 'टेक्स्ट-टू-स्पीच सेटिंग खोलें';
+
+  @override
+  String voiceNotice(String language) {
+    return 'इस फ़ोन पर $language की आवाज़ नहीं है। यह घंटी के साथ बजेगा।';
+  }
+
+  @override
+  String voiceNoticeNote(String language) {
+    return 'इस फ़ोन पर $language की आवाज़ नहीं है। यह आपके वॉइस नोट के साथ बजेगा।';
+  }
 }

@@ -29,17 +29,20 @@ class AlarmState {
     Reminder? reminder,
     AlarmOutcome? outcome,
     bool? playing,
+    bool clearSpeaking = false,
   }) => AlarmState(
     reminder: reminder ?? this.reminder,
     outcome: outcome ?? this.outcome,
     playing: playing ?? this.playing,
-    speakingIn: speakingIn,
+    speakingIn: clearSpeaking ? null : speakingIn,
   );
 }
 
 /// The ringing screen. Platform work comes in as functions so the Cubit is
 /// testable: [ringingNatively] (a native alarm is already sounding),
-/// [stopRinging], [speak] (the app's voice), [play] / [stop] for the note.
+/// [stopRinging], [speechLanguage] (the speech plan: null = no voice can read
+/// the title), [speak] (the app's voice; false = nothing was spoken),
+/// [play] / [stop] for the note.
 class AlarmCubit extends Cubit<AlarmState> {
   AlarmCubit(
     this.id,
@@ -50,6 +53,7 @@ class AlarmCubit extends Cubit<AlarmState> {
     required this.play,
     required this.stop,
     required this.speak,
+    this.speechLanguage = _noPlan,
   }) : super(const AlarmState());
 
   final String id;
@@ -59,10 +63,15 @@ class AlarmCubit extends Cubit<AlarmState> {
   final Future<void> Function() stopRinging;
   final Future<void> Function(String id) play;
   final Future<void> Function() stop;
-  final Future<void> Function(Reminder reminder) speak;
+  final Future<bool> Function(Reminder reminder) speak;
+  final Future<String?> Function(Reminder reminder) speechLanguage;
+
+  static Future<String?> _noPlan(Reminder _) async => null;
 
   /// Loads the reminder and reads it aloud once — unless a native alarm is
-  /// already sounding, which would talk over it. The note plays on tap.
+  /// already sounding, which would talk over it. With no voice for the title,
+  /// the voice note plays instead (nothing native is sounding it then). The
+  /// note otherwise plays on tap.
   Future<void> load() async {
     final reminder = await _repository.getById(id);
     if (isClosed) return;
@@ -70,15 +79,19 @@ class AlarmCubit extends Cubit<AlarmState> {
       emit(const AlarmState(outcome: AlarmOutcome.missing));
       return;
     }
-    // ponytail: English only until V7 supplies the plan's language.
-    // V7: speakingIn must reflect an actually rendered sound.
-    emit(
-      AlarmState(
-        reminder: reminder,
-        speakingIn: reminder.readAloud ? 'en' : null,
-      ),
-    );
-    if (reminder.readAloud && !await ringingNatively(id)) await speak(reminder);
+    final language = reminder.readAloud ? await speechLanguage(reminder) : null;
+    if (isClosed) return;
+    // speakingIn is the planned language. While a native alarm rings, whether
+    // its sound was really rendered is not checked.
+    emit(AlarmState(reminder: reminder, speakingIn: language));
+    if (!reminder.readAloud || await ringingNatively(id)) return;
+    // The line shows only for a voice that really spoke.
+    final spoke = language != null && await speak(reminder);
+    if (isClosed) return;
+    if (!spoke) {
+      emit(state.copyWith(clearSpeaking: true));
+      if (reminder.hasVoice) await togglePlay();
+    }
   }
 
   Future<void> togglePlay() async {

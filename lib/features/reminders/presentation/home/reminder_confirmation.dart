@@ -11,6 +11,7 @@ import '../../domain/parser/reminder_parser.dart';
 import '../repeat_label.dart';
 import '../widgets/key_value_row.dart';
 import '../widgets/section_card.dart';
+import '../widgets/voice_notice.dart';
 import 'capture_bar.dart';
 import 'capture_cubit.dart';
 import 'capture_sheets.dart';
@@ -116,6 +117,12 @@ class ReminderConfirmation extends StatelessWidget {
                 ),
             ],
           ),
+          if (!voiceOnly)
+            VoiceNotice(
+              title: state.title,
+              readAloud: state.readAloud,
+              hasVoice: state.hasClip,
+            ),
           if (state.error != null) ...[
             const SizedBox(height: MemoSpace.space3),
             Semantics(

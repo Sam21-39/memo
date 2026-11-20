@@ -334,9 +334,12 @@ class CaptureCubit extends Cubit<CaptureState> {
           ),
         );
         String? transcript;
+        // The real recogniser language, read when the clip is kept.
+        final tag = sttTag(inputLocale());
         try {
           transcript = (await stt?.transcribeFile(
             media!.draftVoicePath,
+            tag,
           ))?.trim();
         } catch (_) {
           // Same as "heard nothing": never stuck on transcribing.
@@ -349,7 +352,7 @@ class CaptureCubit extends Cubit<CaptureState> {
         } else if (transcript == null || transcript.isEmpty) {
           bool up;
           try {
-            up = await stt?.available() ?? false;
+            up = await stt?.available(tag) ?? false;
           } catch (_) {
             up = false;
           }

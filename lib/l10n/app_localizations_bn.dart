@@ -1056,4 +1056,84 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get editOptionalBody =>
       'এগুলো ঐচ্ছিক। বেশির ভাগ রিমাইন্ডারে শুধু কী আর কখন দরকার।';
+
+  @override
+  String get settingsSpeaking => 'বলার ভাষা';
+
+  @override
+  String get settingsReadAloudVoice => 'পড়ে শোনানোর কণ্ঠ';
+
+  @override
+  String get languageEnglish => 'ইংরেজি';
+
+  @override
+  String get sttInstalled => 'এই ফোনে অফলাইনে আছে';
+
+  @override
+  String get sttDownloadable => 'ফোনের সেটিংসে ডাউনলোড করতে হবে';
+
+  @override
+  String get sttUnavailable => 'এই ফোনে পাওয়া যায় না';
+
+  @override
+  String get sttOneLanguage =>
+      'Memō একবারে একটি ভাষায় শোনে। নিজে থেকে চেনা এখনও পাওয়া যায় না।';
+
+  @override
+  String get voiceTitle => 'পড়ে শোনানোর কণ্ঠ';
+
+  @override
+  String get voiceBody =>
+      'রিমাইন্ডার বাজলে Memō তার শিরোনাম পড়ে শোনাতে পারে। আপনার লেখা যেমন আছে তেমনই পড়ে; অনুবাদ করে না।';
+
+  @override
+  String get voiceFollow => 'রিমাইন্ডারের ভাষা অনুসারে';
+
+  @override
+  String get voiceFollowHint => 'হিন্দি রিমাইন্ডার হিন্দিতে, ইংরেজি ইংরেজিতে';
+
+  @override
+  String get voiceFollowShort => 'রিমাইন্ডার অনুসারে';
+
+  @override
+  String voiceMissing(String language) {
+    return 'এই ফোনে $language অফলাইন কণ্ঠ নেই';
+  }
+
+  @override
+  String get voicePreview => 'শুনুন: “ওষুধ খান”';
+
+  @override
+  String get voicePreviewFailed =>
+      'সেই ভাষার কোনো অফলাইন কণ্ঠ নেই, তাই কিছু বাজেনি।';
+
+  @override
+  String get voiceNotInstalled => 'ইনস্টল করা নেই';
+
+  @override
+  String get voiceGenderHint => 'ইংরেজি কণ্ঠ';
+
+  @override
+  String get voiceHowTo => 'কণ্ঠ কীভাবে ইনস্টল করবেন';
+
+  @override
+  String get voiceHowToAndroid =>
+      'ফোনের সেটিংস খুলুন, তারপর টেক্সট-টু-স্পিচ আউটপুট, তারপর আপনার ইঞ্জিনের সেটিংসে গিয়ে সেই ভাষার কণ্ঠ ইনস্টল করুন। অফলাইন কণ্ঠ বেছে নিন।';
+
+  @override
+  String get voiceHowToIos =>
+      'সেটিংস খুলুন, তারপর অ্যাক্সেসিবিলিটি, স্পোকেন কনটেন্ট, ভয়েস। ভাষা বেছে একটি কণ্ঠ ডাউনলোড করুন।';
+
+  @override
+  String get voiceOpenSettings => 'টেক্সট-টু-স্পিচ সেটিংস খুলুন';
+
+  @override
+  String voiceNotice(String language) {
+    return 'এই ফোনে $language কণ্ঠ নেই। এটি চাইম দিয়ে বাজবে।';
+  }
+
+  @override
+  String voiceNoticeNote(String language) {
+    return 'এই ফোনে $language কণ্ঠ নেই। এটি আপনার ভয়েস নোট দিয়ে বাজবে।';
+  }
 }

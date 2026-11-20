@@ -9,6 +9,7 @@ import '../../domain/entities/reminder.dart';
 import '../spoken_reminder.dart';
 import 'local_notification_scheduler.dart';
 import 'native_alarm.dart' show QueuedAction;
+import 'serial.dart';
 
 /// `memo/alarmkit`, iOS 26+: real alarms — full screen on the lock screen,
 /// through silent and Focus, Done and Snooze on the alert.
@@ -74,6 +75,9 @@ class IosAlarmScheduler implements AlarmScheduler {
   final LocalNotificationScheduler _notifications;
   final SpokenReminder _spoken;
 
+  /// Render, native call and prune of one call finish before the next starts.
+  final _serial = Serial();
+
   /// Same budget as notifications: AlarmKit also caps how many it holds.
   static const _limit = 64;
 
@@ -82,10 +86,13 @@ class IosAlarmScheduler implements AlarmScheduler {
 
   Future<List<Map<String, Object?>>> _entries(
     Reminder r,
-    DateTime now, {
+    DateTime now,
+    Map<String, String?> used, {
     List<AlarmFire>? only,
   }) async {
-    final sound = await _spoken.soundFor(r) ?? 'memo_ring.caf';
+    final rendered = await _spoken.soundFor(r);
+    used[r.id] = rendered;
+    final sound = rendered ?? 'memo_ring.caf';
     return [
       for (final fire in only ?? firesFor(r, now: now))
         {
@@ -101,24 +108,34 @@ class IosAlarmScheduler implements AlarmScheduler {
     ];
   }
 
+  /// Only after AlarmKit returned: an armed alarm never points at a deleted
+  /// file. (The notification path prunes inside [LocalNotificationScheduler].)
+  Future<void> _prune(Map<String, String?> used) async {
+    for (final e in used.entries) {
+      await _spoken.prune(e.key, e.value);
+    }
+  }
+
   @override
-  Future<void> schedule(Reminder reminder) async {
+  Future<void> schedule(Reminder reminder) => _serial.run(() async {
     if (!await _useAlarmKit) return _notifications.schedule(reminder);
     await _notifications.cancel(reminder.id);
+    final used = <String, String?>{};
     await _alarmKit.schedule(
       reminder.id,
-      await _entries(reminder, DateTime.now()),
+      await _entries(reminder, DateTime.now(), used),
     );
-  }
+    await _prune(used);
+  });
 
   @override
-  Future<void> cancel(String reminderId) async {
+  Future<void> cancel(String reminderId) => _serial.run(() async {
     await _notifications.cancel(reminderId);
     if (await _useAlarmKit) await _alarmKit.cancel(reminderId);
-  }
+  });
 
   @override
-  Future<void> syncAll(List<Reminder> live) async {
+  Future<void> syncAll(List<Reminder> live) => _serial.run(() async {
     if (!await _useAlarmKit) return _notifications.syncAll(live);
     await _notifications.syncAll(const []); // clears any older notifications
     final now = DateTime.now();
@@ -127,15 +144,18 @@ class IosAlarmScheduler implements AlarmScheduler {
       ..sort((a, b) => a.at.compareTo(b.at));
     final kept = fires.take(_limit);
     final entries = <Map<String, Object?>>[];
+    final used = <String, String?>{};
     for (final id in {for (final f in kept) f.reminderId}) {
       entries.addAll(
         await _entries(
           byId[id]!,
           now,
+          used,
           only: kept.where((f) => f.reminderId == id).toList(),
         ),
       );
     }
     await _alarmKit.replaceAll(entries);
-  }
+    await _prune(used);
+  });
 }

@@ -35,6 +35,22 @@ void main() {
     // ignore: avoid_print
     print('TTS sizes: $sizes');
 
+    // Hindi and Bengali render only where the phone has an offline voice.
+    final spoken = SpokenReminder(gender: () => 'female');
+    final voices = (await spoken.refreshVoices()) ?? <String>{};
+    // ignore: avoid_print
+    print('TTS voices: $voices');
+    for (final (lang, title) in [('hi', 'दवा लो'), ('bn', 'ওষুধ খান')]) {
+      final r = reminder.copyWith(title: title, note: null);
+      final path = await spoken.soundFor(r);
+      if (voices.contains(lang)) {
+        expect(path, isNotNull, reason: '$lang render');
+        expect(File(path!).lengthSync(), greaterThan(20000));
+      } else {
+        expect(path, isNull, reason: 'no $lang voice: never an English one');
+      }
+    }
+
     await sl<SaveReminder>()(reminder);
     final native = sl<NativeAlarm>();
     String? ringing;

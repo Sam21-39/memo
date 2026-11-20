@@ -15,6 +15,13 @@ const appName = 'Memō';
 const supportedLanguages = ['en', 'hi', 'bn'];
 const endonyms = {'en': 'English', 'hi': 'हिन्दी', 'bn': 'বাংলা'};
 
+/// "Hindi" for `hi`, in the interface language, for a sentence.
+String languageName(AppLocalizations l, String code) => switch (code) {
+  'hi' => l.languageHindi,
+  'bn' => l.languageBengali,
+  _ => l.languageEnglish,
+};
+
 /// The first device locale Memō supports, else English.
 String deviceLanguage([List<Locale>? locales]) {
   for (final l in locales ?? PlatformDispatcher.instance.locales) {

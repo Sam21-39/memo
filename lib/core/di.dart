@@ -43,9 +43,7 @@ Future<void> configureDependencies() async {
     ..registerSingleton<NativeAlarm>(native);
 
   final prefs = await AppPrefs.open();
-  sl
-    ..registerSingleton<AppPrefs>(prefs)
-    ..registerSingleton(AppSettingsCubit(prefs));
+  sl.registerSingleton<AppPrefs>(prefs);
 
   final media = await MediaStore.open(
     installSound: Platform.isIOS ? native.installSound : null,
@@ -57,19 +55,23 @@ Future<void> configureDependencies() async {
 
   // flutter_local_notifications still owns permission prompts and tap
   // delivery on both platforms; it rings only on iOS.
-  final spoken = SpokenReminder(gender: () => prefs.voiceGender);
+  final spoken = SpokenReminder(
+    gender: () => prefs.voiceGender,
+    playback: () => prefs.playbackLocale,
+  );
   sl.registerSingleton(spoken);
   final notifications = LocalNotificationScheduler(
     FlutterLocalNotificationsPlugin(),
     snoozeEnabled: flags.snooze,
     // Read aloud: the rendered chime + voice; else the Memō chime.
     soundFor: (r) async => await spoken.soundFor(r) ?? 'memo_ring.caf',
+    onScheduled: (r, sound) => spoken.prune(r.id, sound),
   );
   await notifications.initialize(onBackground: onBackgroundNotification);
   const alarmKit = AlarmKit();
   sl.registerSingleton(alarmKit);
   final AlarmScheduler scheduler = Platform.isAndroid
-      ? AndroidAlarmScheduler(native, spoken)
+      ? AndroidAlarmScheduler(native, spoken, media)
       : IosAlarmScheduler(alarmKit, notifications, spoken);
 
   final repository = ReminderRepositoryImpl(await ReminderDb.open());
@@ -89,6 +91,19 @@ Future<void> configureDependencies() async {
       }),
     )
     ..registerSingleton(SyncAlarms(repository, scheduler))
+    // After SyncAlarms: a language or voice change re-renders lazily through
+    // the normal sync, without cancelling alarms. A failed sync is retried on
+    // the next launch or resume.
+    ..registerSingleton(
+      AppSettingsCubit(
+        prefs,
+        onLanguageChanged: () async {
+          try {
+            await sl<SyncAlarms>()();
+          } catch (_) {}
+        },
+      ),
+    )
     ..registerSingleton(RewallRepeats(repository))
     ..registerSingleton(ApplyAlarmAction(repository, save));
 }

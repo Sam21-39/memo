@@ -24,9 +24,21 @@ class _Stt implements SpeechToText {
   /// Holds the transcript back until the test says so.
   final Completer<void>? gate;
   @override
-  Future<bool> available() async => up;
+  Future<bool> available(String tag) async {
+    asked = tag;
+    return up;
+  }
+
   @override
-  Future<String> transcribeFile(String path) async {
+  Future<String> availability(String tag) async =>
+      up ? 'installed' : 'unavailable';
+
+  /// The recogniser tags the cubit sent.
+  String? asked, transcribed;
+
+  @override
+  Future<String> transcribeFile(String path, String tag) async {
+    transcribed = tag;
     await gate?.future;
     return text;
   }
@@ -34,9 +46,12 @@ class _Stt implements SpeechToText {
 
 class _BrokenStt implements SpeechToText {
   @override
-  Future<bool> available() async => throw StateError('no engine');
+  Future<bool> available(String tag) async => throw StateError('no engine');
   @override
-  Future<String> transcribeFile(String path) async =>
+  Future<String> availability(String tag) async =>
+      throw StateError('no engine');
+  @override
+  Future<String> transcribeFile(String path, String tag) async =>
       throw StateError('no engine');
 }
 
@@ -190,6 +205,30 @@ void main() {
     expect(saved.hasVoice, isTrue);
     expect(saved.readAloud, isTrue);
     expect(File(media.voicePath(saved.id)).existsSync(), isTrue);
+  });
+
+  test(
+    'transcription gets the input language tag, and so does the check',
+    () async {
+      for (final (lang, tag) in [('hi', 'hi-IN'), ('bn', 'bn-IN')]) {
+        final stt = _Stt('');
+        final cubit = build(stt: stt, inputLocale: lang);
+        await hold(cubit);
+        expect(stt.transcribed, tag);
+        // Nothing heard: availability is asked for the same language.
+        expect(stt.asked, tag);
+        expect(cubit.state.failure, VoiceFailure.empty);
+      }
+      final stt = _Stt('');
+      await hold(build(stt: stt));
+      expect(stt.transcribed, startsWith('en-'));
+    },
+  );
+
+  test('an offline-unavailable language reads as unavailable', () async {
+    final cubit = build(stt: _Stt('', up: false), inputLocale: 'bn');
+    await hold(cubit);
+    expect(cubit.state.failure, VoiceFailure.unavailable);
   });
 
   test('an empty transcript fails with the clip kept', () async {

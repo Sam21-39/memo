@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.speech.RecognitionListener
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import io.flutter.plugin.common.BinaryMessenger
@@ -18,7 +20,8 @@ import java.io.FileInputStream
 import java.util.Locale
 
 /**
- * `memo/stt`: transcribeFile(path) -> String. Feeds the recorded 16 kHz mono
+ * `memo/stt`: availability(locale) -> installed|downloadable|unavailable and
+ * transcribeFile(path, locale) -> String. Feeds the recorded 16 kHz mono
  * WAV to the ON-DEVICE recogniser (Android 13+, EXTRA_AUDIO_SOURCE). Never
  * falls back to a network recogniser: no on-device model means "".
  */
@@ -29,22 +32,63 @@ class SttPlugin(private val context: Context, messenger: BinaryMessenger) {
         MethodChannel(messenger, "memo/stt").setMethodCallHandler { call, result ->
             when (call.method) {
                 "available" -> result.success(available())
-                "transcribeFile" -> transcribe(call.argument<String>("path")!!) { result.success(it) }
+                "availability" -> availability(call.argument<String>("locale") ?: "en-IN") {
+                    result.success(it)
+                }
+                "transcribeFile" -> transcribe(
+                    call.argument<String>("path")!!,
+                    call.argument<String>("locale") ?: "en-IN",
+                ) { result.success(it) }
                 else -> result.notImplemented()
             }
         }
     }
 
-    /** The phone's own English (en-IN, en-GB…) has the best chance of a pack. */
-    private fun language(): String {
-        val locale = Locale.getDefault()
-        return if (locale.language == "en") locale.toLanguageTag() else "en-US"
-    }
-
     private fun available() = Build.VERSION.SDK_INT >= 33 &&
         SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
 
-    private fun transcribe(path: String, done: (String) -> Unit) {
+    private fun intentFor(tag: String) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        .putExtra(RecognizerIntent.EXTRA_LANGUAGE, tag)
+        .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+
+    /**
+     * installed | downloadable | unavailable for [tag], asked of the ON-DEVICE
+     * recogniser only. Replies once, on the main thread.
+     */
+    private fun availability(tag: String, done: (String) -> Unit) {
+        if (!available()) return done("unavailable")
+        val wanted = Locale.forLanguageTag(tag).language
+        var replied = false
+        var recognizer: SpeechRecognizer? = null
+        fun reply(value: String) {
+            if (replied) return
+            replied = true
+            recognizer?.destroy()
+            done(value)
+        }
+        fun has(list: List<String>) = list.any { Locale.forLanguageTag(it).language == wanted }
+        try {
+            val r = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+            recognizer = r
+            r.checkRecognitionSupport(intentFor(tag), context.mainExecutor, object : RecognitionSupportCallback {
+                override fun onSupportResult(support: RecognitionSupport) = reply(
+                    when {
+                        has(support.installedOnDeviceLanguages) -> "installed"
+                        has(support.supportedOnDeviceLanguages) ||
+                            has(support.pendingOnDeviceLanguages) -> "downloadable"
+                        else -> "unavailable"
+                    },
+                )
+                override fun onError(error: Int) = reply("unavailable")
+            })
+            main.postDelayed({ reply("unavailable") }, 2_500)
+        } catch (_: Exception) {
+            reply("unavailable")
+        }
+    }
+
+    private fun transcribe(path: String, tag: String, done: (String) -> Unit) {
         val file = File(path)
         if (!available() || !file.exists()) return done("")
         var finished = false
@@ -66,10 +110,7 @@ class SttPlugin(private val context: Context, messenger: BinaryMessenger) {
             }
         }.start()
 
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, language())
-            .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        val intent = intentFor(tag)
             .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             .putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, read)
             // Segmented: keep listening across pauses until the file ends,

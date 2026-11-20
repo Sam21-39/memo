@@ -252,14 +252,15 @@ void main() {
       },
     );
 
-    test('ringTest reads aloud only in English', () async {
+    test('ringTest reads aloud in every interface language', () async {
       final (cubit, _) = await _cubit();
+      await sl<AppPrefs>().setInterfaceLocale('hi');
       await cubit.ringTest();
       expect(
         (await sl<ReminderRepository>().getById('memo-test'))!.readAloud,
         isTrue,
       );
-      await sl<AppPrefs>().setInterfaceLocale('hi');
+      await sl<AppPrefs>().setReadAloudDefault(false);
       await cubit.ringTest();
       expect(
         (await sl<ReminderRepository>().getById('memo-test'))!.readAloud,

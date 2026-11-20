@@ -17,7 +17,11 @@ void main() {
     late List<String> played;
     late int stops;
 
-    AlarmCubit build({bool ringing = false}) => AlarmCubit(
+    AlarmCubit build({
+      bool ringing = false,
+      String? language = 'en',
+      bool spoke = true,
+    }) => AlarmCubit(
       'p',
       repo,
       SaveReminder(repo, FakeScheduler()),
@@ -25,7 +29,11 @@ void main() {
       stopRinging: () async => stops++,
       play: (id) async => played.add(id),
       stop: () async {},
-      speak: (r) async => played.add('say:${r.id}'),
+      speak: (r) async {
+        played.add('say:${r.id}');
+        return spoke;
+      },
+      speechLanguage: (_) async => language,
     );
 
     setUp(() {
@@ -39,6 +47,29 @@ void main() {
     test('reads it aloud once when nothing native is sounding', () async {
       await build().load();
       expect(played, ['say:p']);
+    });
+
+    test('the line names the plan language only when it spoke', () async {
+      final cubit = build(language: 'hi');
+      await cubit.load();
+      expect(cubit.state.speakingIn, 'hi');
+      final failed = build(spoke: false);
+      await failed.load();
+      expect(failed.state.speakingIn, isNull);
+      // Spoke nothing, so the voice note plays instead.
+      expect(played, ['say:p', 'say:p', 'p']);
+    });
+
+    test('no voice for the title: no speech, the note plays', () async {
+      final cubit = build(language: null);
+      await cubit.load();
+      expect(cubit.state.speakingIn, isNull);
+      expect(played, ['p']);
+    });
+
+    test('no voice for the title and a native alarm: stays silent', () async {
+      await build(language: null, ringing: true).load();
+      expect(played, isEmpty);
     });
 
     test('does not talk over a native alarm already sounding', () async {
@@ -132,7 +163,8 @@ void main() {
                 stopRinging: () async {},
                 play: (_) async {},
                 stop: () async {},
-                speak: (_) async {},
+                speak: (_) async => true,
+                speechLanguage: (_) async => 'en',
               )..load(),
               child: AlarmPage(voicePath: (id) => id, onClose: () {}),
             ),

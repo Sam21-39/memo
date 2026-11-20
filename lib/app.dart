@@ -41,6 +41,7 @@ import 'features/settings/health_page.dart';
 import 'features/settings/language_page.dart';
 import 'features/settings/settings_cubit.dart';
 import 'features/settings/settings_page.dart';
+import 'features/settings/voice_page.dart';
 import 'l10n/l10n.dart';
 
 SettingsCubit _settingsCubit() => SettingsCubit(
@@ -126,6 +127,7 @@ GoRouter buildRouter(AppPrefs prefs) {
               play: (id) => voice.play(media.voicePath(id)),
               stop: voice.stopPlaying,
               speak: sl<SpokenReminder>().say,
+              speechLanguage: sl<SpokenReminder>().languageFor,
             )..load(),
             child: AlarmPage(
               voicePath: media.voicePath,
@@ -151,6 +153,13 @@ GoRouter buildRouter(AppPrefs prefs) {
         ),
         routes: [
           GoRoute(path: 'language', builder: (_, _) => const LanguagePage()),
+          GoRoute(
+            path: 'voice',
+            builder: (_, _) => BlocProvider(
+              create: (_) => _settingsCubit()..refresh(),
+              child: const VoicePage(),
+            ),
+          ),
           GoRoute(
             path: 'health',
             builder: (_, _) => BlocProvider(
@@ -255,6 +264,8 @@ class _MemoAppState extends State<MemoApp> {
     } on NativeAlarmError {
       // The queue stays native-side; the next resume tries again.
     } finally {
+      // Voices can be installed or removed while the app was away.
+      await sl<SpokenReminder>().refreshVoices();
       await sl<SyncAlarms>()();
     }
   }
