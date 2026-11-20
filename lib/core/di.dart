@@ -21,7 +21,9 @@ import '../features/reminders/domain/usecases/apply_alarm_action.dart';
 import '../features/reminders/domain/usecases/delete_reminder.dart';
 import '../features/reminders/domain/usecases/save_reminder.dart';
 import '../features/reminders/domain/usecases/sync_alarms.dart';
+import '../l10n/l10n.dart';
 import 'app_prefs.dart';
+import 'app_settings_cubit.dart';
 import 'feature_flags/feature_flags.dart';
 import 'notification_background.dart';
 
@@ -33,6 +35,7 @@ final sl = GetIt.instance;
 /// Also runs in the iOS background isolate that applies Done / Snooze, so it
 /// must not touch anything that needs a widget tree.
 Future<void> configureDependencies() async {
+  useWesternDigits();
   const flags = RemoteFeatureFlags();
   const native = NativeAlarm();
   sl
@@ -40,7 +43,9 @@ Future<void> configureDependencies() async {
     ..registerSingleton<NativeAlarm>(native);
 
   final prefs = await AppPrefs.open();
-  sl.registerSingleton<AppPrefs>(prefs);
+  sl
+    ..registerSingleton<AppPrefs>(prefs)
+    ..registerSingleton(AppSettingsCubit(prefs));
 
   final media = await MediaStore.open(
     installSound: Platform.isIOS ? native.installSound : null,

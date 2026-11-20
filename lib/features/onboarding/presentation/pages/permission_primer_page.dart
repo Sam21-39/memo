@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/ui/memo_mark.dart';
 import 'welcome_page.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Onboarding-Permission: the primer before the OS asks.
 class PermissionPrimerPage extends StatelessWidget {
@@ -18,12 +18,15 @@ class PermissionPrimerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      art: const EmptyRing(),
-      title: S.permTitle,
-      paragraphs: const [S.permBody1, S.permBody2],
+      art: EmptyRing(),
+      title: context.l10n.permTitle,
+      paragraphs: [context.l10n.permBody1, context.l10n.permBody2],
       actions: [
-        ElevatedButton(onPressed: onContinue, child: const Text(S.permAllow)),
-        OutlinedButton(onPressed: onSkip, child: const Text(S.permNotNow)),
+        ElevatedButton(
+          onPressed: onContinue,
+          child: Text(context.l10n.permAllow),
+        ),
+        OutlinedButton(onPressed: onSkip, child: Text(context.l10n.permNotNow)),
       ],
     );
   }

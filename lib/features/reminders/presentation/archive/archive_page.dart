@@ -11,7 +11,7 @@ import '../widgets/check_control.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/section_card.dart';
 import 'archive_cubit.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Done-Archive: completed one-offs by day, searchable.
 class ArchivePage extends StatelessWidget {
@@ -58,7 +58,7 @@ class ArchivePage extends StatelessWidget {
                         Semantics(
                           header: true,
                           child: Text(
-                            S.commonDone,
+                            context.l10n.commonDone,
                             style: MemoType.display.copyWith(color: c.ink),
                           ),
                         ),
@@ -66,7 +66,9 @@ class ArchivePage extends StatelessWidget {
                         Text(
                           sectionLabelText(
                             context,
-                            S.archiveThisWeek(state.completedSince(weekStart)),
+                            context.l10n.archiveThisWeek(
+                              state.completedSince(weekStart),
+                            ),
                           ),
                           style: sectionLabelStyle(
                             context,
@@ -76,8 +78,8 @@ class ArchivePage extends StatelessWidget {
                         TextField(
                           onChanged: cubit.search,
                           style: MemoType.body.copyWith(color: c.ink),
-                          decoration: const InputDecoration(
-                            hintText: S.archiveSearchHint,
+                          decoration: InputDecoration(
+                            hintText: context.l10n.archiveSearchHint,
                           ),
                         ),
                         if (state.visible.isEmpty)
@@ -87,8 +89,8 @@ class ArchivePage extends StatelessWidget {
                             ),
                             child: Text(
                               state.query.isEmpty
-                                  ? S.archiveEmpty
-                                  : S.archiveNoMatch,
+                                  ? context.l10n.archiveEmpty
+                                  : context.l10n.archiveNoMatch,
                               textAlign: TextAlign.center,
                               style: MemoType.body.copyWith(color: c.ink70),
                             ),
@@ -96,7 +98,7 @@ class ArchivePage extends StatelessWidget {
                         for (final entry in groups.entries) ...[
                           const SizedBox(height: MemoSpace.space6),
                           DaySectionHeader(
-                            label: dayHeaderLabel(entry.key, now),
+                            label: dayHeaderLabel(context, entry.key, now),
                           ),
                           SectionCard(
                             children: [
@@ -150,13 +152,16 @@ class _DoneRow extends StatelessWidget {
                     style: MemoType.bodyLarge.copyWith(color: c.ink),
                   ),
                   Text(
-                    formatTime(reminder.doneAt!),
+                    formatTime(context, reminder.doneAt!),
                     style: MemoType.labelMedium.copyWith(color: c.ink70),
                   ),
                 ],
               ),
             ),
-            TagChip(label: S.commonReopen, onTap: () => onReopen(reminder)),
+            TagChip(
+              label: context.l10n.commonReopen,
+              onTap: () => onReopen(reminder),
+            ),
           ],
         ),
       ),

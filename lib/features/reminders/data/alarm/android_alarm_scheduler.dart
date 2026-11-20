@@ -4,7 +4,7 @@ import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
 import '../spoken_reminder.dart';
 import 'native_alarm.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Android: AlarmManager exact alarms and a ringing foreground service, in
 /// Kotlin. Dart computes the fires; native stores them, re-arms repeats as
@@ -30,7 +30,7 @@ class AndroidAlarmScheduler implements AlarmScheduler {
           'reminderId': r.id,
           'title': r.title,
           'body': r.note ?? '',
-          'missedText': S.missed(r.title), // l10n: native
+          'missedText': l10n().missed(r.title), // l10n: native
           'speech': speech,
           'snoozeId': AlarmIds.snooze(r.id),
         },

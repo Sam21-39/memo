@@ -9,7 +9,7 @@ import '../../data/media_store.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/snooze_preset_row.dart';
 import 'alarm_cubit.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboards Alarm and Android-Alarm: one-handed, readable without glasses,
 /// over the lock screen on Android.
@@ -43,7 +43,7 @@ class AlarmPage extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Text(
-                        S.reminderMissing,
+                        context.l10n.reminderMissing,
                         style: MemoType.body.copyWith(color: c.ink70),
                       ),
                     ),
@@ -74,10 +74,10 @@ class AlarmPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const DaySectionHeader(label: S.alarmReminder),
+                          DaySectionHeader(label: context.l10n.alarmReminder),
                           if (late.inMinutes >= 1)
                             Text(
-                              formatLateness(late),
+                              formatLateness(context, late),
                               style: MemoType.labelSmall.copyWith(
                                 color: c.accentText,
                               ),
@@ -86,7 +86,7 @@ class AlarmPage extends StatelessWidget {
                       ),
                       const SizedBox(height: MemoSpace.space6),
                       Text(
-                        formatTime(reminder.ringsAt),
+                        formatTime(context, reminder.ringsAt),
                         style: MemoType.clock.copyWith(color: c.ink),
                       ),
                       const SizedBox(height: MemoSpace.space3),
@@ -111,8 +111,8 @@ class AlarmPage extends StatelessWidget {
                             IconButton(
                               onPressed: cubit.togglePlay,
                               tooltip: state.playing
-                                  ? S.voiceStop
-                                  : S.voicePlay,
+                                  ? context.l10n.voiceStop
+                                  : context.l10n.voicePlay,
                               style: IconButton.styleFrom(
                                 fixedSize: const Size.square(MemoSpace.hitMin),
                                 backgroundColor: c.accentText,
@@ -126,10 +126,17 @@ class AlarmPage extends StatelessWidget {
                             ),
                             const SizedBox(width: MemoSpace.space3),
                             Text(
-                              S.alarmClip(
-                                MediaStore.clipLength(voicePath(reminder.id)),
-                                state.playing,
-                              ),
+                              state.playing
+                                  ? context.l10n.clipNotePlaying(
+                                      MediaStore.clipLength(
+                                        voicePath(reminder.id),
+                                      ),
+                                    )
+                                  : context.l10n.clipNote(
+                                      MediaStore.clipLength(
+                                        voicePath(reminder.id),
+                                      ),
+                                    ),
                               style: MemoType.labelMedium.copyWith(
                                 color: c.ink70,
                               ),
@@ -176,7 +183,7 @@ class _SlideToDoneState extends State<SlideToDone> {
     final c = MemoColors.of(context);
     return Semantics(
       button: true,
-      label: S.commonMarkDone,
+      label: context.l10n.commonMarkDone,
       onTap: widget.onDone,
       excludeSemantics: true,
       child: LayoutBuilder(
@@ -194,7 +201,7 @@ class _SlideToDoneState extends State<SlideToDone> {
               children: [
                 Center(
                   child: Text(
-                    S.alarmSlideToDone,
+                    context.l10n.alarmSlideToDone,
                     style: MemoType.button.copyWith(color: c.accentPressed),
                   ),
                 ),

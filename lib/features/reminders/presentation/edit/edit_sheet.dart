@@ -23,7 +23,7 @@ import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
 import '../widgets/weekday_selector.dart';
 import 'edit_cubit.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Edit-Reminder: create or edit in a sheet over Home or Detail.
 /// Saves (write + schedule) itself; a schedule failure is shown, then the
@@ -109,11 +109,11 @@ class _EditFormState extends State<EditForm> {
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(foregroundColor: c.ink),
-                  child: const Text(S.commonCancel),
+                  child: Text(context.l10n.commonCancel),
                 ),
                 Expanded(
                   child: Text(
-                    isNew ? S.editNew : S.editExisting,
+                    isNew ? context.l10n.editNew : context.l10n.editExisting,
                     textAlign: TextAlign.center,
                     style: MemoType.bodyLarge.copyWith(
                       color: c.ink,
@@ -123,7 +123,7 @@ class _EditFormState extends State<EditForm> {
                 ),
                 TextButton(
                   onPressed: state.canSave ? cubit.save : null,
-                  child: const Text(S.commonSave),
+                  child: Text(context.l10n.commonSave),
                 ),
               ],
             ),
@@ -138,7 +138,9 @@ class _EditFormState extends State<EditForm> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: cubit.setTitle,
                     style: MemoType.bodyLarge.copyWith(color: c.ink),
-                    decoration: const InputDecoration(hintText: S.reminderHint),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.reminderHint,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -147,68 +149,76 @@ class _EditFormState extends State<EditForm> {
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: cubit.setNote,
                     style: MemoType.body.copyWith(color: c.ink),
-                    decoration: const InputDecoration(hintText: S.editNoteHint),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.editNoteHint,
+                    ),
                   ),
                   const SizedBox(height: MemoSpace.space6),
-                  const DaySectionHeader(label: S.fieldWhen),
+                  DaySectionHeader(label: context.l10n.fieldWhen),
                   SectionCard(
                     children: [
                       KeyValueRow(
-                        label: S.fieldTime,
+                        label: context.l10n.fieldTime,
                         onTap: () async {
                           final t = await pickTime(context, state.dueAt);
                           if (t != null) cubit.setDueAt(t);
                         },
-                        child: PillValue(formatTime(state.dueAt), active: true),
+                        child: PillValue(
+                          formatTime(context, state.dueAt),
+                          active: true,
+                        ),
                       ),
                       KeyValueRow(
-                        label: S.fieldDate,
+                        label: context.l10n.fieldDate,
                         onTap: () async {
                           final d = await pickDate(context, state.dueAt);
                           if (d != null) cubit.setDueAt(d);
                         },
                         child: PillValue(
-                          dayHeaderLabel(state.dueAt, DateTime.now()),
+                          dayHeaderLabel(context, state.dueAt, DateTime.now()),
                         ),
                       ),
                       if (flags.preAlarm)
                         KeyValueRow(
-                          label: S.fieldPreAlarm,
+                          label: context.l10n.fieldPreAlarm,
                           onTap: () async {
                             final m = await showMinutesSheet(
                               context,
-                              title: S.fieldPreAlarm,
-                              body: S.editPreAlarmBody,
+                              title: context.l10n.fieldPreAlarm,
+                              body: context.l10n.editPreAlarmBody,
                               presets: const [5, 15, 30, 60],
                               current: state.preAlarmMin,
-                              label: preAlarmLabel,
+                              label: (m) => preAlarmLabel(context.l10n, m),
                             );
                             if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
                           },
                           child: PillValue(
                             state.preAlarmMin == null
-                                ? S.commonOff
-                                : preAlarmLabel(state.preAlarmMin!),
+                                ? context.l10n.commonOff
+                                : preAlarmLabel(
+                                    context.l10n,
+                                    state.preAlarmMin!,
+                                  ),
                           ),
                         ),
                       if (flags.nag)
                         KeyValueRow(
-                          label: S.editNagTitle,
+                          label: context.l10n.editNagTitle,
                           onTap: () async {
                             final m = await showMinutesSheet(
                               context,
-                              title: S.editNagTitle,
-                              body: S.editNagBody,
+                              title: context.l10n.editNagTitle,
+                              body: context.l10n.editNagBody,
                               presets: const [5, 10, 30],
                               current: state.nagMin,
-                              label: nagLabel,
+                              label: (m) => nagLabel(context.l10n, m),
                             );
                             if (m != null) cubit.setNag(m == 0 ? null : m);
                           },
                           child: PillValue(
                             state.nagMin == null
-                                ? S.commonOff
-                                : nagLabel(state.nagMin!),
+                                ? context.l10n.commonOff
+                                : nagLabel(context.l10n, state.nagMin!),
                           ),
                         ),
                     ],
@@ -217,18 +227,18 @@ class _EditFormState extends State<EditForm> {
                     Padding(
                       padding: const EdgeInsets.only(top: MemoSpace.space2),
                       child: Text(
-                        S.timePassed,
+                        context.l10n.timePassed,
                         style: MemoType.body.copyWith(color: c.destructive),
                       ),
                     ),
                   if (flags.repeatReminders) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.fieldRepeat),
+                    DaySectionHeader(label: context.l10n.fieldRepeat),
                     _RepeatPicker(state: state),
                   ],
                   if (flags.tags) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.fieldTag),
+                    DaySectionHeader(label: context.l10n.fieldTag),
                     _TagPicker(
                       knownTags: widget.knownTags,
                       selected: state.tag,
@@ -237,7 +247,7 @@ class _EditFormState extends State<EditForm> {
                   ],
                   if (cubit.media != null && cubit.voice != null) ...[
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.editSound),
+                    DaySectionHeader(label: context.l10n.editSound),
                     _SoundCard(state: state),
                   ],
                   if (state.notice != null &&
@@ -287,7 +297,7 @@ class _SoundCard extends StatelessWidget {
       row = Row(
         children: [
           IconButton(
-            tooltip: S.voicePlay,
+            tooltip: context.l10n.voicePlay,
             onPressed: () => sl<VoiceClip>().play(path),
             style: IconButton.styleFrom(
               fixedSize: const Size.square(36),
@@ -297,10 +307,13 @@ class _SoundCard extends StatelessWidget {
           ),
           const SizedBox(width: MemoSpace.space3),
           Expanded(
-            child: Text(S.clipNote(MediaStore.clipLength(path)), style: mono),
+            child: Text(
+              context.l10n.clipNote(MediaStore.clipLength(path)),
+              style: mono,
+            ),
           ),
           IconButton(
-            tooltip: S.voiceDelete,
+            tooltip: context.l10n.voiceDelete,
             onPressed: cubit.deleteClip,
             icon: Icon(Icons.close_rounded, color: c.ink70, size: 18),
           ),
@@ -316,17 +329,19 @@ class _SoundCard extends StatelessWidget {
                 ? Row(
                     children: [
                       Text(
-                        S.captureElapsed(secs(state.recorded)),
+                        context.l10n.captureElapsed(secs(state.recorded)),
                         style: mono.copyWith(color: c.accentText),
                       ),
                       Text(
-                        S.editRecordingMax(secs(VoiceClip.maxLength)),
+                        context.l10n.editRecordingMax(
+                          secs(VoiceClip.maxLength),
+                        ),
                         style: mono,
                       ),
                       const SizedBox(width: MemoSpace.space3),
                       Expanded(
                         child: Text(
-                          S.editReleaseToStop,
+                          context.l10n.editReleaseToStop,
                           textAlign: TextAlign.end,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -335,7 +350,7 @@ class _SoundCard extends StatelessWidget {
                       ),
                     ],
                   )
-                : Text(S.editHoldToRecordNote, style: mono),
+                : Text(context.l10n.editHoldToRecordNote, style: mono),
           ),
           const SizedBox(width: MemoSpace.space3),
           _HoldToRecord(cubit: cubit, active: state.recording),
@@ -345,10 +360,10 @@ class _SoundCard extends StatelessWidget {
     return SectionCard(
       children: [
         KeyValueRow(
-          label: S.editReadAloudWhenRings,
+          label: context.l10n.editReadAloudWhenRings,
           onTap: () => cubit.setReadAloud(!state.readAloud),
           child: PillValue(
-            state.readAloud ? S.commonOn : S.commonOff,
+            state.readAloud ? context.l10n.commonOn : context.l10n.commonOff,
             active: state.readAloud,
           ),
         ),
@@ -379,7 +394,7 @@ class _HoldToRecord extends StatelessWidget {
     // sheet's scrolling can cancel it mid-hold. Down records, up stops.
     return Semantics(
       button: true,
-      label: S.captureHoldToRecord,
+      label: context.l10n.captureHoldToRecord,
       child: Listener(
         onPointerDown: (_) {
           HapticFeedback.selectionClick();
@@ -498,7 +513,7 @@ class _TagPicker extends StatelessWidget {
             onTap: () => onChanged(tag == selected ? null : tag),
           ),
         TagChip(
-          label: S.editNewTagChip,
+          label: context.l10n.editNewTagChip,
           dashed: true,
           onTap: () => _addTag(context),
         ),
@@ -529,20 +544,20 @@ class _NewTagDialogState extends State<_NewTagDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text(S.editNewTagTitle),
+      title: Text(context.l10n.editNewTagTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(hintText: S.editTagHint),
+        decoration: InputDecoration(hintText: context.l10n.editTagHint),
         onSubmitted: (_) => _submit(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(S.commonCancel),
+          child: Text(context.l10n.commonCancel),
         ),
-        TextButton(onPressed: _submit, child: const Text(S.commonAdd)),
+        TextButton(onPressed: _submit, child: Text(context.l10n.commonAdd)),
       ],
     );
   }

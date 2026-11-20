@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/core/di.dart';
 import 'package:memo/core/theme/memo_theme.dart';
+import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -91,7 +92,7 @@ void main() {
     ]);
     await _pump(tester);
     expect(find.text('OVERDUE'), findsOneWidget);
-    expect(find.text('2h late'), findsOneWidget);
+    expect(find.text('2 h late'), findsOneWidget);
     expect(find.text('1 SCHEDULED · 1 OVERDUE'), findsOneWidget);
   });
 
@@ -200,7 +201,7 @@ void main() {
       'Pills at 8 tonight every day',
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('20:00'), findsOneWidget);
+    expect(find.textContaining('8:00 PM'), findsOneWidget);
     expect(find.text('Daily'), findsOneWidget);
     expect(find.text('OVERDUE'), findsNothing);
 
@@ -222,6 +223,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: MemoTheme.dark,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: MultiBlocProvider(
           providers: [
             BlocProvider(

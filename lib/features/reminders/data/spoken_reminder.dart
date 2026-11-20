@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 import '../domain/entities/reminder.dart';
-import '../../../l10n/strings.dart';
+import '../../../l10n/l10n.dart';
 
 /// Renders a reminder in the app's own voice, offline, to a sound the alarm
 /// plays (`memo/tts`). Rendered at save time because an alarm cannot run
@@ -25,7 +25,11 @@ class SpokenReminder {
 
   static String textFor(Reminder r) {
     final note = r.note?.split('\n').first.trim();
-    return S.spokenReminder(r.title, note);
+    // V7: language comes from the speech plan.
+    final l = l10n('en');
+    return note == null || note.isEmpty
+        ? l.spokenReminder(r.title)
+        : l.spokenReminderNote(r.title, note);
   }
 
   /// Stable across runs (unlike String.hashCode): FNV-1a, 32-bit.
@@ -65,7 +69,10 @@ class SpokenReminder {
   }
 
   /// Speak a sample now, for the Settings preview.
-  Future<void> preview(String gender) => _speak(S.spokenPreview, gender);
+  Future<void> preview(String gender) => _speak(
+    l10n('en').spokenPreview, // V7: per-language voices
+    gender,
+  );
 
   /// Speak [r] now: the in-app alarm screen, when nothing native is ringing.
   Future<void> say(Reminder r) => _speak(textFor(r), gender());

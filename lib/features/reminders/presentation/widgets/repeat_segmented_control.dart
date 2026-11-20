@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 enum RepeatOption { none, daily, weekly, custom }
 
@@ -17,16 +17,16 @@ class RepeatSegmentedControl extends StatelessWidget {
   final RepeatOption value;
   final ValueChanged<RepeatOption> onChanged;
 
-  static const _labels = {
-    RepeatOption.none: S.repeatNone,
-    RepeatOption.daily: S.repeatDaily,
-    RepeatOption.weekly: S.repeatWeekly,
-    RepeatOption.custom: S.repeatCustom,
-  };
-
   @override
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
+    final l = context.l10n;
+    final labels = {
+      RepeatOption.none: l.repeatNone,
+      RepeatOption.daily: l.repeatDaily,
+      RepeatOption.weekly: l.repeatWeekly,
+      RepeatOption.custom: l.repeatCustom,
+    };
     return Container(
       height: 36,
       padding: const EdgeInsets.all(3),
@@ -36,7 +36,7 @@ class RepeatSegmentedControl extends StatelessWidget {
       ),
       child: Row(
         children: [
-          for (final entry in _labels.entries)
+          for (final entry in labels.entries)
             Expanded(
               child: Semantics(
                 button: true,

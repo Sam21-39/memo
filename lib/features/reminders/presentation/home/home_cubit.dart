@@ -10,7 +10,7 @@ import '../../domain/usecases/delete_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../../domain/usecases/snooze_reminder.dart';
 import 'home_state.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit(this._repository, this._save, this._delete)
@@ -48,12 +48,12 @@ class HomeCubit extends Cubit<HomeState> {
     } on ScheduleFailure {
       final current = state;
       if (current is HomeReady) {
-        emit(current.copyWith(error: S.scheduleFailed));
+        emit(current.copyWith(error: l10n().scheduleFailed));
       }
     } catch (_) {
       final current = state;
       if (current is HomeReady) {
-        emit(current.copyWith(error: S.saveFailed));
+        emit(current.copyWith(error: l10n().saveFailed));
       }
     }
   }
@@ -125,7 +125,7 @@ class HomeCubit extends Cubit<HomeState> {
     } catch (_) {
       final now = state;
       if (!isClosed && now is HomeReady) {
-        emit(now.copyWith(error: S.deleteFailed));
+        emit(now.copyWith(error: l10n().deleteFailed));
       }
     } finally {
       _inFlight = null;

@@ -12,11 +12,11 @@ import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
-import '../../domain/entities/repeat_rule.dart';
+import '../repeat_label.dart';
 import '../edit/edit_sheet.dart';
 import 'capture_cubit.dart';
 import 'capture_sheets.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboards Home-* (idle), Capture-Parsed, Capture-Recording, Loaders.
 ///
@@ -128,9 +128,9 @@ class _CaptureBarState extends State<CaptureBar> {
                         Expanded(child: _main(context, state, cubit)),
                         if (sl<FeatureFlags>().imageCapture &&
                             state.phase == CapturePhase.idle)
-                          const MemoIconButton(
+                          MemoIconButton(
                             icon: Icons.photo_camera_outlined,
-                            label: S.captureAddPhoto,
+                            label: context.l10n.captureAddPhoto,
                           ),
                         // The mic keeps one slot from idle through recording:
                         // rebuilding it mid-hold would lose the release.
@@ -145,7 +145,7 @@ class _CaptureBarState extends State<CaptureBar> {
                         else if (state.canSave)
                           TextButton(
                             onPressed: cubit.save,
-                            child: const Text(S.commonSave),
+                            child: Text(context.l10n.commonSave),
                           ),
                         const SizedBox(width: MemoSpace.space1),
                       ],
@@ -176,14 +176,14 @@ class _CaptureBarState extends State<CaptureBar> {
             children: [
               Text(
                 late
-                    ? S.captureLeft(secs(left))
-                    : S.captureElapsed(secs(state.recorded)),
+                    ? context.l10n.captureLeft(secs(left))
+                    : context.l10n.captureElapsed(secs(state.recorded)),
                 style: mono.copyWith(color: c.accentText),
               ),
               const SizedBox(width: MemoSpace.space3),
               Expanded(
                 child: Text(
-                  S.captureReleaseToStop,
+                  context.l10n.captureReleaseToStop,
                   maxLines: 2,
                   style: MemoType.body.copyWith(fontSize: 13, color: c.ink70),
                 ),
@@ -196,12 +196,14 @@ class _CaptureBarState extends State<CaptureBar> {
           padding: pad,
           child: Row(
             children: [
-              MemoLoader(label: S.captureListening(secs(state.recorded))),
+              MemoLoader(
+                label: context.l10n.captureListening(secs(state.recorded)),
+              ),
               const Spacer(),
               TextButton(
                 onPressed: cubit.cancelTranscription,
                 style: TextButton.styleFrom(foregroundColor: c.ink70),
-                child: const Text(S.commonCancel),
+                child: Text(context.l10n.commonCancel),
               ),
             ],
           ),
@@ -209,9 +211,9 @@ class _CaptureBarState extends State<CaptureBar> {
       case CapturePhase.saving:
         return Padding(
           padding: pad,
-          child: const Align(
+          child: Align(
             alignment: Alignment.centerLeft,
-            child: MemoLoader(label: S.captureSaving),
+            child: MemoLoader(label: context.l10n.captureSaving),
           ),
         );
       case CapturePhase.idle || CapturePhase.typing:
@@ -224,7 +226,7 @@ class _CaptureBarState extends State<CaptureBar> {
           textCapitalization: TextCapitalization.sentences,
           style: MemoType.bodyLarge.copyWith(color: c.ink),
           decoration: InputDecoration(
-            hintText: S.reminderHint,
+            hintText: context.l10n.reminderHint,
             hintStyle: MemoType.bodyLarge.copyWith(color: c.ink70),
             filled: false,
             border: InputBorder.none,
@@ -249,31 +251,14 @@ class _Chips extends StatelessWidget {
   final List<String> knownTags;
   final VoidCallback onMore;
 
-  static String _repeat(RepeatRule r) {
-    const names = S.weekdaysShort;
-    return switch (r.type) {
-      RepeatType.none => S.captureRepeatNone,
-      RepeatType.daily => S.repeatDaily,
-      RepeatType.weekly when r.weekdays.length == 1 => S.captureEveryDay(
-        names[r.weekdays.first - 1],
-      ),
-      RepeatType.weekly
-          when r.weekdays.containsAll({1, 2, 3, 4, 5}) &&
-              r.weekdays.length == 5 =>
-        S.captureRepeatWeekdays,
-      RepeatType.weekly =>
-        (r.weekdays.toList()..sort()).map((d) => names[d - 1]).join(' '),
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<CaptureCubit>();
     final due = state.dueAt!;
     final now = DateTime.now();
     final when =
-        '${dayHeaderLabel(due, now) == S.dateToday ? '' : '${dayHeaderLabel(due, now)} '}'
-        '${formatTime(due)}';
+        '${dayHeaderLabel(context, due, now) == context.l10n.dateToday ? '' : '${dayHeaderLabel(context, due, now)} '}'
+        '${formatTime(context, due)}';
     final tag = state.tag;
     final media = cubit.media;
     return SizedBox(
@@ -291,15 +276,19 @@ class _Chips extends StatelessWidget {
             label: when,
             dashed: state.timeGuessed,
             semantics: state.timeGuessed
-                ? S.captureTimeGuess(when)
-                : S.captureTime(when),
+                ? context.l10n.captureTimeGuess(when)
+                : context.l10n.captureTime(when),
             onTap: () async {
               final at = await showWhenSheet(context, due);
               if (at != null) cubit.setDueAt(at);
             },
           ),
           _Chip(
-            label: _repeat(state.repeat),
+            label: repeatLabel(
+              context,
+              state.repeat,
+              none: context.l10n.captureRepeatNone,
+            ),
             dashed: !state.repeat.repeats,
             onTap: () async {
               final r = await showRepeatSheet(context, state.repeat, due);
@@ -307,7 +296,7 @@ class _Chips extends StatelessWidget {
             },
           ),
           _Chip(
-            label: tag ?? S.captureTagNone,
+            label: tag ?? context.l10n.captureTagNone,
             dot: tag == null ? null : tagColor(tag),
             dashed: tag == null,
             onTap: () async {
@@ -316,19 +305,23 @@ class _Chips extends StatelessWidget {
             },
           ),
           _Chip(
-            label: state.readAloud ? S.captureReadAloud : S.captureSilent,
+            label: state.readAloud
+                ? context.l10n.captureReadAloud
+                : context.l10n.captureSilent,
             dashed: !state.readAloud,
             semantics: state.readAloud
-                ? S.captureReadAloudOn
-                : S.captureReadAloudOff,
+                ? context.l10n.captureReadAloudOn
+                : context.l10n.captureReadAloudOff,
             onTap: () => cubit.setReadAloud(!state.readAloud),
           ),
           if (state.hasClip && media != null)
             _Chip(
-              label: S.clipNote(MediaStore.clipLength(media.draftVoicePath)),
+              label: context.l10n.clipNote(
+                MediaStore.clipLength(media.draftVoicePath),
+              ),
               onTap: () => sl<VoiceClip>().play(media.draftVoicePath),
             ),
-          _Chip(label: S.commonMore, dashed: true, onTap: onMore),
+          _Chip(label: context.l10n.commonMore, dashed: true, onTap: onMore),
         ],
       ),
     );
@@ -412,7 +405,7 @@ class _Mic extends StatelessWidget {
     final c = MemoColors.of(context);
     return Semantics(
       button: true,
-      label: S.captureHoldToRecord,
+      label: context.l10n.captureHoldToRecord,
       child: Listener(
         onPointerDown: (_) {
           HapticFeedback.selectionClick();

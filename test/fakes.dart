@@ -5,6 +5,7 @@ import 'package:memo/core/app_prefs.dart';
 import 'package:memo/core/di.dart';
 import 'package:memo/core/feature_flags/feature_flags.dart';
 import 'package:memo/core/theme/memo_theme.dart';
+import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/domain/alarm/alarm_scheduler.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
@@ -125,5 +126,7 @@ Future<(InMemoryRepository, FakeScheduler)> setUpDi([
 /// Material path and chrome is solid.
 Widget themed(Widget child) => MaterialApp(
   theme: MemoTheme.light.copyWith(platform: TargetPlatform.android),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );

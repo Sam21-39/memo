@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Main (Onboarding · Welcome).
 class WelcomePage extends StatelessWidget {
@@ -18,15 +18,15 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      art: const MemoMark(),
-      title: S.welcomeTitle,
-      paragraphs: const [S.welcomeBody1, S.welcomeBody2],
+      art: MemoMark(),
+      title: context.l10n.welcomeTitle,
+      paragraphs: [context.l10n.welcomeBody1, context.l10n.welcomeBody2],
       actions: [
         ElevatedButton(
           onPressed: onContinue,
-          child: const Text(S.commonContinue),
+          child: Text(context.l10n.commonContinue),
         ),
-        TextButton(onPressed: onSkip, child: const Text(S.commonSkip)),
+        TextButton(onPressed: onSkip, child: Text(context.l10n.commonSkip)),
       ],
     );
   }

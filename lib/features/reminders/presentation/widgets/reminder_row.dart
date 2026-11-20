@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
 import 'check_control.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// One reminder: check, title, optional mono sub-line (tag dot + name, or a
 /// note), repeat glyph and mono time on the right. No border of its own.
@@ -98,7 +98,7 @@ class ReminderRow extends StatelessWidget {
                   Icons.repeat_rounded,
                   size: 14,
                   color: c.ink70,
-                  semanticLabel: S.repeatsSemantic,
+                  semanticLabel: context.l10n.repeatsSemantic,
                 ),
               ],
               const SizedBox(width: MemoSpace.space2),

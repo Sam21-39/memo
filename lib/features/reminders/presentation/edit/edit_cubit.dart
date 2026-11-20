@@ -10,7 +10,7 @@ import '../../domain/entities/repeat_rule.dart';
 import '../../domain/usecases/create_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 enum EditStatus { editing, saving, saved }
 
@@ -276,7 +276,7 @@ class EditCubit extends Cubit<EditState> {
     final existing = state.existing;
     final title = state.title.trim().isNotEmpty
         ? state.title
-        : S.voiceNoteTitle(MediaStore.clipLength(clipPath ?? ''));
+        : l10n().voiceNoteTitle(MediaStore.clipLength(clipPath ?? ''));
     var reminder =
         existing?.copyWith(
           title: title.trim(),
@@ -329,12 +329,16 @@ class EditCubit extends Cubit<EditState> {
       if (state.removeClip && !state.draftClip) {
         await media?.deleteVoice(reminder.id);
       }
-      emit(state.copyWith(status: EditStatus.saved, error: S.scheduleFailed));
+      emit(
+        state.copyWith(status: EditStatus.saved, error: l10n().scheduleFailed),
+      );
     } catch (_) {
       if (committed) await media!.uncommitVoice(reminder.id);
       _saved = false;
       if (!isClosed) {
-        emit(state.copyWith(status: EditStatus.editing, error: S.saveFailed));
+        emit(
+          state.copyWith(status: EditStatus.editing, error: l10n().saveFailed),
+        );
       }
     }
   }

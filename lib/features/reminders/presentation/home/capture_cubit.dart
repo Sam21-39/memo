@@ -10,7 +10,7 @@ import '../../domain/parser/reminder_parser.dart';
 import '../../domain/usecases/create_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 enum CapturePhase { idle, typing, recording, transcribing, saving }
 
@@ -209,7 +209,7 @@ class CaptureCubit extends Cubit<CaptureState> {
           emit(
             state.copyWith(
               phase: CapturePhase.typing,
-              notice: S.captureVoiceSaved,
+              notice: l10n().captureVoiceSaved,
             ),
           );
         }
@@ -243,7 +243,9 @@ class CaptureCubit extends Cubit<CaptureState> {
   Reminder draft() {
     final title = state.title.isNotEmpty
         ? state.title
-        : S.voiceNoteTitle(MediaStore.clipLength(media?.draftVoicePath ?? ''));
+        : l10n().voiceNoteTitle(
+            MediaStore.clipLength(media?.draftVoicePath ?? ''),
+          );
     final now = _clock();
     // Voice-only: the next whole hour at least 30 min away, as the parser guesses.
     final soon = now.add(const Duration(minutes: 30));
@@ -265,7 +267,7 @@ class CaptureCubit extends Cubit<CaptureState> {
     if (state.dueAt != null &&
         !candidate.repeat.repeats &&
         candidate.dueAt.isBefore(_clock())) {
-      emit(state.copyWith(error: S.timePassed));
+      emit(state.copyWith(error: l10n().timePassed));
       return;
     }
     emit(state.copyWith(phase: CapturePhase.saving));
@@ -279,11 +281,13 @@ class CaptureCubit extends Cubit<CaptureState> {
       }
       await _save(reminder);
     } on ScheduleFailure {
-      error = S.scheduleFailed;
+      error = l10n().scheduleFailed;
     } catch (_) {
       if (committed) await media!.uncommitVoice(reminder.id);
       if (!isClosed) {
-        emit(state.copyWith(phase: CapturePhase.typing, error: S.saveFailed));
+        emit(
+          state.copyWith(phase: CapturePhase.typing, error: l10n().saveFailed),
+        );
       }
       return;
     }

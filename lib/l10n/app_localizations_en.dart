@@ -1,0 +1,612 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonAdd => 'Add';
+
+  @override
+  String get commonSet => 'Set';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonUndo => 'Undo';
+
+  @override
+  String get commonOn => 'On';
+
+  @override
+  String get commonOff => 'Off';
+
+  @override
+  String get commonContinue => 'Continue';
+
+  @override
+  String get commonSkip => 'Skip';
+
+  @override
+  String get commonBack => '‹ Back';
+
+  @override
+  String get commonWorking => 'Working';
+
+  @override
+  String get commonMarkDone => 'Mark done';
+
+  @override
+  String get commonReopen => 'Reopen';
+
+  @override
+  String get commonMore => 'More';
+
+  @override
+  String get commonSnoozeTenMinutes => 'Snooze 10 minutes';
+
+  @override
+  String get commonDeleteShort => 'Del';
+
+  @override
+  String get commonTryAgain => 'Try again';
+
+  @override
+  String get fieldWhen => 'When';
+
+  @override
+  String get fieldTime => 'Time';
+
+  @override
+  String get fieldDate => 'Date';
+
+  @override
+  String get fieldRepeat => 'Repeat';
+
+  @override
+  String get fieldTag => 'Tag';
+
+  @override
+  String get fieldPreAlarm => 'Pre-alarm';
+
+  @override
+  String get reminderHint => 'Remind me to…';
+
+  @override
+  String get reminderMissing => 'This reminder no longer exists.';
+
+  @override
+  String get dateToday => 'Today';
+
+  @override
+  String get dateTomorrow => 'Tomorrow';
+
+  @override
+  String get dateYesterday => 'Yesterday';
+
+  @override
+  String lateDays(int count) {
+    return '$count d late';
+  }
+
+  @override
+  String lateHours(int count) {
+    return '$count h late';
+  }
+
+  @override
+  String lateMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count min late',
+      one: '1 min late',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String whenLate(String when, String late) {
+    return '$when · $late';
+  }
+
+  @override
+  String whenDayTime(String day, String time) {
+    return '$day · $time';
+  }
+
+  @override
+  String get homeAll => 'All';
+
+  @override
+  String get homeOverdue => 'Overdue';
+
+  @override
+  String get homeSummaryNone => 'Nothing scheduled';
+
+  @override
+  String homeScheduled(int count) {
+    return '$count scheduled';
+  }
+
+  @override
+  String homeScheduledOverdue(int scheduled, int overdue) {
+    return '$scheduled scheduled · $overdue overdue';
+  }
+
+  @override
+  String get homeEmptyTitle => 'Nothing scheduled';
+
+  @override
+  String get homeEmptyBody => 'Bins, pills, that call.\nType below to add one.';
+
+  @override
+  String get homeLoadFailedTitle => 'Couldn\'t load your reminders';
+
+  @override
+  String get homeLoadFailedBody =>
+      'They are still saved on this device. Alarms already scheduled keep firing.';
+
+  @override
+  String homeDeleted(String title) {
+    return '$title deleted';
+  }
+
+  @override
+  String homeCompleted(String title) {
+    return '$title done';
+  }
+
+  @override
+  String get captureAddPhoto => 'Add a photo';
+
+  @override
+  String get captureHoldToRecord => 'Hold to record';
+
+  @override
+  String get captureReleaseToStop =>
+      'Release to stop. Transcript becomes the title.';
+
+  @override
+  String get captureSaving => 'Saving';
+
+  @override
+  String captureListening(String elapsed) {
+    return 'Listening · $elapsed';
+  }
+
+  @override
+  String captureElapsed(String elapsed) {
+    return '● $elapsed';
+  }
+
+  @override
+  String captureLeft(String left) {
+    return '● $left left';
+  }
+
+  @override
+  String get captureRepeatNone => '+ Repeat';
+
+  @override
+  String get captureRepeatWeekdays => 'Weekdays';
+
+  @override
+  String repeatEveryDay(String day) {
+    return 'Every $day';
+  }
+
+  @override
+  String get captureTagNone => '+ Tag';
+
+  @override
+  String get captureReadAloud => 'Read aloud';
+
+  @override
+  String get captureSilent => 'Silent';
+
+  @override
+  String get captureReadAloudOn => 'Read aloud when it rings: on';
+
+  @override
+  String get captureReadAloudOff => 'Read aloud when it rings: off';
+
+  @override
+  String captureTime(String when) {
+    return 'Time: $when';
+  }
+
+  @override
+  String captureTimeGuess(String when) {
+    return 'Time, a guess: $when';
+  }
+
+  @override
+  String clipNote(String length) {
+    return '$length · your note';
+  }
+
+  @override
+  String clipNotePlaying(String length) {
+    return '$length · your note · playing';
+  }
+
+  @override
+  String get repeatSheetBody =>
+      'Done moves it to the next time instead of archiving.';
+
+  @override
+  String get tagSheetBody => 'One per reminder. Colour comes from the name.';
+
+  @override
+  String get tagNewHint => 'New tag…';
+
+  @override
+  String get captureVoiceSaved =>
+      'Saved as a voice note. Type a title if you like.';
+
+  @override
+  String voiceNoteTitle(String length) {
+    return 'Voice note · $length';
+  }
+
+  @override
+  String get holdMicOn => 'Microphone on. Hold the mic to record.';
+
+  @override
+  String get holdMicDenied => 'Microphone not allowed. Turn it on in Settings.';
+
+  @override
+  String get holdHint => 'Hold the mic to record.';
+
+  @override
+  String get editNew => 'New reminder';
+
+  @override
+  String get editExisting => 'Edit reminder';
+
+  @override
+  String get editNoteHint => 'Add a note';
+
+  @override
+  String get editPreAlarmBody => 'An early heads-up before it rings.';
+
+  @override
+  String get editNagTitle => 'Nag until done';
+
+  @override
+  String get editNagBody =>
+      'Rings again up to 6 times, until you mark it done.';
+
+  @override
+  String get editSound => 'Sound';
+
+  @override
+  String get editHoldToRecordNote => 'Hold to record a voice note';
+
+  @override
+  String get editReleaseToStop => 'Release to stop';
+
+  @override
+  String get editReadAloudWhenRings => 'Read aloud when it rings';
+
+  @override
+  String get editNewTagChip => '+ New';
+
+  @override
+  String get editNewTagTitle => 'New tag';
+
+  @override
+  String get editTagHint => 'Home, Work, Health…';
+
+  @override
+  String editRecordingMax(String max) {
+    return ' / $max';
+  }
+
+  @override
+  String get voicePlay => 'Play voice note';
+
+  @override
+  String get voiceStop => 'Stop voice note';
+
+  @override
+  String get voiceDelete => 'Delete voice note';
+
+  @override
+  String get repeatNone => 'None';
+
+  @override
+  String get repeatNever => 'Never';
+
+  @override
+  String get repeatDaily => 'Daily';
+
+  @override
+  String get repeatWeekly => 'Weekly';
+
+  @override
+  String get repeatCustom => 'Custom';
+
+  @override
+  String get repeatsSemantic => 'Repeats';
+
+  @override
+  String get detailDeleteTitle => 'Delete this reminder?';
+
+  @override
+  String get detailDeleteBody => 'It will stop ringing. This cannot be undone.';
+
+  @override
+  String get detailNext => 'Next';
+
+  @override
+  String get detailNag => 'Nag';
+
+  @override
+  String get detailCreated => 'Created';
+
+  @override
+  String get detailSnooze => 'Snooze';
+
+  @override
+  String get snoozeTenMinutes => '10m';
+
+  @override
+  String get snoozeOneHour => '1h';
+
+  @override
+  String get alarmReminder => 'Reminder';
+
+  @override
+  String get alarmSlideToDone => 'Slide to mark done';
+
+  @override
+  String get archiveSearchHint => 'Search done';
+
+  @override
+  String get archiveEmpty => 'Nothing completed yet.';
+
+  @override
+  String get archiveNoMatch => 'Nothing matches.';
+
+  @override
+  String archiveThisWeek(int n) {
+    return '$n this week';
+  }
+
+  @override
+  String get minutesCustomHint => 'Custom minutes';
+
+  @override
+  String everyMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Every $minutes min',
+      one: 'Every minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hoursBefore(int h) {
+    return '$h h before';
+  }
+
+  @override
+  String minutesBefore(int m) {
+    return '$m min before';
+  }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguageVoice => 'Language and voice';
+
+  @override
+  String get settingsAppLanguage => 'App language';
+
+  @override
+  String get settingsAlarms => 'Alarms';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsExactAlarms => 'Exact alarms';
+
+  @override
+  String get settingsFullScreenAlarms => 'Full-screen alarms';
+
+  @override
+  String get settingsTakeOver => 'Take over the screen';
+
+  @override
+  String get settingsFullScreenAlarm => 'Full-screen alarm';
+
+  @override
+  String get settingsDefaultNag => 'Default nag';
+
+  @override
+  String get settingsDefaultNagBody =>
+      'New reminders ring again this often until done. Each one can change it.';
+
+  @override
+  String get settingsReadAloud => 'Read reminders aloud';
+
+  @override
+  String get settingsVoice => 'Voice';
+
+  @override
+  String get settingsFemale => 'Female';
+
+  @override
+  String get settingsMale => 'Male';
+
+  @override
+  String get settingsAllowed => 'Allowed';
+
+  @override
+  String get settingsNotAllowed => 'Not allowed';
+
+  @override
+  String get settingsTakeOverHint =>
+      'Allow \"Take over the screen\" so an alarm fills the screen while you use the phone, not just a banner.';
+
+  @override
+  String get settingsNotificationsHint =>
+      'Without this a reminder can be saved but never heard.';
+
+  @override
+  String get settingsCapture => 'Capture';
+
+  @override
+  String get settingsDictation => 'Dictation language';
+
+  @override
+  String get settingsDictationNone => 'Not on this phone';
+
+  @override
+  String get settingsEnglish => 'English';
+
+  @override
+  String get settingsReadPhotos => 'Read photos on device';
+
+  @override
+  String get settingsNoSpeechModel =>
+      'This phone has no on-device speech model, so a held voice note keeps its clip and rings, but is titled \"Voice note\". Nothing is sent to a server.';
+
+  @override
+  String get settingsLook => 'Look';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsSystem => 'System';
+
+  @override
+  String get settingsGlass => 'Glass chrome';
+
+  @override
+  String get settingsFollowsIos => 'Follows iOS';
+
+  @override
+  String get settingsSolid => 'Solid';
+
+  @override
+  String get settingsPhase2 => 'Phase 2';
+
+  @override
+  String get settingsCloudSync => 'Cloud sync';
+
+  @override
+  String get settingsShared => 'Shared reminders';
+
+  @override
+  String get settingsSoon => 'Soon';
+
+  @override
+  String settingsFooter(String version) {
+    return 'Memō $version · Nothing leaves this phone.';
+  }
+
+  @override
+  String get languageTitle => 'Language';
+
+  @override
+  String get languageSystem => 'System default';
+
+  @override
+  String get languageHindi => 'Hindi';
+
+  @override
+  String get languageBengali => 'Bengali';
+
+  @override
+  String get welcomeTitle => 'One line,\none time.';
+
+  @override
+  String get welcomeBody1 =>
+      'Type, say or snap the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.';
+
+  @override
+  String get welcomeBody2 =>
+      'Nothing leaves your phone. No account, no sync, no analytics.';
+
+  @override
+  String get permTitle => 'Let Memō ring';
+
+  @override
+  String get permBody1 =>
+      'Alarms are notifications. The next screen is the phone asking you to allow them. Nothing else is asked for.';
+
+  @override
+  String get permBody2 =>
+      'On Android you will also be asked to allow exact alarms so a 7:00 reminder rings at 7:00, not 7:40.';
+
+  @override
+  String get permAllow => 'Allow notifications';
+
+  @override
+  String get permNotNow => 'Not now';
+
+  @override
+  String get notifChannelName => 'Reminders';
+
+  @override
+  String get notifChannelDescription => 'Scheduled reminder alarms';
+
+  @override
+  String get notifSnooze => 'Snooze 10m';
+
+  @override
+  String missed(String title) {
+    return 'Missed: $title';
+  }
+
+  @override
+  String spokenReminder(String title) {
+    return 'Reminder. $title.';
+  }
+
+  @override
+  String spokenReminderNote(String title, String note) {
+    return 'Reminder. $title. $note.';
+  }
+
+  @override
+  String get spokenPreview => 'Reminder. Take your pills.';
+
+  @override
+  String get scheduleFailed =>
+      'Saved, but the alarm could not be set. Memō retries when you next open it.';
+
+  @override
+  String get saveFailed => 'Couldn\'t save. Nothing changed, try again.';
+
+  @override
+  String get deleteFailed => 'Couldn\'t delete. Try again.';
+
+  @override
+  String get timePassed => 'That time has passed. Pick a later time.';
+}

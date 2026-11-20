@@ -10,7 +10,7 @@ import '../../domain/usecases/delete_reminder.dart';
 import '../../domain/usecases/reopen_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../../domain/usecases/snooze_reminder.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 sealed class DetailState {
   const DetailState();
@@ -60,10 +60,10 @@ class DetailCubit extends Cubit<DetailState> {
       await _save(change(current.reminder, DateTime.now()));
     } on ScheduleFailure {
       final now = state;
-      if (now is DetailReady) emit(now.copyWith(error: S.scheduleFailed));
+      if (now is DetailReady) emit(now.copyWith(error: l10n().scheduleFailed));
     } catch (_) {
       final now = state;
-      if (now is DetailReady) emit(now.copyWith(error: S.saveFailed));
+      if (now is DetailReady) emit(now.copyWith(error: l10n().saveFailed));
     }
   }
 
@@ -83,7 +83,7 @@ class DetailCubit extends Cubit<DetailState> {
       return true;
     } catch (_) {
       final now = state;
-      if (now is DetailReady) emit(now.copyWith(error: S.deleteFailed));
+      if (now is DetailReady) emit(now.copyWith(error: l10n().deleteFailed));
       return false;
     }
   }

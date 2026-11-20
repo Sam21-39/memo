@@ -7,7 +7,7 @@ import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
 import '../../domain/usecases/reopen_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 class ArchiveState {
   const ArchiveState({this.done = const [], this.query = '', this.error});
@@ -56,9 +56,9 @@ class ArchiveCubit extends Cubit<ArchiveState> {
     try {
       await _save(const ReopenReminder()(reminder, now: DateTime.now()));
     } on ScheduleFailure {
-      _fail(S.scheduleFailed);
+      _fail(l10n().scheduleFailed);
     } catch (_) {
-      _fail(S.saveFailed);
+      _fail(l10n().saveFailed);
     }
   }
 

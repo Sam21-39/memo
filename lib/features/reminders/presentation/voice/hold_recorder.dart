@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import '../../data/voice_clip.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// What a hold produced.
 sealed class HoldResult {
@@ -64,15 +64,15 @@ class HoldRecorder {
       final granted = await _voice.hasPermission(request: true);
       onResult(
         granted
-            ? const HoldDropped(S.holdMicOn)
-            : const HoldDropped(S.holdMicDenied, denied: true),
+            ? HoldDropped(l10n().holdMicOn)
+            : HoldDropped(l10n().holdMicDenied, denied: true),
       );
       return;
     }
     await _voice.start(_path);
     if (!_holding) {
       await _voice.cancel();
-      onResult(const HoldDropped(S.holdHint));
+      onResult(HoldDropped(l10n().holdHint));
       return;
     }
     _recording = true;
@@ -99,7 +99,7 @@ class HoldRecorder {
     final elapsed = _clock.elapsed;
     if (elapsed < minLength) {
       await _voice.cancel();
-      onResult(const HoldDropped(S.holdHint));
+      onResult(HoldDropped(l10n().holdHint));
     } else {
       await _voice.stop();
       onResult(HoldKept(elapsed));

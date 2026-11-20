@@ -14,7 +14,7 @@ import '../../../tags/presentation/widgets/tag_chip.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
 import '../../domain/entities/reminder.dart';
-import '../../domain/entities/repeat_rule.dart';
+import '../repeat_label.dart';
 import '../../domain/repositories/reminder_repository.dart';
 import '../edit/edit_sheet.dart';
 import '../widgets/day_section_header.dart';
@@ -22,7 +22,7 @@ import '../widgets/key_value_row.dart';
 import '../widgets/section_card.dart';
 import '../widgets/snooze_preset_row.dart';
 import 'detail_cubit.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Detail. Reached from a row or a notification tap.
 class DetailPage extends StatelessWidget {
@@ -61,7 +61,7 @@ class _Missing extends StatelessWidget {
         Expanded(
           child: Center(
             child: Text(
-              S.reminderMissing,
+              context.l10n.reminderMissing,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
           ),
@@ -76,25 +76,14 @@ class _Body extends StatelessWidget {
 
   final Reminder reminder;
 
-  static String _repeatLabel(RepeatRule repeat) {
-    const names = S.weekdaysShort;
-    return switch (repeat.type) {
-      RepeatType.none => S.repeatNever,
-      RepeatType.daily => S.repeatDaily,
-      RepeatType.weekly when repeat.weekdays.isEmpty => S.repeatWeekly,
-      RepeatType.weekly =>
-        (repeat.weekdays.toList()..sort()).map((d) => names[d - 1]).join(', '),
-    };
-  }
-
   Future<void> _delete(BuildContext context) async {
     final cubit = context.read<DetailCubit>();
     final navigator = Navigator.of(context);
     final confirmed = await showMemoConfirm(
       context,
-      title: S.detailDeleteTitle,
-      body: S.detailDeleteBody,
-      confirm: S.commonDelete,
+      title: context.l10n.detailDeleteTitle,
+      body: context.l10n.detailDeleteBody,
+      confirm: context.l10n.commonDelete,
       destructive: true,
     );
     if (!confirmed) return;
@@ -113,7 +102,7 @@ class _Body extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           MemoNavBar(
-            actionLabel: S.commonEdit,
+            actionLabel: context.l10n.commonEdit,
             onAction: () async {
               final tags = await _knownTags();
               if (!context.mounted) return;
@@ -131,13 +120,16 @@ class _Body extends StatelessWidget {
               children: [
                 DaySectionHeader(
                   label: reminder.isDone
-                      ? S.commonDone
+                      ? context.l10n.commonDone
                       : reminder.isOverdue(now)
-                      ? S.whenLate(
-                          formatWhen(reminder.ringsAt, now),
-                          formatLateness(now.difference(reminder.ringsAt)),
+                      ? context.l10n.whenLate(
+                          formatWhen(context, reminder.ringsAt, now),
+                          formatLateness(
+                            context,
+                            now.difference(reminder.ringsAt),
+                          ),
                         )
-                      : formatWhen(reminder.ringsAt, now),
+                      : formatWhen(context, reminder.ringsAt, now),
                   emphasize: reminder.isOverdue(now),
                 ),
                 Semantics(
@@ -159,7 +151,7 @@ class _Body extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        tooltip: S.voicePlay,
+                        tooltip: context.l10n.voicePlay,
                         onPressed: () => sl<VoiceClip>().play(
                           sl<MediaStore>().voicePath(reminder.id),
                         ),
@@ -175,7 +167,7 @@ class _Body extends StatelessWidget {
                       ),
                       const SizedBox(width: MemoSpace.space3),
                       Text(
-                        S.clipNote(
+                        context.l10n.clipNote(
                           MediaStore.clipLength(
                             sl<MediaStore>().voicePath(reminder.id),
                           ),
@@ -189,46 +181,54 @@ class _Body extends StatelessWidget {
                 SectionCard(
                   children: [
                     KeyValueRow(
-                      label: S.detailNext,
+                      label: context.l10n.detailNext,
                       child: PillValue(
                         reminder.isDone
-                            ? S.commonDone
-                            : formatWhen(reminder.ringsAt, now),
+                            ? context.l10n.commonDone
+                            : formatWhen(context, reminder.ringsAt, now),
                       ),
                     ),
                     if (flags.repeatReminders)
                       KeyValueRow(
-                        label: S.fieldRepeat,
-                        child: PillValue(_repeatLabel(reminder.repeat)),
+                        label: context.l10n.fieldRepeat,
+                        child: PillValue(
+                          repeatLabel(
+                            context,
+                            reminder.repeat,
+                            none: context.l10n.repeatNever,
+                          ),
+                        ),
                       ),
                     if (flags.nag)
                       KeyValueRow(
-                        label: S.detailNag,
+                        label: context.l10n.detailNag,
                         child: PillValue(
                           reminder.nagMin == null
-                              ? S.commonOff
-                              : nagLabel(reminder.nagMin!),
+                              ? context.l10n.commonOff
+                              : nagLabel(context.l10n, reminder.nagMin!),
                         ),
                       ),
                     if (flags.preAlarm && reminder.preAlarmMin != null)
                       KeyValueRow(
-                        label: S.fieldPreAlarm,
-                        child: PillValue(preAlarmLabel(reminder.preAlarmMin!)),
+                        label: context.l10n.fieldPreAlarm,
+                        child: PillValue(
+                          preAlarmLabel(context.l10n, reminder.preAlarmMin!),
+                        ),
                       ),
                     if (tag != null)
                       KeyValueRow(
-                        label: S.fieldTag,
+                        label: context.l10n.fieldTag,
                         child: TagChip(label: tag, dotColor: tagColor(tag)),
                       ),
                     KeyValueRow(
-                      label: S.detailCreated,
-                      child: PillValue(formatDate(reminder.createdAt)),
+                      label: context.l10n.detailCreated,
+                      child: PillValue(formatDate(context, reminder.createdAt)),
                     ),
                   ],
                 ),
                 if (flags.snooze && !reminder.isDone) ...[
                   const SizedBox(height: MemoSpace.space6),
-                  const DaySectionHeader(label: S.detailSnooze),
+                  DaySectionHeader(label: context.l10n.detailSnooze),
                   SnoozePresetRow(
                     onSelect: (preset) => cubit.snooze(preset.duration),
                   ),
@@ -253,7 +253,9 @@ class _Body extends StatelessWidget {
                     foregroundColor: c.onAccent,
                   ),
                   child: Text(
-                    reminder.isDone ? S.commonReopen : S.commonMarkDone,
+                    reminder.isDone
+                        ? context.l10n.commonReopen
+                        : context.l10n.commonMarkDone,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -262,7 +264,7 @@ class _Body extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: c.destructive,
                   ),
-                  child: const Text(S.commonDelete),
+                  child: Text(context.l10n.commonDelete),
                 ),
               ],
             ),

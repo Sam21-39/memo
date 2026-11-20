@@ -11,7 +11,7 @@ import '../widgets/key_value_row.dart';
 import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
 import '../widgets/weekday_selector.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Time chip: date and time rows over the native pickers.
 Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
@@ -23,31 +23,33 @@ Future<DateTime?> showWhenSheet(BuildContext context, DateTime initial) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SheetHeading(S.fieldWhen),
+          SheetHeading(context.l10n.fieldWhen),
           SectionCard(
             children: [
               KeyValueRow(
-                label: S.fieldTime,
+                label: context.l10n.fieldTime,
                 onTap: () async {
                   final t = await pickTime(context, value);
                   if (t != null) setState(() => value = t);
                 },
-                child: PillValue(formatTime(value), active: true),
+                child: PillValue(formatTime(context, value), active: true),
               ),
               KeyValueRow(
-                label: S.fieldDate,
+                label: context.l10n.fieldDate,
                 onTap: () async {
                   final d = await pickDate(context, value);
                   if (d != null) setState(() => value = d);
                 },
-                child: PillValue(dayHeaderLabel(value, DateTime.now())),
+                child: PillValue(
+                  dayHeaderLabel(context, value, DateTime.now()),
+                ),
               ),
             ],
           ),
           const SizedBox(height: MemoSpace.space6),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(value),
-            child: const Text(S.commonDone),
+            child: Text(context.l10n.commonDone),
           ),
         ],
       ),
@@ -75,7 +77,10 @@ Future<RepeatRule?> showRepeatSheet(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SheetHeading(S.fieldRepeat, body: S.repeatSheetBody),
+          SheetHeading(
+            context.l10n.fieldRepeat,
+            body: context.l10n.repeatSheetBody,
+          ),
           RepeatSegmentedControl(
             value: option(),
             onChanged: (o) => setState(
@@ -110,7 +115,7 @@ Future<RepeatRule?> showRepeatSheet(
           const SizedBox(height: MemoSpace.space6),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(rule),
-            child: const Text(S.commonDone),
+            child: Text(context.l10n.commonDone),
           ),
         ],
       ),
@@ -136,7 +141,10 @@ Future<String?> showTagSheet(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SheetHeading(S.fieldTag, body: S.tagSheetBody),
+            SheetHeading(
+              context.l10n.fieldTag,
+              body: context.l10n.tagSheetBody,
+            ),
             Wrap(
               spacing: MemoSpace.space2,
               runSpacing: MemoSpace.space2,
@@ -155,7 +163,7 @@ Future<String?> showTagSheet(
             TextField(
               textCapitalization: TextCapitalization.words,
               style: MemoType.body.copyWith(color: c.ink),
-              decoration: const InputDecoration(hintText: S.tagNewHint),
+              decoration: InputDecoration(hintText: context.l10n.tagNewHint),
               onSubmitted: (name) {
                 final t = name.trim();
                 if (t.isEmpty) return;
@@ -168,7 +176,7 @@ Future<String?> showTagSheet(
             const SizedBox(height: MemoSpace.space6),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(selected ?? ''),
-              child: const Text(S.commonDone),
+              child: Text(context.l10n.commonDone),
             ),
           ],
         );

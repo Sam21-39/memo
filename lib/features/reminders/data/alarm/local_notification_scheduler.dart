@@ -9,7 +9,7 @@ import '../../domain/alarm/alarm_ids.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// What the user tapped on a delivered notification.
 enum NotificationAction { open, done, snooze }
@@ -89,11 +89,14 @@ class LocalNotificationScheduler implements AlarmScheduler {
               _iosCategoryId,
               actions: [
                 // l10n: native
-                DarwinNotificationAction.plain(_doneActionId, S.commonDone),
+                DarwinNotificationAction.plain(
+                  _doneActionId,
+                  l10n().commonDone,
+                ),
                 if (snoozeEnabled)
                   DarwinNotificationAction.plain(
                     _snoozeActionId,
-                    S.notifSnooze,
+                    l10n().notifSnooze,
                   ),
               ],
             ),
@@ -201,21 +204,21 @@ class LocalNotificationScheduler implements AlarmScheduler {
     android: AndroidNotificationDetails(
       _channelId,
       // l10n: native
-      S.notifChannelName,
-      channelDescription: S.notifChannelDescription,
+      l10n().notifChannelName,
+      channelDescription: l10n().notifChannelDescription,
       importance: Importance.max,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       actions: [
-        const AndroidNotificationAction(
+        AndroidNotificationAction(
           _doneActionId,
-          S.commonDone, // l10n: native
+          l10n().commonDone, // l10n: native
           showsUserInterface: true,
         ),
         if (snoozeEnabled)
-          const AndroidNotificationAction(
+          AndroidNotificationAction(
             _snoozeActionId,
-            S.notifSnooze, // l10n: native
+            l10n().notifSnooze, // l10n: native
             showsUserInterface: true,
           ),
       ],

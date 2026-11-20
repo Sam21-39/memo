@@ -24,7 +24,7 @@ import 'capture_bar.dart';
 import 'capture_cubit.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboards Home-Empty, Home-List, Home-Filter-Toast, Home-Dark,
 /// Swipe-States.
@@ -106,8 +106,10 @@ class _HomePageState extends State<HomePage> {
                           MemoSpace.barHeight +
                           MemoSpace.space8,
                       child: MemoToast(
-                        message: S.homeDeleted(ready!.pendingDelete!.title),
-                        action: S.commonUndo,
+                        message: context.l10n.homeDeleted(
+                          ready!.pendingDelete!.title,
+                        ),
+                        action: context.l10n.commonUndo,
                         onAction: context.read<HomeCubit>().undoDelete,
                       ),
                     )
@@ -120,8 +122,8 @@ class _HomePageState extends State<HomePage> {
                           MemoSpace.barHeight +
                           MemoSpace.space8,
                       child: MemoToast(
-                        message: S.homeCompleted(ready!.undo!.title),
-                        action: S.commonUndo,
+                        message: context.l10n.homeCompleted(ready!.undo!.title),
+                        action: context.l10n.commonUndo,
                         onAction: context.read<HomeCubit>().undo,
                       ),
                     ),
@@ -174,8 +176,10 @@ class _Header extends StatelessWidget {
     final summary = ready == null
         ? ''
         : scheduled == 0
-        ? S.homeSummaryNone
-        : S.homeSummary(scheduled, overdue);
+        ? context.l10n.homeSummaryNone
+        : overdue > 0
+        ? context.l10n.homeScheduledOverdue(scheduled, overdue)
+        : context.l10n.homeScheduled(scheduled);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         MemoSpace.gutter,
@@ -193,7 +197,7 @@ class _Header extends StatelessWidget {
                 Semantics(
                   header: true,
                   child: Text(
-                    'Memō',
+                    appName,
                     style: MemoType.display.copyWith(color: c.ink),
                   ),
                 ),
@@ -207,12 +211,12 @@ class _Header extends StatelessWidget {
           ),
           MemoIconButton(
             icon: Icons.check_rounded,
-            label: S.commonDone,
+            label: context.l10n.commonDone,
             onPressed: () => context.push('/done'),
           ),
           MemoIconButton(
             icon: Icons.settings_outlined,
-            label: S.settingsTitle,
+            label: context.l10n.settingsTitle,
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -242,7 +246,7 @@ class _TagFilterBar extends StatelessWidget {
         ),
         children: [
           TagChip(
-            label: S.homeAll,
+            label: context.l10n.homeAll,
             selected: selected == null,
             onTap: () => cubit.filterByTag(null),
           ),
@@ -281,7 +285,7 @@ class _ReminderList extends StatelessWidget {
       children: [
         if (grouped.overdue.isNotEmpty) ...[
           DaySectionHeader(
-            label: S.homeOverdue,
+            label: context.l10n.homeOverdue,
             count: grouped.overdue.length,
             emphasize: true,
           ),
@@ -301,7 +305,7 @@ class _ReminderList extends StatelessWidget {
         ],
         for (final group in grouped.days) ...[
           DaySectionHeader(
-            label: dayHeaderLabel(group.day, now),
+            label: dayHeaderLabel(context, group.day, now),
             count: group.reminders.length,
           ),
           SectionCard(
@@ -346,8 +350,8 @@ class _Row extends StatelessWidget {
         title: reminder.title,
         state: overdue ? CheckState.overdue : CheckState.idle,
         trailing: overdue
-            ? formatLateness(now.difference(reminder.ringsAt))
-            : formatTime(reminder.ringsAt),
+            ? formatLateness(context, now.difference(reminder.ringsAt))
+            : formatTime(context, reminder.ringsAt),
         subtitle: tag ?? reminder.note?.split('\n').first,
         tagColor: tag == null ? null : tagColor(tag),
         repeats: flags.repeatReminders && reminder.repeat.repeats,
@@ -373,12 +377,12 @@ class _EmptyState extends StatelessWidget {
             const EmptyRing(),
             const SizedBox(height: MemoSpace.space4),
             Text(
-              S.homeEmptyTitle,
+              context.l10n.homeEmptyTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space1),
             Text(
-              S.homeEmptyBody,
+              context.l10n.homeEmptyBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
@@ -402,19 +406,19 @@ class _FailureState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              S.homeLoadFailedTitle,
+              context.l10n.homeLoadFailedTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space2),
             Text(
-              S.homeLoadFailedBody,
+              context.l10n.homeLoadFailedBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
             const SizedBox(height: MemoSpace.space6),
             OutlinedButton(
               onPressed: () => context.read<HomeCubit>().load(),
-              child: const Text(S.commonTryAgain),
+              child: Text(context.l10n.commonTryAgain),
             ),
           ],
         ),

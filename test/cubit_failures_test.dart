@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memo/l10n/strings.dart';
+import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
@@ -42,7 +42,7 @@ void main() {
     repo.failSave = true;
     await cubit.save();
     expect(cubit.state.phase, CapturePhase.typing);
-    expect(cubit.state.error, S.saveFailed);
+    expect(cubit.state.error, "Couldn't save. Nothing changed, try again.");
   });
 
   test('edit save failure leaves the form editable with an error', () async {
@@ -50,7 +50,7 @@ void main() {
     repo.failSave = true;
     await cubit.save();
     expect(cubit.state.status, EditStatus.editing);
-    expect(cubit.state.error, S.saveFailed);
+    expect(cubit.state.error, l10n().saveFailed);
   });
 
   test('archive reopen failure is reported', () async {
@@ -61,7 +61,7 @@ void main() {
     await cubit.load();
     repo.failSave = true;
     await cubit.reopen(done);
-    expect(cubit.state.error, S.saveFailed);
+    expect(cubit.state.error, l10n().saveFailed);
     cubit.clearError();
     expect(cubit.state.error, isNull);
   });
@@ -74,7 +74,7 @@ void main() {
     repo.failSave = true;
     await cubit.complete(repo.all.single);
     final state = cubit.state as HomeReady;
-    expect(state.error, S.saveFailed);
+    expect(state.error, l10n().saveFailed);
     await cubit.close();
   });
 
@@ -89,12 +89,12 @@ void main() {
 
       repo.failSave = true;
       await cubit.complete();
-      expect((cubit.state as DetailReady).error, S.saveFailed);
+      expect((cubit.state as DetailReady).error, l10n().saveFailed);
       repo.failSave = false;
 
       repo.failDelete = true;
       expect(await cubit.delete(), isFalse);
-      expect((cubit.state as DetailReady).error, S.deleteFailed);
+      expect((cubit.state as DetailReady).error, l10n().deleteFailed);
       expect(repo.all, isNotEmpty);
       await cubit.close();
     },

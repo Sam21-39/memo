@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../../../../core/theme/tokens.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Swipe right → complete. Swipe left → reveal snooze (optional) + delete.
 /// memo Design System · "Swipe actions". Pass [onSnooze] null when the
@@ -78,13 +78,14 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
     return Semantics(
       customSemanticsActions: {
         if (widget.onComplete != null)
-          const CustomSemanticsAction(label: S.commonMarkDone):
+          CustomSemanticsAction(label: context.l10n.commonMarkDone):
               widget.onComplete!,
         if (widget.onSnooze != null)
-          const CustomSemanticsAction(label: S.commonSnoozeTenMinutes):
+          CustomSemanticsAction(label: context.l10n.commonSnoozeTenMinutes):
               widget.onSnooze!,
         if (widget.onDelete != null)
-          const CustomSemanticsAction(label: S.commonDelete): widget.onDelete!,
+          CustomSemanticsAction(label: context.l10n.commonDelete):
+              widget.onDelete!,
       },
       child: GestureDetector(
         onHorizontalDragUpdate: (details) {
@@ -141,14 +142,14 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
                     if (widget.onSnooze != null)
                       _ActionButton(
                         color: c.ink6,
-                        label: S.snoozeTenMinutes,
+                        label: context.l10n.snoozeTenMinutes,
                         labelColor: c.ink,
                         onTap: widget.onSnooze,
                       ),
                     if (widget.onDelete != null)
                       _ActionButton(
                         color: c.destructive,
-                        label: S.commonDeleteShort,
+                        label: context.l10n.commonDeleteShort,
                         labelColor: c.onAccent,
                         onTap: widget.onDelete,
                       ),

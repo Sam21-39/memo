@@ -1,13 +1,30 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n.dart';
+
 /// Every shared-preferences key in one place (build spec §4).
 class AppPrefs {
   AppPrefs(this._prefs);
 
   final SharedPreferences _prefs;
 
-  static Future<AppPrefs> open() async =>
-      AppPrefs(await SharedPreferences.getInstance());
+  static Future<AppPrefs> open() async {
+    final prefs = AppPrefs(await SharedPreferences.getInstance());
+    await prefs._seedLocales();
+    return prefs;
+  }
+
+  /// Once: an existing install keeps English; a fresh one follows the device.
+  Future<void> _seedLocales() async {
+    if (_prefs.containsKey('interface_locale')) return;
+    if (onboardingDone) {
+      await setInterfaceLocale('en');
+      await setInputLocale('en');
+      return;
+    }
+    await setInterfaceLocale('system');
+    await setInputLocale(deviceLanguage());
+  }
 
   /// 0.0.1 wrote `onboarding_completed`; honour it so testers are not asked
   /// again after the update.
@@ -45,6 +62,24 @@ class AppPrefs {
   String? get lastTimeZone => _prefs.getString('last_time_zone');
   Future<void> setLastTimeZone(String zone) =>
       _prefs.setString('last_time_zone', zone);
+
+  /// system | en | hi | bn
+  String get interfaceLocale => _prefs.getString('interface_locale') ?? 'en';
+  Future<void> setInterfaceLocale(String v) =>
+      _prefs.setString('interface_locale', v);
+
+  /// en | hi | bn
+  String get inputLocale => _prefs.getString('input_locale') ?? 'en';
+  Future<void> setInputLocale(String v) => _prefs.setString('input_locale', v);
+
+  /// follow | en | hi | bn
+  String get playbackLocale => _prefs.getString('playback_locale') ?? 'follow';
+  Future<void> setPlaybackLocale(String v) =>
+      _prefs.setString('playback_locale', v);
+
+  /// system | light | dark
+  String get themeMode => _prefs.getString('theme_mode') ?? 'system';
+  Future<void> setThemeMode(String v) => _prefs.setString('theme_mode', v);
 
   /// Only 'solid' is honoured in v1.
   String? get chromeModeOverride => _prefs.getString('chrome_mode_override');

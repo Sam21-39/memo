@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'core/app_prefs.dart';
+import 'core/app_settings_cubit.dart';
 import 'core/chrome/chrome_mode.dart';
 import 'core/di.dart';
 import 'core/theme/memo_theme.dart';
@@ -35,9 +36,10 @@ import 'features/reminders/presentation/home/capture_cubit.dart';
 import 'features/reminders/presentation/home/home_cubit.dart';
 import 'features/reminders/presentation/home/home_state.dart';
 import 'features/reminders/presentation/home/home_page.dart';
+import 'features/settings/language_page.dart';
 import 'features/settings/settings_cubit.dart';
 import 'features/settings/settings_page.dart';
-import 'l10n/strings.dart';
+import 'l10n/l10n.dart';
 
 GoRouter buildRouter(AppPrefs prefs) {
   late final GoRouter router;
@@ -137,6 +139,9 @@ GoRouter buildRouter(AppPrefs prefs) {
               SettingsCubit(sl<AppPrefs>(), sl<NativeAlarm>())..refresh(),
           child: const SettingsPage(),
         ),
+        routes: [
+          GoRoute(path: 'language', builder: (_, _) => const LanguagePage()),
+        ],
       ),
     ],
   );
@@ -255,21 +260,39 @@ class _MemoAppState extends State<MemoApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: S.appName,
-      debugShowCheckedModeBanner: false,
-      theme: MemoTheme.light,
-      darkTheme: MemoTheme.dark,
-      routerConfig: _router,
-      builder: (context, child) => ChromeModeScope(
-        mode: sl<AppPrefs>().chromeModeOverride == 'solid'
-            ? ChromeMode.solid
-            : ChromeModeScope.resolve(
-                platform: Theme.of(context).platform,
-                highContrast: MediaQuery.highContrastOf(context),
-                reduceTransparency: _reduceTransparency,
-              ),
-        child: child!,
+    return BlocProvider.value(
+      value: sl<AppSettingsCubit>(),
+      child: BlocBuilder<AppSettingsCubit, AppSettings>(
+        builder: (context, s) => MaterialApp.router(
+          onGenerateTitle: (_) => appName,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          // Unsupported device language -> English, same as l10n().
+          localeListResolutionCallback: (locales, _) =>
+              Locale(deviceLanguage(locales)),
+          locale: s.interfaceLocale == 'system'
+              ? null
+              : Locale(s.interfaceLocale),
+          debugShowCheckedModeBanner: false,
+          theme: MemoTheme.light,
+          darkTheme: MemoTheme.dark,
+          themeMode: switch (s.themeMode) {
+            'light' => ThemeMode.light,
+            'dark' => ThemeMode.dark,
+            _ => ThemeMode.system,
+          },
+          routerConfig: _router,
+          builder: (context, child) => ChromeModeScope(
+            mode: sl<AppPrefs>().chromeModeOverride == 'solid'
+                ? ChromeMode.solid
+                : ChromeModeScope.resolve(
+                    platform: Theme.of(context).platform,
+                    highContrast: MediaQuery.highContrastOf(context),
+                    reduceTransparency: _reduceTransparency,
+                  ),
+            child: child!,
+          ),
+        ),
       ),
     );
   }

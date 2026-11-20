@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
-import '../../../../l10n/strings.dart';
+import '../../../../l10n/l10n.dart';
 
 class SnoozePreset {
-  const SnoozePreset(this.label, this.duration);
-  final String label;
+  SnoozePreset(this.label, this.duration);
+  final String Function(AppLocalizations) label;
 
   /// Null for "Tomorrow": the next day at the reminder's own time.
   final Duration? duration;
 }
 
-const defaultSnoozePresets = [
-  SnoozePreset(S.snoozeTenMinutes, Duration(minutes: 10)),
-  SnoozePreset(S.snoozeOneHour, Duration(hours: 1)),
-  SnoozePreset(S.dateTomorrow, null),
+final defaultSnoozePresets = [
+  SnoozePreset((l) => l.snoozeTenMinutes, const Duration(minutes: 10)),
+  SnoozePreset((l) => l.snoozeOneHour, const Duration(hours: 1)),
+  SnoozePreset((l) => l.dateTomorrow, null),
 ];
 
 /// Three equal outlined buttons, 44 high, mono values. Order is fixed.
@@ -39,7 +39,7 @@ class SnoozePresetRow extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               child: Text(
-                preset.label,
+                preset.label(context.l10n),
                 style: MemoType.labelMedium.copyWith(color: c.ink),
               ),
             ),

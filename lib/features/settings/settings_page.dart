@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/app_version.dart';
+import '../../core/app_settings_cubit.dart';
 import '../../core/chrome/chrome_mode.dart';
 import '../../core/di.dart';
 import '../../core/feature_flags/feature_flags.dart';
@@ -13,7 +15,7 @@ import '../reminders/presentation/widgets/day_section_header.dart';
 import '../reminders/presentation/widgets/key_value_row.dart';
 import '../reminders/presentation/widgets/section_card.dart';
 import 'settings_cubit.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 
 /// Artboard Settings. Rows for features not yet shipped stay hidden behind
 /// their flags; Phase 2 is the one greyed forward reference.
@@ -46,9 +48,11 @@ class _SettingsPageState extends State<SettingsPage> {
     final c = MemoColors.of(context);
     final flags = sl<FeatureFlags>();
     final cubit = context.read<SettingsCubit>();
+    final appLocale = context.watch<AppSettingsCubit>().state.interfaceLocale;
     final glass = ChromeModeScope.of(context) == ChromeMode.glass;
-    String allowed(bool? v) =>
-        v == null ? '…' : (v ? S.settingsAllowed : S.settingsNotAllowed);
+    String allowed(bool? v) => v == null
+        ? '…'
+        : (v ? context.l10n.settingsAllowed : context.l10n.settingsNotAllowed);
 
     return Scaffold(
       body: SafeArea(
@@ -69,16 +73,31 @@ class _SettingsPageState extends State<SettingsPage> {
                     Semantics(
                       header: true,
                       child: Text(
-                        S.settingsTitle,
+                        context.l10n.settingsTitle,
                         style: MemoType.display.copyWith(color: c.ink),
                       ),
                     ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.settingsAlarms),
+                    DaySectionHeader(label: context.l10n.settingsLanguageVoice),
                     SectionCard(
                       children: [
                         KeyValueRow(
-                          label: S.settingsNotifications,
+                          label: context.l10n.settingsAppLanguage,
+                          onTap: () => context.push('/settings/language'),
+                          child: PillValue(
+                            appLocale == 'system'
+                                ? context.l10n.languageSystem
+                                : endonyms[appLocale]!,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: MemoSpace.space6),
+                    DaySectionHeader(label: context.l10n.settingsAlarms),
+                    SectionCard(
+                      children: [
+                        KeyValueRow(
+                          label: context.l10n.settingsNotifications,
                           onTap: cubit.requestNotifications,
                           child: PillValue(
                             allowed(state.notifications),
@@ -87,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         if (state.exactAlarms != null)
                           KeyValueRow(
-                            label: S.settingsExactAlarms,
+                            label: context.l10n.settingsExactAlarms,
                             onTap: cubit.requestExactAlarms,
                             child: PillValue(
                               allowed(state.exactAlarms),
@@ -96,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.alarmKit != null)
                           KeyValueRow(
-                            label: S.settingsFullScreenAlarms,
+                            label: context.l10n.settingsFullScreenAlarms,
                             onTap: cubit.requestAlarms,
                             child: PillValue(
                               allowed(state.alarmKit),
@@ -105,7 +124,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.overlay != null)
                           KeyValueRow(
-                            label: S.settingsTakeOver,
+                            label: context.l10n.settingsTakeOver,
                             onTap: cubit.openOverlaySettings,
                             child: PillValue(
                               allowed(state.overlay),
@@ -114,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (state.fullScreen != null)
                           KeyValueRow(
-                            label: S.settingsFullScreenAlarm,
+                            label: context.l10n.settingsFullScreenAlarm,
                             onTap: cubit.openFullScreenSettings,
                             child: PillValue(
                               allowed(state.fullScreen),
@@ -123,15 +142,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         if (flags.nag)
                           KeyValueRow(
-                            label: S.settingsDefaultNag,
+                            label: context.l10n.settingsDefaultNag,
                             onTap: () async {
                               final m = await showMinutesSheet(
                                 context,
-                                title: S.settingsDefaultNag,
-                                body: S.settingsDefaultNagBody,
+                                title: context.l10n.settingsDefaultNag,
+                                body: context.l10n.settingsDefaultNagBody,
                                 presets: const [5, 10, 30],
                                 current: state.defaultNagMin,
-                                label: nagLabel,
+                                label: (m) => nagLabel(context.l10n, m),
                               );
                               if (m != null) {
                                 await cubit.setDefaultNag(m == 0 ? null : m);
@@ -139,20 +158,25 @@ class _SettingsPageState extends State<SettingsPage> {
                             },
                             child: PillValue(
                               state.defaultNagMin == null
-                                  ? S.commonOff
-                                  : nagLabel(state.defaultNagMin!),
+                                  ? context.l10n.commonOff
+                                  : nagLabel(
+                                      context.l10n,
+                                      state.defaultNagMin!,
+                                    ),
                             ),
                           ),
                         KeyValueRow(
-                          label: S.settingsReadAloud,
+                          label: context.l10n.settingsReadAloud,
                           onTap: cubit.toggleReadAloud,
                           child: PillValue(
-                            state.readAloudDefault ? S.commonOn : S.commonOff,
+                            state.readAloudDefault
+                                ? context.l10n.commonOn
+                                : context.l10n.commonOff,
                             active: state.readAloudDefault,
                           ),
                         ),
                         KeyValueRow(
-                          label: S.settingsVoice,
+                          label: context.l10n.settingsVoice,
                           onTap: () async {
                             final next = state.voiceGender == 'female'
                                 ? 'male'
@@ -162,8 +186,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           },
                           child: PillValue(
                             state.voiceGender == 'female'
-                                ? S.settingsFemale
-                                : S.settingsMale,
+                                ? context.l10n.settingsFemale
+                                : context.l10n.settingsMale,
                           ),
                         ),
                       ],
@@ -172,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          S.settingsTakeOverHint,
+                          context.l10n.settingsTakeOverHint,
                           style: MemoType.body.copyWith(color: c.ink70),
                         ),
                       ),
@@ -180,28 +204,31 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          S.settingsNotificationsHint,
+                          context.l10n.settingsNotificationsHint,
                           style: MemoType.body.copyWith(color: c.destructive),
                         ),
                       ),
                     if (flags.voiceCapture || flags.imageCapture) ...[
                       const SizedBox(height: MemoSpace.space6),
-                      const DaySectionHeader(label: S.settingsCapture),
+                      DaySectionHeader(label: context.l10n.settingsCapture),
                       SectionCard(
                         children: [
                           if (flags.voiceCapture)
                             KeyValueRow(
-                              label: S.settingsDictation,
+                              label: context.l10n.settingsDictation,
                               child: PillValue(
                                 state.dictation == false
-                                    ? S.settingsDictationNone
-                                    : S.settingsEnglish,
+                                    ? context.l10n.settingsDictationNone
+                                    : context.l10n.settingsEnglish,
                               ),
                             ),
                           if (flags.imageCapture)
-                            const KeyValueRow(
-                              label: S.settingsReadPhotos,
-                              child: PillValue(S.commonOn, active: true),
+                            KeyValueRow(
+                              label: context.l10n.settingsReadPhotos,
+                              child: PillValue(
+                                context.l10n.commonOn,
+                                active: true,
+                              ),
                             ),
                         ],
                       ),
@@ -210,47 +237,49 @@ class _SettingsPageState extends State<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: MemoSpace.space2),
                         child: Text(
-                          S.settingsNoSpeechModel,
+                          context.l10n.settingsNoSpeechModel,
                           style: MemoType.body.copyWith(color: c.ink70),
                         ),
                       ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.settingsLook),
+                    DaySectionHeader(label: context.l10n.settingsLook),
                     SectionCard(
                       children: [
-                        const KeyValueRow(
-                          label: S.settingsAppearance,
-                          child: PillValue(S.settingsSystem),
+                        KeyValueRow(
+                          label: context.l10n.settingsAppearance,
+                          child: PillValue(context.l10n.settingsSystem),
                         ),
                         KeyValueRow(
-                          label: S.settingsGlass,
+                          label: context.l10n.settingsGlass,
                           child: PillValue(
-                            glass ? S.settingsFollowsIos : S.settingsSolid,
+                            glass
+                                ? context.l10n.settingsFollowsIos
+                                : context.l10n.settingsSolid,
                             active: glass,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: S.settingsPhase2),
-                    const Opacity(
+                    DaySectionHeader(label: context.l10n.settingsPhase2),
+                    Opacity(
                       opacity: 0.5,
                       child: SectionCard(
                         children: [
                           KeyValueRow(
-                            label: S.settingsCloudSync,
-                            child: PillValue(S.settingsSoon),
+                            label: context.l10n.settingsCloudSync,
+                            child: PillValue(context.l10n.settingsSoon),
                           ),
                           KeyValueRow(
-                            label: S.settingsShared,
-                            child: PillValue(S.settingsSoon),
+                            label: context.l10n.settingsShared,
+                            child: PillValue(context.l10n.settingsSoon),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: MemoSpace.space6),
                     Text(
-                      S.settingsFooter(appVersion),
+                      context.l10n.settingsFooter(appVersion),
                       style: MemoType.labelMedium.copyWith(color: c.ink70),
                     ),
                   ],
