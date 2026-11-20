@@ -80,6 +80,8 @@ GoRouter buildRouter(AppPrefs prefs) {
                   return home is HomeReady ? home.tagsInUse : const [];
                 },
                 defaultNagMin: () => sl<AppPrefs>().defaultNagMin,
+                inputLocale: () => sl<AppPrefs>().inputLocale,
+                interfaceLanguage: interfaceLanguage,
                 readAloudDefault: () => sl<AppPrefs>().readAloudDefault,
               ),
             ),

@@ -1237,6 +1237,15 @@
       }
     }
   },
+  "confirmReasonDayAndTime": "“{phrase}” is not clear. Pick the day and time.",
+  "@confirmReasonDayAndTime": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
   "confirmOtherTime": "Other time…",
   "@confirmOtherTime": {
     "description": "V2 capture, confirmation and voice"

@@ -144,6 +144,7 @@ class CaptureState {
 }
 
 int? _noNag() => null;
+String _en() => 'en';
 bool _yes() => true;
 
 /// The capture bar: type, say or (M4) snap → one string → one parser → chips
@@ -156,6 +157,8 @@ class CaptureCubit extends Cubit<CaptureState> {
     required this.stt,
     required this.knownTags,
     this.defaultNagMin = _noNag,
+    this.inputLocale = _en,
+    this.interfaceLanguage = _en,
     this.readAloudDefault = _yes,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now,
@@ -171,6 +174,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   // Getters, not values: Settings can change them while the bar lives.
   final int? Function() defaultNagMin;
   final bool Function() readAloudDefault;
+  final String Function() inputLocale, interfaceLanguage;
   final DateTime Function() _clock;
 
   late final HoldRecorder? _hold = (voice == null || media == null)
@@ -196,6 +200,19 @@ class CaptureCubit extends Cubit<CaptureState> {
           onResult: _onHold,
         );
 
+  /// The input language is the preferred rule pack; Latin Hindi/Bengali
+  /// ("kal", "baje") is on only when the user speaks one of them.
+  ParsedReminder _parse(String text) => parseReminder(
+    text,
+    now: _clock(),
+    knownTags: knownTags(),
+    language: inputLocale(),
+    latinPacks: {
+      'hi',
+      'bn',
+    }.intersection({inputLocale(), interfaceLanguage()}).isNotEmpty,
+  );
+
   /// The parse runs on every keystroke; it is sub-millisecond.
   void setText(String text) {
     if (text.trim().isEmpty && !state.hasClip) {
@@ -206,7 +223,7 @@ class CaptureCubit extends Cubit<CaptureState> {
       state.copyWith(
         phase: CapturePhase.typing,
         text: text,
-        parsed: parseReminder(text, now: _clock(), knownTags: knownTags()),
+        parsed: _parse(text),
         readAloud: state.phase == CapturePhase.idle ? readAloudDefault() : null,
         spoken: false,
         clearError: true,
@@ -376,11 +393,7 @@ class CaptureCubit extends Cubit<CaptureState> {
     emit(
       state.copyWith(
         phase: CapturePhase.confirming,
-        parsed: parseReminder(
-          state.text,
-          now: _clock(),
-          knownTags: knownTags(),
-        ),
+        parsed: _parse(state.text),
         spoken: false,
         clearFailure: true,
       ),

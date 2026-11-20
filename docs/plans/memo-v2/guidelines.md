@@ -747,6 +747,18 @@ Mixed: "call mom कल 8pm" → 21 Nov 20:00 `{dayWord}`, title "Call mom". Gat
 "kal 8 baje" → not parsed. Spans: for every case assert `input.substring(span.start, span.end)` is non-empty and contains no half surrogate
 (`String.fromCharCodes(...)` round-trips). `reminder_parser_test.dart` passes unchanged.
 
+### V6 Implementation notes (deviations from the text above)
+- `ParserPack` has no `language` or `latin` fields: a word is Latin when it starts with an ASCII letter. Extra optional fields: `next`
+  ("अगले/আগামী" before a weekday, +7 on the same weekday like English `next`), `weakClock` (bn `টা`/`ta`), `quantities` ("डेढ़/ढाई/आधे घंटे बाद").
+- `parts` carry no `isPm`. Each part has explicit hour windows (`PartRule`); a spoken hour outside its part's windows stays unsure (asks).
+  A night part resolving to 00:00-04:xx with a day word moves to the next calendar day ("कल रात 12 बजे" is 22 Nov 00:00).
+- Latin words are gated per input (`_latinIntent`): `latinPacks` alone does not read "Call Kal at 5pm". Latin is read only for a weekday, "parso" or
+  "2 ghante baad" (never English), two different anchor words (day, part, `baje`, `har`), or one anchor touching a digit or native-script word.
+  Dropped from the Latin tables: `aj`, `parson`, `sham`, `roz`, `roj`, bn month `me`.
+- A relative time needs the postposition (`बाद/में/পরে`): a bare "2 घंटे" is a length. A bare bn `টা`/`ta` is a time only beside a part of day or `বাজে/baje`.
+- Tags accept any Unicode letter, mark or digit (`#दवा`); "#café" now keeps its accent. ASCII tags are unchanged.
+- Known and untouched: English `_title` leaves a literal `$1` for a space before punctuation ("a , b"); the regression test locks English output.
+
 Verify V6: shared verify + both parser test files.
 
 ---------------------------------------------------------------------------------------------------

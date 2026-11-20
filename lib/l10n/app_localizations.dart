@@ -1639,6 +1639,12 @@ abstract class AppLocalizations {
   /// V2 capture, confirmation and voice
   ///
   /// In en, this message translates to:
+  /// **'“{phrase}” is not clear. Pick the day and time.'**
+  String confirmReasonDayAndTime(String phrase);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
   /// **'Other time…'**
   String get confirmOtherTime;
 

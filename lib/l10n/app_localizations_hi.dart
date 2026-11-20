@@ -907,6 +907,11 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String confirmReasonDayAndTime(String phrase) {
+    return '“$phrase” स्पष्ट नहीं है। दिन और समय चुनें।';
+  }
+
+  @override
   String get confirmOtherTime => 'दूसरा समय…';
 
   @override

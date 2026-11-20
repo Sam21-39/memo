@@ -908,6 +908,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String confirmReasonDayAndTime(String phrase) {
+    return '“$phrase” is not clear. Pick the day and time.';
+  }
+
+  @override
   String get confirmOtherTime => 'Other time…';
 
   @override

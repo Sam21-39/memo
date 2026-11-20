@@ -257,6 +257,7 @@
   "confirmReasonAmPm": "आपने “{phrase}” कहा। सुबह या शाम, चुनें।",
   "confirmReasonNoTime": "कोई समय नहीं बताया गया। एक चुनें।",
   "confirmReasonDayWord": "“{phrase}” दो दिनों का हो सकता है। एक चुनें।",
+  "confirmReasonDayAndTime": "“{phrase}” स्पष्ट नहीं है। दिन और समय चुनें।",
   "confirmOtherTime": "दूसरा समय…",
   "savedToday": "रिमाइंडर आज {time} के लिए सेट है।",
   "savedTomorrow": "रिमाइंडर कल {time} के लिए सेट है।",

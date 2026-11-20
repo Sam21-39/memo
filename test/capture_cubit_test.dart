@@ -87,12 +87,16 @@ void main() {
     String transcript = '',
     List<String> tags = const [],
     SpeechToText? stt,
+    String inputLocale = 'en',
+    String interfaceLanguage = 'en',
   }) => CaptureCubit(
     SaveReminder(repo, scheduler),
     media: media,
     voice: voice,
     stt: stt ?? _Stt(transcript),
     knownTags: () => tags,
+    inputLocale: () => inputLocale,
+    interfaceLanguage: () => interfaceLanguage,
     clock: () => now,
   );
 
@@ -119,6 +123,23 @@ void main() {
     expect(cubit.state.dueAt, DateTime(2026, 11, 5, 9));
     expect(cubit.state.tag, 'Work');
     expect(cubit.state.unsure, isNull);
+  });
+
+  test('a Hindi day word blocks Save until the time is confirmed', () async {
+    final cubit = build(inputLocale: 'hi')..setText('कल सुबह 8 बजे दवाई');
+    expect(cubit.state.title, 'दवाई');
+    expect(cubit.state.unsure?.kinds, {AmbiguityKind.dayWord});
+    cubit.review();
+    expect(cubit.state.canSave, isFalse);
+    cubit.chooseTime(DateTime(2026, 11, 5, 8));
+    expect(cubit.state.canSave, isTrue);
+  });
+
+  test('a Hindi interface turns Latin packs on, even for English input', () {
+    final hi = build(interfaceLanguage: 'hi')..setText('kal 8 baje');
+    expect(hi.state.unsure?.kinds, contains(AmbiguityKind.dayWord));
+    final en = build()..setText('kal 8 baje');
+    expect(en.state.unsure?.kinds, isNot(contains(AmbiguityKind.dayWord)));
   });
 
   test('clearing the text returns to idle', () {

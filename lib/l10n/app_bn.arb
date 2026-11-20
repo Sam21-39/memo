@@ -257,6 +257,7 @@
   "confirmReasonAmPm": "আপনি “{phrase}” বলেছেন। সকাল না সন্ধ্যা, বেছে নিন।",
   "confirmReasonNoTime": "কোনো সময় বলা হয়নি। একটি বেছে নিন।",
   "confirmReasonDayWord": "“{phrase}” দুটি দিন হতে পারে। একটি বেছে নিন।",
+  "confirmReasonDayAndTime": "“{phrase}” স্পষ্ট নয়। দিন ও সময় বেছে নিন।",
   "confirmOtherTime": "অন্য সময়…",
   "savedToday": "রিমাইন্ডার আজ {time}-এর জন্য সেট হয়েছে।",
   "savedTomorrow": "রিমাইন্ডার কাল {time}-এর জন্য সেট হয়েছে।",

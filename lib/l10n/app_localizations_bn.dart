@@ -903,6 +903,11 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String confirmReasonDayAndTime(String phrase) {
+    return '“$phrase” স্পষ্ট নয়। দিন ও সময় বেছে নিন।';
+  }
+
+  @override
   String get confirmOtherTime => 'অন্য সময়…';
 
   @override

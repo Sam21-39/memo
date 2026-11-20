@@ -166,7 +166,9 @@ class UnsureTimeBlock extends StatelessWidget {
         ? state.text.substring(span.start, span.end).trim()
         : '';
     if (unsure.kinds.contains(AmbiguityKind.dayWord) && quoted.isNotEmpty) {
-      return l.confirmReasonDayWord(quoted);
+      return unsure.kinds.length > 1
+          ? l.confirmReasonDayAndTime(quoted)
+          : l.confirmReasonDayWord(quoted);
     }
     if (unsure.kinds.contains(AmbiguityKind.amPm) && quoted.isNotEmpty) {
       return l.confirmReasonAmPm(quoted);
@@ -180,7 +182,11 @@ class UnsureTimeBlock extends StatelessWidget {
     final l = context.l10n;
     final cubit = context.read<CaptureCubit>();
     final choices = unsure.choices;
-    final sameDay = choices.every((t) => isSameDay(t, choices.first));
+    // A day word ("कल") is a question about the day: show it even when every
+    // choice falls on the same one.
+    final sameDay =
+        !unsure.kinds.contains(AmbiguityKind.dayWord) &&
+        choices.every((t) => isSameDay(t, choices.first));
     return Semantics(
       container: true,
       liveRegion: true,
