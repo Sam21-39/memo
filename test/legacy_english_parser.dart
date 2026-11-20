@@ -573,7 +573,7 @@ String _title(String input, String work) {
         .replaceFirst(RegExp(r'[\s,.;:-]+$'), '')
         .trim();
   }
-  t = t.replaceAll(RegExp(r'\s+([,.!?])'), r'$1');
+  t = t.replaceAllMapped(RegExp(r'\s+([,.!?])'), (m) => m[1]!);
   if (t.isEmpty) return t;
   final first = t.codeUnitAt(0);
   // Only a-z: upper-casing anything else can change the length.

@@ -768,7 +768,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get notifAlarmChannelBody => 'अभी बज रहे रिमाइंडर';
 
   @override
-  String get notifMissedChannel => 'छूटे';
+  String get notifMissedChannel => 'छूटे हुए';
 
   @override
   String missed(String title) {

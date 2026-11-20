@@ -147,9 +147,9 @@ enum MemoAlarms {
     let done = fire.doneLabel ?? defaults.string(forKey: doneKey) ?? "Done"
     let snooze = fire.snoozeLabel ?? defaults.string(forKey: snoozeKey) ?? "Snooze 10 minutes"
     let alert = AlarmPresentation.Alert(
-      title: LocalizedStringResource(stringLiteral: fire.title),
-      stopButton: AlarmButton(text: LocalizedStringResource(stringLiteral: done), textColor: .white, systemImageName: "checkmark"),
-      secondaryButton: AlarmButton(text: LocalizedStringResource(stringLiteral: snooze), textColor: .white, systemImageName: "zzz"),
+      title: LocalizedStringResource(String.LocalizationValue(fire.title), table: "Verbatim"),
+      stopButton: AlarmButton(text: LocalizedStringResource(String.LocalizationValue(done), table: "Verbatim"), textColor: .white, systemImageName: "checkmark"),
+      secondaryButton: AlarmButton(text: LocalizedStringResource(String.LocalizationValue(snooze), table: "Verbatim"), textColor: .white, systemImageName: "zzz"),
       secondaryButtonBehavior: .custom)
     let attributes = AlarmAttributes(
       presentation: AlarmPresentation(alert: alert),

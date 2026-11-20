@@ -219,7 +219,7 @@
   "notifSnooze": "10 मि स्नूज़",
   "notifAlarmChannel": "अलार्म",
   "notifAlarmChannelBody": "अभी बज रहे रिमाइंडर",
-  "notifMissedChannel": "छूटे",
+  "notifMissedChannel": "छूटे हुए",
   "missed": "छूटा: {title}",
   "spokenReminder": "रिमाइंडर। {title}।",
   "spokenReminderNote": "रिमाइंडर। {title}। {note}।",

@@ -50,6 +50,7 @@ class ParsedReminder {
   final DateTime dueAt;
 
   /// No time was found: [dueAt] is a default the chip shows as dashed.
+  // kept: read by tests only, true exactly when the noTime ambiguity is set
   final bool timeGuessed;
   final RepeatRule repeat;
   final String? tag;
@@ -750,7 +751,7 @@ String _title(String input, String work, List<_Rules> rules) {
       t = t.replaceFirst(r.glueEnd, '').replaceFirst(r.glueStart, '').trim();
     }
   }
-  t = t.replaceAll(RegExp(r'\s+([,.!?])'), r'$1');
+  t = t.replaceAllMapped(RegExp(r'\s+([,.!?])'), (m) => m[1]!);
   if (t.isEmpty) return t;
   final first = t.codeUnitAt(0);
   // Only a-z: upper-casing anything else can change the length.

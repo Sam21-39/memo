@@ -81,7 +81,7 @@ void main() {
     expect(e['snoozeLabel'], '10 मिनट बाद फिर बजाएँ');
     expect(e['channelName'], 'अलार्म');
     expect(e['channelDescription'], 'अभी बज रहे रिमाइंडर');
-    expect(e['missedChannelName'], 'छूटे');
+    expect(e['missedChannelName'], 'छूटे हुए');
     expect(e['missedText'], 'छूटा: Fig');
   });
 

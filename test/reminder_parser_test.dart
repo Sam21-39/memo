@@ -246,6 +246,22 @@ void main() {
     });
   }
 
+  test('space before punctuation is tidied, not left as a literal \$1', () {
+    for (final (input, title) in [
+      ('buy milk , eggs tomorrow', 'Buy milk, eggs'),
+      ('call Sam ! tomorrow', 'Call Sam!'),
+    ]) {
+      expect(parseReminder(input, now: now).title, title, reason: input);
+    }
+  });
+
+  test('hi/bn: Devanagari ? tidied, danda left alone', () {
+    final q = parseReminder('दवाई ? कल सुबह 8 बजे', now: now);
+    expect(q.title, 'दवाई?', reason: 'hi question mark');
+    final d = parseReminder('दवाई । मसाला कल सुबह 8 बजे', now: now);
+    expect(d.title, 'दवाई । मसाला', reason: 'danda kept as is');
+  });
+
   group('source spans', () {
     test('point at the words each chip came from', () {
       const input = 'Pills at 8 tonight every day #health';
