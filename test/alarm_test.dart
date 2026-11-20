@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/usecases/apply_alarm_action.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 import 'package:memo/features/reminders/presentation/alarm/alarm_cubit.dart';
+import 'package:memo/features/reminders/presentation/alarm/alarm_page.dart';
 
 import 'fakes.dart';
 
@@ -56,7 +59,7 @@ void main() {
       final cubit = build();
       await cubit.load();
       final before = DateTime.now();
-      await cubit.snooze(const Duration(hours: 1));
+      await cubit.snooze(before.add(const Duration(hours: 1)));
       expect(cubit.state.outcome, AlarmOutcome.snoozed);
       expect(
         repo.all.single.dueAt.difference(before).inMinutes,
@@ -64,11 +67,138 @@ void main() {
       );
     });
 
+    test('Done twice saves once', () async {
+      final cubit = build();
+      await cubit.load();
+      await Future.wait([cubit.done(), cubit.done()]);
+      await cubit.done();
+      expect(stops, 1);
+    });
+
+    test('finishing after close does not throw', () async {
+      final cubit = build();
+      await cubit.load();
+      final f = cubit.done();
+      await cubit.close();
+      await f;
+    });
+
+    test('a failed save can be retried', () async {
+      final cubit = build();
+      await cubit.load();
+      repo.failSave = true;
+      await expectLater(cubit.done(), throwsStateError);
+      repo.failSave = false;
+      await cubit.done();
+      expect(cubit.state.outcome, AlarmOutcome.done);
+    });
+
     test('a missing reminder says so', () async {
       repo = InMemoryRepository();
       final cubit = build();
       await cubit.load();
       expect(cubit.state.outcome, AlarmOutcome.missing);
+    });
+  });
+
+  group('AlarmPage', () {
+    late InMemoryRepository repo;
+
+    Future<void> pump(
+      WidgetTester tester, {
+      bool readAloud = false,
+      Duration offset = const Duration(hours: 2),
+      double scale = 1,
+    }) async {
+      repo = InMemoryRepository([
+        reminder(
+          'p',
+          'Pills',
+          DateTime.now().add(offset),
+        ).copyWith(readAloud: readAloud),
+      ]);
+      await tester.pumpWidget(
+        themed(
+          MediaQuery(
+            data: const MediaQueryData(
+              size: Size(320, 690),
+            ).copyWith(textScaler: TextScaler.linear(scale)),
+            child: BlocProvider(
+              create: (_) => AlarmCubit(
+                'p',
+                repo,
+                SaveReminder(repo, FakeScheduler()),
+                ringingNatively: (_) async => true,
+                stopRinging: () async {},
+                play: (_) async {},
+                stop: () async {},
+                speak: (_) async {},
+              )..load(),
+              child: AlarmPage(voicePath: (id) => id, onClose: () {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a late reminder does not overflow at 2.0x on 320 px', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 690);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pump(tester, offset: const Duration(days: -3), scale: 2);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Done and Snooze are labelled buttons at least 64 high', (
+      tester,
+    ) async {
+      await pump(tester);
+      for (final label in ['Done', 'Snooze']) {
+        final button = find.ancestor(
+          of: find.text(label),
+          matching: find.bySubtype<ButtonStyleButton>(),
+        );
+        expect(button, findsOneWidget, reason: label);
+        expect(tester.getSize(button).height, greaterThanOrEqualTo(64));
+      }
+    });
+
+    testWidgets('the spoken-reminder status shows when it reads aloud', (
+      tester,
+    ) async {
+      await pump(tester, readAloud: true);
+      expect(find.text('Reading aloud in English'), findsOneWidget);
+    });
+
+    testWidgets('no spoken-reminder status when it does not', (tester) async {
+      await pump(tester);
+      expect(find.text('Reading aloud in English'), findsNothing);
+    });
+
+    testWidgets('Snooze offers three timed options; 1 hour re-rings in 1 h', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Snooze'));
+      await tester.pumpAndSettle();
+      for (final label in [
+        'Snooze 10 minutes',
+        'Snooze 1 hour',
+        'Tomorrow, same time',
+      ]) {
+        expect(find.text(label), findsOneWidget);
+      }
+      final before = DateTime.now();
+      await tester.tap(find.text('Snooze 1 hour'));
+      await tester.pumpAndSettle();
+      final ringsAt = repo.all.single.ringsAt;
+      expect(
+        ringsAt.difference(before.add(const Duration(hours: 1))).abs(),
+        lessThan(const Duration(minutes: 1)),
+      );
     });
   });
 

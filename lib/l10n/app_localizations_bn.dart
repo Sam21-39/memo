@@ -319,19 +319,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get detailCreated => 'তৈরি হয়েছে';
 
   @override
-  String get detailSnooze => 'স্নুজ';
+  String get detailSnooze => 'পরে মনে করাও';
 
   @override
   String get snoozeTenMinutes => '10 মিনিট';
 
   @override
-  String get snoozeOneHour => '1 ঘণ্টা';
-
-  @override
   String get alarmReminder => 'রিমাইন্ডার';
-
-  @override
-  String get alarmSlideToDone => 'সম্পন্ন করতে স্লাইড করুন';
 
   @override
   String get archiveSearchHint => 'সম্পন্ন খুঁজুন';
@@ -699,4 +693,54 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get welcomeBody1NoPhoto =>
       'যে কথা ভুলে যান, তা লিখুন বা বলুন। অ্যাপ বন্ধ থাকলেও, সিগন্যাল না থাকলেও Memō ঠিক সেই সময়ে বাজে।';
+
+  @override
+  String get snoozeTitle => 'কখন পর্যন্ত স্নুজ করবেন…';
+
+  @override
+  String get snoozeBody => 'এটি আবার বাজবে, একই শব্দে।';
+
+  @override
+  String get snooze10 => '10 মিনিটের জন্য স্নুজ করুন';
+
+  @override
+  String get snooze1h => '1 ঘণ্টার জন্য স্নুজ করুন';
+
+  @override
+  String get snoozeTomorrow => 'কাল, একই সময়ে';
+
+  @override
+  String get snoozePick => 'সময় বেছে নিন';
+
+  @override
+  String get snoozePastTime =>
+      'সেই সময় পেরিয়ে গেছে। পরের কোনো সময় বেছে নিন।';
+
+  @override
+  String get alarmReadingInEn => 'ইংরেজিতে পড়ে শোনানো হচ্ছে';
+
+  @override
+  String get alarmReadingInHi => 'হিন্দিতে পড়ে শোনানো হচ্ছে';
+
+  @override
+  String get alarmReadingInBn => 'বাংলায় পড়ে শোনানো হচ্ছে';
+
+  @override
+  String detailRepeatNext(String repeat, String when) {
+    return '$repeat · পরবর্তী $when';
+  }
+
+  @override
+  String get detailDoneToday => 'আজকের জন্য সম্পন্ন করুন';
+
+  @override
+  String detailMovesTo(String when) {
+    return 'সম্পন্ন করলে এটি $when-এ সরে যাবে।';
+  }
+
+  @override
+  String get detailDelete => 'রিমাইন্ডার মুছুন';
+
+  @override
+  String get repeatEveryDayLong => 'প্রতিদিন';
 }

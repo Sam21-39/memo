@@ -67,6 +67,37 @@ void main() {
       expect(result.dueAt, DateTime(2026, 8, 27, 8, 30));
     });
 
+    test('until wins over by; a repeat only gets snoozedUntil', () {
+      final now = DateTime(2026, 8, 26, 10);
+      final at = DateTime(2026, 8, 26, 15, 5);
+      expect(
+        snooze(
+          _reminder(),
+          now: now,
+          by: const Duration(hours: 1),
+          until: at,
+        ).dueAt,
+        at,
+      );
+      final r = snooze(
+        _reminder(repeat: RepeatRule.daily),
+        now: now,
+        until: at,
+      );
+      expect(r.snoozedUntil, at);
+      expect(r.dueAt, _reminder(repeat: RepeatRule.daily).dueAt);
+    });
+
+    test('a past until clamps to a minute from now', () {
+      final now = DateTime(2026, 8, 26, 10);
+      final result = snooze(
+        _reminder(),
+        now: now,
+        until: DateTime(2026, 8, 26, 9, 50),
+      );
+      expect(result.dueAt, DateTime(2026, 8, 26, 10, 1));
+    });
+
     test('reopens a completed reminder', () {
       final result = snooze(
         _reminder(doneAt: DateTime(2026, 8, 20)),

@@ -73,8 +73,8 @@ class DetailCubit extends Cubit<DetailState> {
   Future<void> reopen() =>
       _write((r, now) => const ReopenReminder()(r, now: now));
 
-  Future<void> snooze(Duration? by) =>
-      _write((r, now) => const SnoozeReminder()(r, now: now, by: by));
+  Future<void> snooze(DateTime until) =>
+      _write((r, now) => const SnoozeReminder()(r, now: now, until: until));
 
   /// False when the row is still there, so the page stays open.
   Future<bool> delete() async {

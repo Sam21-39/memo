@@ -14,13 +14,14 @@ import '../../../tags/presentation/widgets/tag_chip.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
 import '../../domain/entities/reminder.dart';
+import '../../domain/usecases/complete_reminder.dart';
 import '../repeat_label.dart';
 import '../../domain/repositories/reminder_repository.dart';
 import '../edit/edit_sheet.dart';
 import '../widgets/day_section_header.dart';
 import '../widgets/key_value_row.dart';
 import '../widgets/section_card.dart';
-import '../widgets/snooze_preset_row.dart';
+import '../widgets/snooze_sheet.dart';
 import 'detail_cubit.dart';
 import '../../../../l10n/l10n.dart';
 
@@ -129,6 +130,16 @@ class _Body extends StatelessWidget {
                             now.difference(reminder.ringsAt),
                           ),
                         )
+                      : reminder.repeat.repeats
+                      ? context.l10n.detailRepeatNext(
+                          repeatLabel(
+                            context,
+                            reminder.repeat,
+                            none: '',
+                            everyDay: true,
+                          ),
+                          formatWhen(context, reminder.ringsAt, now),
+                        )
                       : formatWhen(context, reminder.ringsAt, now),
                   emphasize: reminder.isOverdue(now),
                 ),
@@ -196,6 +207,7 @@ class _Body extends StatelessWidget {
                             context,
                             reminder.repeat,
                             none: context.l10n.repeatNever,
+                            everyDay: true,
                           ),
                         ),
                       ),
@@ -226,13 +238,6 @@ class _Body extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (flags.snooze && !reminder.isDone) ...[
-                  const SizedBox(height: MemoSpace.space6),
-                  DaySectionHeader(label: context.l10n.detailSnooze),
-                  SnoozePresetRow(
-                    onSelect: (preset) => cubit.snooze(preset.duration),
-                  ),
-                ],
               ],
             ),
           ),
@@ -246,25 +251,80 @@ class _Body extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ElevatedButton(
-                  onPressed: reminder.isDone ? cubit.reopen : cubit.complete,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: c.accentText,
-                    foregroundColor: c.onAccent,
+                if (reminder.isDone)
+                  ElevatedButton(
+                    onPressed: cubit.reopen,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.accentText,
+                      foregroundColor: c.onAccent,
+                    ),
+                    child: Text(context.l10n.commonReopen),
+                  )
+                else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: cubit.complete,
+                          icon: const Icon(Icons.check_rounded),
+                          label: Text(
+                            reminder.repeat.repeats &&
+                                    (reminder.isOverdue(now) ||
+                                        DateUtils.isSameDay(
+                                          reminder.ringsAt,
+                                          now,
+                                        ))
+                                ? context.l10n.detailDoneToday
+                                : context.l10n.commonMarkDone,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: c.accentText,
+                            foregroundColor: c.onAccent,
+                          ),
+                        ),
+                      ),
+                      if (flags.snooze) ...[
+                        const SizedBox(width: MemoSpace.space3),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              final at = await showSnoozeSheet(
+                                context,
+                                reminder,
+                              );
+                              if (at != null) cubit.snooze(at);
+                            },
+                            child: Text(context.l10n.detailSnooze),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  child: Text(
-                    reminder.isDone
-                        ? context.l10n.commonReopen
-                        : context.l10n.commonMarkDone,
-                  ),
-                ),
+                  if (reminder.repeat.repeats) ...[
+                    const SizedBox(height: MemoSpace.space2),
+                    Text(
+                      context.l10n.detailMovesTo(
+                        formatWhen(
+                          context,
+                          const CompleteReminder()(reminder, now: now).dueAt,
+                          now,
+                        ),
+                      ),
+                      textAlign: TextAlign.center,
+                      style: MemoType.body.copyWith(
+                        fontSize: 13,
+                        color: c.ink70,
+                      ),
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: () => _delete(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: c.destructive,
                   ),
-                  child: Text(context.l10n.commonDelete),
+                  child: Text(context.l10n.detailDelete),
                 ),
               ],
             ),

@@ -326,13 +326,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snoozeTenMinutes => '10m';
 
   @override
-  String get snoozeOneHour => '1h';
-
-  @override
   String get alarmReminder => 'Reminder';
-
-  @override
-  String get alarmSlideToDone => 'Slide to mark done';
 
   @override
   String get archiveSearchHint => 'Search done';
@@ -702,4 +696,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeBody1NoPhoto =>
       'Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.';
+
+  @override
+  String get snoozeTitle => 'Snooze until…';
+
+  @override
+  String get snoozeBody => 'It will ring again, same sound.';
+
+  @override
+  String get snooze10 => 'Snooze 10 minutes';
+
+  @override
+  String get snooze1h => 'Snooze 1 hour';
+
+  @override
+  String get snoozeTomorrow => 'Tomorrow, same time';
+
+  @override
+  String get snoozePick => 'Pick a time';
+
+  @override
+  String get snoozePastTime => 'That time has passed. Pick a later one.';
+
+  @override
+  String get alarmReadingInEn => 'Reading aloud in English';
+
+  @override
+  String get alarmReadingInHi => 'Reading aloud in Hindi';
+
+  @override
+  String get alarmReadingInBn => 'Reading aloud in Bengali';
+
+  @override
+  String detailRepeatNext(String repeat, String when) {
+    return '$repeat · next $when';
+  }
+
+  @override
+  String get detailDoneToday => 'Mark done for today';
+
+  @override
+  String detailMovesTo(String when) {
+    return 'Marking done moves it to $when.';
+  }
+
+  @override
+  String get detailDelete => 'Delete reminder';
+
+  @override
+  String get repeatEveryDayLong => 'Every day';
 }

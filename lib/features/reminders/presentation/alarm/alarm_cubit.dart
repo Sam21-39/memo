@@ -13,6 +13,7 @@ class AlarmState {
     this.reminder,
     this.outcome = AlarmOutcome.ringing,
     this.playing = false,
+    this.speakingIn,
   });
 
   final Reminder? reminder;
@@ -20,6 +21,9 @@ class AlarmState {
 
   /// The voice clip is playing in-app.
   final bool playing;
+
+  /// Language code the reminder is read aloud in; null when it is not.
+  final String? speakingIn;
 
   AlarmState copyWith({
     Reminder? reminder,
@@ -29,6 +33,7 @@ class AlarmState {
     reminder: reminder ?? this.reminder,
     outcome: outcome ?? this.outcome,
     playing: playing ?? this.playing,
+    speakingIn: speakingIn,
   );
 }
 
@@ -65,7 +70,14 @@ class AlarmCubit extends Cubit<AlarmState> {
       emit(const AlarmState(outcome: AlarmOutcome.missing));
       return;
     }
-    emit(AlarmState(reminder: reminder));
+    // ponytail: English only until V7 supplies the plan's language.
+    // V7: speakingIn must reflect an actually rendered sound.
+    emit(
+      AlarmState(
+        reminder: reminder,
+        speakingIn: reminder.readAloud ? 'en' : null,
+      ),
+    );
     if (reminder.readAloud && !await ringingNatively(id)) await speak(reminder);
   }
 
@@ -80,16 +92,28 @@ class AlarmCubit extends Cubit<AlarmState> {
     }
   }
 
+  bool _finishing = false;
+
   Future<void> _finish(
     Reminder Function(Reminder r, DateTime now) change,
     AlarmOutcome outcome,
   ) async {
     final reminder = state.reminder;
-    if (reminder == null) return;
-    await stopRinging();
-    await stop();
-    await _save(change(reminder, DateTime.now()));
-    emit(state.copyWith(outcome: outcome, playing: false));
+    if (reminder == null ||
+        _finishing ||
+        state.outcome != AlarmOutcome.ringing) {
+      return;
+    }
+    _finishing = true;
+    try {
+      await stopRinging();
+      await stop();
+      await _save(change(reminder, DateTime.now()));
+      if (!isClosed) emit(state.copyWith(outcome: outcome, playing: false));
+    } catch (_) {
+      _finishing = false; // failed save: let the user retry
+      rethrow;
+    }
   }
 
   Future<void> done() => _finish(
@@ -97,8 +121,8 @@ class AlarmCubit extends Cubit<AlarmState> {
     AlarmOutcome.done,
   );
 
-  Future<void> snooze(Duration? by) => _finish(
-    (r, now) => const SnoozeReminder()(r, now: now, by: by),
+  Future<void> snooze(DateTime until) => _finish(
+    (r, now) => const SnoozeReminder()(r, now: now, until: until),
     AlarmOutcome.snoozed,
   );
 }

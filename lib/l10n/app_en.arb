@@ -458,16 +458,8 @@
   "@snoozeTenMinutes": {
     "description": "Snooze preset label"
   },
-  "snoozeOneHour": "1h",
-  "@snoozeOneHour": {
-    "description": "Snooze preset label"
-  },
   "alarmReminder": "Reminder",
   "@alarmReminder": {
-    "description": "Alarm screen"
-  },
-  "alarmSlideToDone": "Slide to mark done",
-  "@alarmSlideToDone": {
     "description": "Alarm screen"
   },
   "archiveSearchHint": "Search done",
@@ -989,5 +981,78 @@
   "welcomeBody1NoPhoto": "Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.",
   "@welcomeBody1NoPhoto": {
     "description": "V2 capture, confirmation and voice"
+  },
+  "snoozeTitle": "Snooze until…",
+  "@snoozeTitle": {
+    "description": "Snooze sheet heading"
+  },
+  "snoozeBody": "It will ring again, same sound.",
+  "@snoozeBody": {
+    "description": "Snooze sheet body"
+  },
+  "snooze10": "Snooze 10 minutes",
+  "@snooze10": {
+    "description": "Snooze sheet option"
+  },
+  "snooze1h": "Snooze 1 hour",
+  "@snooze1h": {
+    "description": "Snooze sheet option"
+  },
+  "snoozeTomorrow": "Tomorrow, same time",
+  "@snoozeTomorrow": {
+    "description": "Snooze sheet option"
+  },
+  "snoozePick": "Pick a time",
+  "@snoozePick": {
+    "description": "Snooze sheet link to a date and time picker"
+  },
+  "snoozePastTime": "That time has passed. Pick a later one.",
+  "@snoozePastTime": {
+    "description": "Snooze sheet error when the picked time is not in the future"
+  },
+  "alarmReadingInEn": "Reading aloud in English",
+  "@alarmReadingInEn": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "alarmReadingInHi": "Reading aloud in Hindi",
+  "@alarmReadingInHi": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "alarmReadingInBn": "Reading aloud in Bengali",
+  "@alarmReadingInBn": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "detailRepeatNext": "{repeat} · next {when}",
+  "@detailRepeatNext": {
+    "description": "Detail header for a repeating reminder",
+    "placeholders": {
+      "repeat": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "detailDoneToday": "Mark done for today",
+  "@detailDoneToday": {
+    "description": "Detail button on a repeating reminder"
+  },
+  "detailMovesTo": "Marking done moves it to {when}.",
+  "@detailMovesTo": {
+    "description": "Detail note under Mark done for today",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "detailDelete": "Delete reminder",
+  "@detailDelete": {
+    "description": "Detail delete button"
+  },
+  "repeatEveryDayLong": "Every day",
+  "@repeatEveryDayLong": {
+    "description": "Daily repeat in the detail page and alarm screen"
   }
 }

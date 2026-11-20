@@ -5,12 +5,18 @@ import '../../../l10n/l10n.dart';
 import '../domain/entities/repeat_rule.dart';
 
 /// One-line repeat summary shared by the capture chips and the detail page.
-/// [none] is what an absent rule reads as in that place.
-String repeatLabel(BuildContext c, RepeatRule r, {required String none}) {
+/// [none] is what an absent rule reads as in that place; [everyDay] spells
+/// daily as "Every day" (detail page, alarm) rather than the chip's "Daily".
+String repeatLabel(
+  BuildContext c,
+  RepeatRule r, {
+  required String none,
+  bool everyDay = false,
+}) {
   final l = c.l10n;
   return switch (r.type) {
     RepeatType.none => none,
-    RepeatType.daily => l.repeatDaily,
+    RepeatType.daily => everyDay ? l.repeatEveryDayLong : l.repeatDaily,
     RepeatType.weekly when r.weekdays.isEmpty => l.repeatWeekly,
     RepeatType.weekly when r.weekdays.length == 1 => l.repeatEveryDay(
       weekdayShort(c, r.weekdays.first),

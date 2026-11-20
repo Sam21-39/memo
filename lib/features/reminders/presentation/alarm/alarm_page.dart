@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/memo_theme.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../data/media_store.dart';
 import '../widgets/day_section_header.dart';
-import '../widgets/snooze_preset_row.dart';
+import '../repeat_label.dart';
+import '../widgets/snooze_sheet.dart';
 import 'alarm_cubit.dart';
 import '../../../../l10n/l10n.dart';
 
@@ -59,6 +62,7 @@ class AlarmPage extends StatelessWidget {
           valueListenable: MinuteClock.instance,
           builder: (context, now, _) {
             final late = now.difference(reminder.ringsAt);
+            final clock = formatTime(context, reminder.ringsAt).split(' ');
             return Scaffold(
               body: SafeArea(
                 child: Padding(
@@ -71,85 +75,155 @@ class AlarmPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          DaySectionHeader(label: context.l10n.alarmReminder),
-                          if (late.inMinutes >= 1)
-                            Text(
-                              formatLateness(context, late),
-                              style: MemoType.labelSmall.copyWith(
-                                color: c.accentText,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: MemoSpace.space6),
-                      Text(
-                        formatTime(context, reminder.ringsAt),
-                        style: MemoType.clock.copyWith(color: c.ink),
-                      ),
-                      const SizedBox(height: MemoSpace.space3),
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          reminder.title,
-                          style: MemoType.display.copyWith(color: c.ink),
-                        ),
-                      ),
-                      if (reminder.note != null) ...[
-                        const SizedBox(height: MemoSpace.space2),
-                        Text(
-                          reminder.note!,
-                          style: MemoType.body.copyWith(color: c.ink70),
-                        ),
-                      ],
-                      if (reminder.hasVoice) ...[
-                        const SizedBox(height: MemoSpace.gutter),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: cubit.togglePlay,
-                              tooltip: state.playing
-                                  ? context.l10n.voiceStop
-                                  : context.l10n.voicePlay,
-                              style: IconButton.styleFrom(
-                                fixedSize: const Size.square(MemoSpace.hitMin),
-                                backgroundColor: c.accentText,
-                                foregroundColor: c.onAccent,
-                              ),
-                              icon: Icon(
-                                state.playing
-                                    ? Icons.stop_rounded
-                                    : Icons.play_arrow_rounded,
-                              ),
-                            ),
-                            const SizedBox(width: MemoSpace.space3),
-                            Text(
-                              state.playing
-                                  ? context.l10n.clipNotePlaying(
-                                      MediaStore.clipLength(
-                                        voicePath(reminder.id),
-                                      ),
-                                    )
-                                  : context.l10n.clipNote(
-                                      MediaStore.clipLength(
-                                        voicePath(reminder.id),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  DaySectionHeader(
+                                    label: context.l10n.alarmReminder,
+                                  ),
+                                  if (late.inMinutes >= 1)
+                                    Flexible(
+                                      child: Text(
+                                        formatLateness(context, late),
+                                        textAlign: TextAlign.end,
+                                        style: sectionLabelStyle(
+                                          context,
+                                        ).copyWith(color: c.accentText),
                                       ),
                                     ),
-                              style: MemoType.labelMedium.copyWith(
-                                color: c.ink70,
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: MemoSpace.space6),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Text.rich(
+                                  TextSpan(
+                                    text: clock.first,
+                                    style: MemoType.clock.copyWith(
+                                      color: c.ink,
+                                    ),
+                                    children: [
+                                      if (clock.length > 1)
+                                        TextSpan(
+                                          text: ' ${clock.last}',
+                                          style: MemoType.labelMedium.copyWith(
+                                            fontSize: 20,
+                                            color: c.ink,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: MemoSpace.space3),
+                              Semantics(
+                                header: true,
+                                child: Text(
+                                  reminder.title,
+                                  style: MemoType.alarmTitle.copyWith(
+                                    color: c.ink,
+                                  ),
+                                ),
+                              ),
+                              if (reminder.note != null) ...[
+                                const SizedBox(height: MemoSpace.space2),
+                                Text(
+                                  reminder.note!,
+                                  style: MemoType.body.copyWith(color: c.ink70),
+                                ),
+                              ],
+                              if (reminder.repeat.repeats) ...[
+                                const SizedBox(height: MemoSpace.space3),
+                                _InfoLine(
+                                  Icons.repeat_rounded,
+                                  repeatLabel(
+                                    context,
+                                    reminder.repeat,
+                                    none: '',
+                                    everyDay: true,
+                                  ),
+                                ),
+                              ],
+                              if (state.speakingIn != null) ...[
+                                const SizedBox(height: MemoSpace.space2),
+                                _InfoLine(
+                                  Icons.volume_up_outlined,
+                                  switch (state.speakingIn) {
+                                    'hi' => context.l10n.alarmReadingInHi,
+                                    'bn' => context.l10n.alarmReadingInBn,
+                                    _ => context.l10n.alarmReadingInEn,
+                                  },
+                                ),
+                              ],
+                              if (reminder.hasVoice) ...[
+                                const SizedBox(height: MemoSpace.gutter),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: cubit.togglePlay,
+                                      tooltip: state.playing
+                                          ? context.l10n.voiceStop
+                                          : context.l10n.voicePlay,
+                                      style: IconButton.styleFrom(
+                                        fixedSize: const Size.square(
+                                          MemoSpace.hitMin,
+                                        ),
+                                        backgroundColor: c.accentText,
+                                        foregroundColor: c.onAccent,
+                                      ),
+                                      icon: Icon(
+                                        state.playing
+                                            ? Icons.stop_rounded
+                                            : Icons.play_arrow_rounded,
+                                      ),
+                                    ),
+                                    const SizedBox(width: MemoSpace.space3),
+                                    Text(
+                                      state.playing
+                                          ? context.l10n.clipNotePlaying(
+                                              MediaStore.clipLength(
+                                                voicePath(reminder.id),
+                                              ),
+                                            )
+                                          : context.l10n.clipNote(
+                                              MediaStore.clipLength(
+                                                voicePath(reminder.id),
+                                              ),
+                                            ),
+                                      style: MemoType.labelMedium.copyWith(
+                                        color: c.ink70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      ],
-                      const Spacer(),
-                      SnoozePresetRow(
-                        onSelect: (preset) => cubit.snooze(preset.duration),
                       ),
                       const SizedBox(height: MemoSpace.space3),
-                      SlideToDone(onDone: cubit.done),
+                      ElevatedButton.icon(
+                        onPressed: cubit.done,
+                        icon: const Icon(Icons.check_rounded),
+                        label: Text(context.l10n.commonDone),
+                        style: MemoButtons.large(c),
+                      ),
+                      const SizedBox(height: MemoSpace.space3),
+                      OutlinedButton(
+                        onPressed: () async {
+                          final at = await showSnoozeSheet(context, reminder);
+                          if (at != null) cubit.snooze(at);
+                        },
+                        style: MemoButtons.large(c),
+                        child: Text(context.l10n.detailSnooze),
+                      ),
                     ],
                   ),
                 ),
@@ -162,78 +236,26 @@ class AlarmPage extends StatelessWidget {
   }
 }
 
-/// A 56-high accent-soft track; drag the accent knob to the end to finish.
-/// Screen readers get a plain button instead of a drag.
-class SlideToDone extends StatefulWidget {
-  const SlideToDone({super.key, required this.onDone});
+class _InfoLine extends StatelessWidget {
+  const _InfoLine(this.icon, this.text);
 
-  final VoidCallback onDone;
-
-  @override
-  State<SlideToDone> createState() => _SlideToDoneState();
-}
-
-class _SlideToDoneState extends State<SlideToDone> {
-  double _dx = 0;
-  static const _knob = 48.0;
-  static const _height = 56.0;
+  final IconData icon;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
-    return Semantics(
-      button: true,
-      label: context.l10n.commonMarkDone,
-      onTap: widget.onDone,
-      excludeSemantics: true,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final travel = constraints.maxWidth - _knob - 8;
-          return Container(
-            height: _height,
-            padding: const EdgeInsets.all(MemoSpace.space1),
-            decoration: BoxDecoration(
-              color: c.accentSoft,
-              borderRadius: BorderRadius.circular(MemoRadius.pill),
-            ),
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                Center(
-                  child: Text(
-                    context.l10n.alarmSlideToDone,
-                    style: MemoType.button.copyWith(color: c.accentPressed),
-                  ),
-                ),
-                Transform.translate(
-                  offset: Offset(_dx, 0),
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: (d) => setState(
-                      () => _dx = (_dx + d.delta.dx).clamp(0, travel),
-                    ),
-                    onHorizontalDragEnd: (_) {
-                      if (_dx >= travel * 0.85) {
-                        widget.onDone();
-                      } else {
-                        setState(() => _dx = 0);
-                      }
-                    },
-                    child: Container(
-                      width: _knob,
-                      height: _knob,
-                      decoration: BoxDecoration(
-                        color: c.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.check_rounded, color: c.onAccent),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: c.ink70),
+        const SizedBox(width: MemoSpace.space2),
+        Expanded(
+          child: Text(
+            text,
+            style: MemoType.body.copyWith(fontSize: 13, color: c.ink70),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -646,23 +646,11 @@ abstract class AppLocalizations {
   /// **'10m'**
   String get snoozeTenMinutes;
 
-  /// Snooze preset label
-  ///
-  /// In en, this message translates to:
-  /// **'1h'**
-  String get snoozeOneHour;
-
   /// Alarm screen
   ///
   /// In en, this message translates to:
   /// **'Reminder'**
   String get alarmReminder;
-
-  /// Alarm screen
-  ///
-  /// In en, this message translates to:
-  /// **'Slide to mark done'**
-  String get alarmSlideToDone;
 
   /// Done archive screen
   ///
@@ -1287,6 +1275,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.'**
   String get welcomeBody1NoPhoto;
+
+  /// Snooze sheet heading
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze until…'**
+  String get snoozeTitle;
+
+  /// Snooze sheet body
+  ///
+  /// In en, this message translates to:
+  /// **'It will ring again, same sound.'**
+  String get snoozeBody;
+
+  /// Snooze sheet option
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze 10 minutes'**
+  String get snooze10;
+
+  /// Snooze sheet option
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze 1 hour'**
+  String get snooze1h;
+
+  /// Snooze sheet option
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow, same time'**
+  String get snoozeTomorrow;
+
+  /// Snooze sheet link to a date and time picker
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time'**
+  String get snoozePick;
+
+  /// Snooze sheet error when the picked time is not in the future
+  ///
+  /// In en, this message translates to:
+  /// **'That time has passed. Pick a later one.'**
+  String get snoozePastTime;
+
+  /// Alarm screen, spoken-reminder status
+  ///
+  /// In en, this message translates to:
+  /// **'Reading aloud in English'**
+  String get alarmReadingInEn;
+
+  /// Alarm screen, spoken-reminder status
+  ///
+  /// In en, this message translates to:
+  /// **'Reading aloud in Hindi'**
+  String get alarmReadingInHi;
+
+  /// Alarm screen, spoken-reminder status
+  ///
+  /// In en, this message translates to:
+  /// **'Reading aloud in Bengali'**
+  String get alarmReadingInBn;
+
+  /// Detail header for a repeating reminder
+  ///
+  /// In en, this message translates to:
+  /// **'{repeat} · next {when}'**
+  String detailRepeatNext(String repeat, String when);
+
+  /// Detail button on a repeating reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done for today'**
+  String get detailDoneToday;
+
+  /// Detail note under Mark done for today
+  ///
+  /// In en, this message translates to:
+  /// **'Marking done moves it to {when}.'**
+  String detailMovesTo(String when);
+
+  /// Detail delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reminder'**
+  String get detailDelete;
+
+  /// Daily repeat in the detail page and alarm screen
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get repeatEveryDayLong;
 }
 
 class _AppLocalizationsDelegate
