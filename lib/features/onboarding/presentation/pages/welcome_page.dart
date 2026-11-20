@@ -48,12 +48,16 @@ class OnboardingScaffold extends StatelessWidget {
     required this.title,
     required this.paragraphs,
     required this.actions,
+    this.body,
   });
 
   final Widget art;
   final String title;
   final List<String> paragraphs;
   final List<Widget> actions;
+
+  /// Extra content under the paragraphs, e.g. a card of steps.
+  final Widget? body;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +90,10 @@ class OnboardingScaffold extends StatelessWidget {
                     for (final p in paragraphs) ...[
                       const SizedBox(height: MemoSpace.space3),
                       Text(p, style: MemoType.body.copyWith(color: c.ink70)),
+                    ],
+                    if (body != null) ...[
+                      const SizedBox(height: MemoSpace.space6),
+                      body!,
                     ],
                   ],
                 ),

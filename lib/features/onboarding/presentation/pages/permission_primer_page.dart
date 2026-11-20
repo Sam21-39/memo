@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/ui/memo_mark.dart';
@@ -20,7 +22,10 @@ class PermissionPrimerPage extends StatelessWidget {
     return OnboardingScaffold(
       art: EmptyRing(),
       title: context.l10n.permTitle,
-      paragraphs: [context.l10n.permBody1, context.l10n.permBody2],
+      paragraphs: [
+        context.l10n.permBody1,
+        if (Platform.isAndroid) context.l10n.permBody2,
+      ],
       actions: [
         ElevatedButton(
           onPressed: onContinue,

@@ -703,56 +703,8 @@ abstract class AppLocalizations {
   /// Settings screen
   ///
   /// In en, this message translates to:
-  /// **'Alarms'**
-  String get settingsAlarms;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Notifications'**
-  String get settingsNotifications;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Exact alarms'**
-  String get settingsExactAlarms;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Full-screen alarms'**
-  String get settingsFullScreenAlarms;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Take over the screen'**
-  String get settingsTakeOver;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Full-screen alarm'**
-  String get settingsFullScreenAlarm;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Default nag'**
-  String get settingsDefaultNag;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
   /// **'New reminders ring again this often until done. Each one can change it.'**
   String get settingsDefaultNagBody;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Read reminders aloud'**
-  String get settingsReadAloud;
 
   /// Settings screen
   ///
@@ -775,72 +727,6 @@ abstract class AppLocalizations {
   /// Settings screen
   ///
   /// In en, this message translates to:
-  /// **'Allowed'**
-  String get settingsAllowed;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Not allowed'**
-  String get settingsNotAllowed;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Allow \"Take over the screen\" so an alarm fills the screen while you use the phone, not just a banner.'**
-  String get settingsTakeOverHint;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Without this a reminder can be saved but never heard.'**
-  String get settingsNotificationsHint;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Capture'**
-  String get settingsCapture;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Dictation language'**
-  String get settingsDictation;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Not on this phone'**
-  String get settingsDictationNone;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get settingsEnglish;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Read photos on device'**
-  String get settingsReadPhotos;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'This phone has no on-device speech model, so a held voice note keeps its clip and rings, but is titled \"Voice note\". Nothing is sent to a server.'**
-  String get settingsNoSpeechModel;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Look'**
-  String get settingsLook;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
   /// **'Appearance'**
   String get settingsAppearance;
 
@@ -853,50 +739,572 @@ abstract class AppLocalizations {
   /// Settings screen
   ///
   /// In en, this message translates to:
-  /// **'Glass chrome'**
-  String get settingsGlass;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Follows iOS'**
-  String get settingsFollowsIos;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Solid'**
-  String get settingsSolid;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Phase 2'**
-  String get settingsPhase2;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud sync'**
-  String get settingsCloudSync;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Shared reminders'**
-  String get settingsShared;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
-  /// **'Soon'**
-  String get settingsSoon;
-
-  /// Settings screen
-  ///
-  /// In en, this message translates to:
   /// **'Memō {version} · Nothing leaves this phone.'**
   String settingsFooter(String version);
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'If I don’t respond'**
+  String get settingsNoResponse;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Read title aloud'**
+  String get settingsReadTitle;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm reliability'**
+  String get settingsReliability;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm health'**
+  String get settingsHealth;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'All set'**
+  String get healthAllSet;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 thing to fix} other{{count} things to fix}}'**
+  String healthToFix(int count);
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Test alarm'**
+  String get settingsTest;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Ring in 10 s'**
+  String get settingsTestValue;
+
+  /// Toast after starting a test alarm
+  ///
+  /// In en, this message translates to:
+  /// **'Lock the phone. It rings in about 10 seconds.'**
+  String get testStarted;
+
+  /// Shown when the test alarm could not be scheduled
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t set the test alarm. Try again.'**
+  String get testFailed;
+
+  /// Title of the test reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Test alarm'**
+  String get testAlarmTitle;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsLight;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsDark;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get settingsPrivacy;
+
+  /// Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing leaves this phone'**
+  String get settingsPrivacyValue;
+
+  /// Privacy sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Your reminders are stored on this phone. Speech is turned into text on this phone. There is no account and no analytics.'**
+  String get privacyBody;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm health'**
+  String get healthTitle;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'This phone is set up to ring Memō reminders. No phone can promise every alarm, so test once.'**
+  String get healthBodyOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 setting may stop reminders from ringing on time.} other{{count} settings may stop reminders from ringing on time.}}'**
+  String healthBodyFix(int count);
+
+  /// Status pill
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthAllowed;
+
+  /// Status pill
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get healthOk;
+
+  /// Status pill
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get healthFix;
+
+  /// Status pill
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get healthOff;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Fix: {title}'**
+  String healthFixFirst(String title);
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Ring a test alarm in 10 seconds'**
+  String get healthTestButton;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Last test started: {when}.'**
+  String healthLastTest(String when);
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Fix {n} of {total}'**
+  String healthFixStep(int n, int total);
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Detected: {maker}.'**
+  String healthDetected(String maker);
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open battery settings'**
+  String get healthOpenBattery;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get healthOpenSettings;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'I changed it, check again'**
+  String get healthCheckAgain;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Banners and sound'**
+  String get healthNotificationsOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Off: reminders cannot ring'**
+  String get healthNotificationsBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Without notifications a reminder can be saved but not heard.'**
+  String get healthNotificationsBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthNotificationsStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Notifications.'**
+  String get healthNotificationsStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications, then come back to Memō.'**
+  String get healthNotificationsStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthExactOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Off: alarms can ring late'**
+  String get healthExactBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Without exact alarms the phone may delay a reminder by many minutes.'**
+  String get healthExactBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthExactStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Find Memō in the list.'**
+  String get healthExactStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Allow, then come back to Memō.'**
+  String get healthExactStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthFullScreenOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Off: alarm shows as a small banner'**
+  String get healthFullScreenBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Without this, an alarm on a locked phone shows as a small banner.'**
+  String get healthFullScreenBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthFullScreenStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on full-screen notifications for Memō.'**
+  String get healthFullScreenStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Come back to Memō.'**
+  String get healthFullScreenStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthOverlayOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Off: only a banner while you use the phone'**
+  String get healthOverlayBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Without this, an alarm while you use the phone is only a banner.'**
+  String get healthOverlayBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthOverlayStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Memō.'**
+  String get healthOverlayStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on display over other apps, then come back to Memō.'**
+  String get healthOverlayStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get healthBattery;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Unrestricted'**
+  String get healthBatteryOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Not unrestricted: phone may stop Memō'**
+  String get healthBatteryBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Unless a phone lets an app run unrestricted, it can stop it, and its alarms may not ring.'**
+  String get healthBatteryBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open battery settings” below.'**
+  String get healthBatteryStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Battery.'**
+  String get healthBatteryStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Unrestricted.'**
+  String get healthBatteryStep3;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Come back to Memō.'**
+  String get healthBatteryStep4;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed for Memō'**
+  String get healthAlarmsOk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Off: Memō falls back to notifications'**
+  String get healthAlarmsBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Without alarm permission Memō can only send notifications, which silent mode can hide.'**
+  String get healthAlarmsBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthAlarmsStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Alarms, or allow when the phone asks.'**
+  String get healthAlarmsStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on, then come back to Memō.'**
+  String get healthAlarmsStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Focus and silent mode'**
+  String get healthFocus;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms ring through'**
+  String get healthFocusOk;
+
+  /// Alarm health screen, iOS before 26: informational
+  ///
+  /// In en, this message translates to:
+  /// **'Focus can silence reminders'**
+  String get healthFocusInfo;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Focus can silence reminders'**
+  String get healthFocusBad;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Real alarms can ring through Focus and silent mode. Without alarm permission they cannot.'**
+  String get healthFocusBody;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tap “Open settings” below.'**
+  String get healthFocusStep1;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Allow alarms for Memō.'**
+  String get healthFocusStep2;
+
+  /// Alarm health fix screen
+  ///
+  /// In en, this message translates to:
+  /// **'Come back to Memō.'**
+  String get healthFocusStep3;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Background refresh'**
+  String get healthBackground;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get healthBackgroundOk;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Step 3 of 3'**
+  String get onbStep3;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Keep alarms alive'**
+  String get onbBatteryTitle;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Some phones stop background apps to save battery, which can make an alarm ring late or not at all. One setting lowers that risk.'**
+  String get onbBatteryBody;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Allow in background: Battery · Memō · Unrestricted'**
+  String get onbBatteryStep1;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Allow autostart: find Memō in your phone’s autostart list and turn it on.'**
+  String get onbBatteryStep2;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'I did this'**
+  String get onbDidThis;
+
+  /// Onboarding screens
+  ///
+  /// In en, this message translates to:
+  /// **'Skip, I will risk it'**
+  String get onbSkipRisk;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get healthNotifications;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Exact alarms'**
+  String get healthExact;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Full-screen alarms'**
+  String get healthFullScreen;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Take over the screen'**
+  String get healthOverlay;
+
+  /// Alarm health screen
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms'**
+  String get healthAlarms;
 
   /// Language picker
   ///

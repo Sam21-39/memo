@@ -91,6 +91,24 @@ class MainActivity : FlutterActivity() {
                     }
                     result.success(null)
                 }
+                "battery" -> result.success(
+                    mapOf(
+                        "unrestricted" to getSystemService(android.os.PowerManager::class.java)
+                            .isIgnoringBatteryOptimizations(packageName),
+                        "maker" to Build.MANUFACTURER,
+                    ),
+                )
+                "openBatterySettings" -> {
+                    try {
+                        startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")),
+                        )
+                    } catch (e: Exception) {
+                        // Some OEM builds lack this screen; the top-level one always exists.
+                        startActivity(Intent(Settings.ACTION_SETTINGS))
+                    }
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

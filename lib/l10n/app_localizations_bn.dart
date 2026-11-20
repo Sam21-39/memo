@@ -366,32 +366,8 @@ class AppLocalizationsBn extends AppLocalizations {
   String get settingsAppLanguage => 'অ্যাপের ভাষা';
 
   @override
-  String get settingsAlarms => 'অ্যালার্ম';
-
-  @override
-  String get settingsNotifications => 'নোটিফিকেশন';
-
-  @override
-  String get settingsExactAlarms => 'সঠিক সময়ের অ্যালার্ম';
-
-  @override
-  String get settingsFullScreenAlarms => 'ফুল-স্ক্রিন অ্যালার্ম';
-
-  @override
-  String get settingsTakeOver => 'স্ক্রিন দখল করুন';
-
-  @override
-  String get settingsFullScreenAlarm => 'ফুল-স্ক্রিন অ্যালার্ম';
-
-  @override
-  String get settingsDefaultNag => 'ডিফল্ট বারবার বাজা';
-
-  @override
   String get settingsDefaultNagBody =>
       'নতুন রিমাইন্ডার সম্পন্ন না হওয়া পর্যন্ত এত ব্যবধানে আবার বাজে। প্রতিটিতে এটি বদলানো যায়।';
-
-  @override
-  String get settingsReadAloud => 'রিমাইন্ডার পড়ে শোনান';
 
   @override
   String get settingsVoice => 'কণ্ঠ';
@@ -403,72 +379,335 @@ class AppLocalizationsBn extends AppLocalizations {
   String get settingsMale => 'পুরুষ';
 
   @override
-  String get settingsAllowed => 'অনুমতি আছে';
-
-  @override
-  String get settingsNotAllowed => 'অনুমতি নেই';
-
-  @override
-  String get settingsTakeOverHint =>
-      '\"স্ক্রিন দখল করুন\" অনুমতি দিন, যাতে ফোন ব্যবহার করার সময়ও অ্যালার্ম পুরো স্ক্রিনে দেখায়, শুধু ব্যানারে নয়।';
-
-  @override
-  String get settingsNotificationsHint =>
-      'এটি ছাড়া রিমাইন্ডার সংরক্ষণ করা যায়, কিন্তু কখনো শোনা যাবে না।';
-
-  @override
-  String get settingsCapture => 'ক্যাপচার';
-
-  @override
-  String get settingsDictation => 'ডিক্টেশনের ভাষা';
-
-  @override
-  String get settingsDictationNone => 'এই ফোনে নেই';
-
-  @override
-  String get settingsEnglish => 'ইংরেজি';
-
-  @override
-  String get settingsReadPhotos => 'ছবি ডিভাইসেই পড়ুন';
-
-  @override
-  String get settingsNoSpeechModel =>
-      'এই ফোনে অন-ডিভাইস স্পিচ মডেল নেই, তাই চেপে রেকর্ড করা ভয়েস নোট ক্লিপসহ বাজে, কিন্তু শিরোনাম থাকে \"ভয়েস নোট\"। কিছুই সার্ভারে পাঠানো হয় না।';
-
-  @override
-  String get settingsLook => 'চেহারা';
-
-  @override
   String get settingsAppearance => 'দেখার ধরন';
 
   @override
   String get settingsSystem => 'সিস্টেম';
 
   @override
-  String get settingsGlass => 'গ্লাস ক্রোম';
-
-  @override
-  String get settingsFollowsIos => 'iOS অনুযায়ী';
-
-  @override
-  String get settingsSolid => 'সলিড';
-
-  @override
-  String get settingsPhase2 => 'ধাপ 2';
-
-  @override
-  String get settingsCloudSync => 'ক্লাউড সিঙ্ক';
-
-  @override
-  String get settingsShared => 'শেয়ার করা রিমাইন্ডার';
-
-  @override
-  String get settingsSoon => 'শীঘ্রই';
-
-  @override
   String settingsFooter(String version) {
     return 'Memō $version · কিছুই এই ফোনের বাইরে যায় না।';
   }
+
+  @override
+  String get settingsReminders => 'রিমাইন্ডার';
+
+  @override
+  String get settingsNoResponse => 'সাড়া না দিলে';
+
+  @override
+  String get settingsReadTitle => 'শিরোনাম পড়ে শোনান';
+
+  @override
+  String get settingsReliability => 'অ্যালার্মের নির্ভরযোগ্যতা';
+
+  @override
+  String get settingsHealth => 'অ্যালার্মের অবস্থা';
+
+  @override
+  String get healthAllSet => 'সব ঠিক আছে';
+
+  @override
+  String healthToFix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ঠিক করার মতো $countটি বিষয়',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsTest => 'টেস্ট অ্যালার্ম';
+
+  @override
+  String get settingsTestValue => '10 সেকেন্ডে বাজবে';
+
+  @override
+  String get testStarted => 'ফোন লক করুন। প্রায় 10 সেকেন্ডে বাজবে।';
+
+  @override
+  String get testFailed => 'টেস্ট অ্যালার্ম সেট করা গেল না। আবার চেষ্টা করুন।';
+
+  @override
+  String get testAlarmTitle => 'টেস্ট অ্যালার্ম';
+
+  @override
+  String get settingsTheme => 'থিম';
+
+  @override
+  String get settingsLight => 'হালকা';
+
+  @override
+  String get settingsDark => 'গাঢ়';
+
+  @override
+  String get settingsAbout => 'সম্পর্কে';
+
+  @override
+  String get settingsPrivacy => 'গোপনীয়তা';
+
+  @override
+  String get settingsPrivacyValue => 'কিছুই এই ফোনের বাইরে যায় না';
+
+  @override
+  String get privacyBody =>
+      'আপনার রিমাইন্ডার এই ফোনেই থাকে। কথা থেকে লেখা এই ফোনেই তৈরি হয়। কোনো অ্যাকাউন্ট নেই, কোনো অ্যানালিটিক্সও নেই।';
+
+  @override
+  String get healthTitle => 'অ্যালার্মের অবস্থা';
+
+  @override
+  String get healthBodyOk =>
+      'এই ফোন Memō-র রিমাইন্ডার বাজানোর জন্য তৈরি। কোনো ফোনই প্রতিটি অ্যালার্মের নিশ্চয়তা দিতে পারে না, তাই একবার টেস্ট করে নিন।';
+
+  @override
+  String healthBodyFix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি সেটিং রিমাইন্ডারকে সময়মতো বাজতে বাধা দিতে পারে।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthAllowed => 'অনুমতি আছে';
+
+  @override
+  String get healthOk => 'ঠিক আছে';
+
+  @override
+  String get healthFix => 'ঠিক করুন';
+
+  @override
+  String get healthOff => 'বন্ধ';
+
+  @override
+  String healthFixFirst(String title) {
+    return 'ঠিক করুন: $title';
+  }
+
+  @override
+  String get healthTestButton => '10 সেকেন্ডে টেস্ট অ্যালার্ম বাজান';
+
+  @override
+  String healthLastTest(String when) {
+    return 'শেষ টেস্ট শুরু হয়েছে: $when।';
+  }
+
+  @override
+  String healthFixStep(int n, int total) {
+    return 'সমাধান $n/$total';
+  }
+
+  @override
+  String healthDetected(String maker) {
+    return 'শনাক্ত হয়েছে: $maker।';
+  }
+
+  @override
+  String get healthOpenBattery => 'ব্যাটারি সেটিংস খুলুন';
+
+  @override
+  String get healthOpenSettings => 'সেটিংস খুলুন';
+
+  @override
+  String get healthCheckAgain => 'আমি বদলেছি, আবার দেখুন';
+
+  @override
+  String get healthNotificationsOk => 'ব্যানার ও শব্দ';
+
+  @override
+  String get healthNotificationsBad => 'বন্ধ: রিমাইন্ডার বাজতে পারবে না';
+
+  @override
+  String get healthNotificationsBody =>
+      'নোটিফিকেশন ছাড়া রিমাইন্ডার সেভ হয়, কিন্তু শোনা যায় না।';
+
+  @override
+  String get healthNotificationsStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthNotificationsStep2 => 'নোটিফিকেশন বেছে নিন।';
+
+  @override
+  String get healthNotificationsStep3 =>
+      'নোটিফিকেশনের অনুমতি চালু করুন, তারপর Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthExactOk => 'অনুমতি আছে';
+
+  @override
+  String get healthExactBad => 'বন্ধ: অ্যালার্ম দেরিতে বাজতে পারে';
+
+  @override
+  String get healthExactBody =>
+      'সঠিক সময়ের অ্যালার্ম ছাড়া ফোন রিমাইন্ডার কয়েক মিনিট দেরিতে বাজাতে পারে।';
+
+  @override
+  String get healthExactStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthExactStep2 => 'তালিকায় Memō খুঁজুন।';
+
+  @override
+  String get healthExactStep3 => 'অনুমতি চালু করুন, তারপর Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthFullScreenOk => 'অনুমতি আছে';
+
+  @override
+  String get healthFullScreenBad => 'বন্ধ: অ্যালার্ম ছোট ব্যানার হয়ে আসে';
+
+  @override
+  String get healthFullScreenBody =>
+      'এটি ছাড়া লক করা ফোনে অ্যালার্ম শুধু ছোট ব্যানার হয়ে দেখা দেয়।';
+
+  @override
+  String get healthFullScreenStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthFullScreenStep2 =>
+      'Memō-র জন্য ফুল-স্ক্রিন নোটিফিকেশন চালু করুন।';
+
+  @override
+  String get healthFullScreenStep3 => 'Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthOverlayOk => 'অনুমতি আছে';
+
+  @override
+  String get healthOverlayBad => 'বন্ধ: ফোন ব্যবহারের সময় শুধু ব্যানার';
+
+  @override
+  String get healthOverlayBody =>
+      'এটি ছাড়া ফোন ব্যবহারের সময় অ্যালার্ম শুধু ব্যানার হয়ে আসে।';
+
+  @override
+  String get healthOverlayStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthOverlayStep2 => 'Memō বেছে নিন।';
+
+  @override
+  String get healthOverlayStep3 =>
+      'অন্য অ্যাপের উপরে দেখানোর অনুমতি চালু করুন, তারপর Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthBattery => 'ব্যাটারি';
+
+  @override
+  String get healthBatteryOk => 'বিধিনিষেধহীন';
+
+  @override
+  String get healthBatteryBad => 'বিধিনিষেধহীন নয়: ফোন Memō বন্ধ করতে পারে';
+
+  @override
+  String get healthBatteryBody =>
+      'অ্যাপ বিধিনিষেধহীন না থাকলে ফোন তা বন্ধ করে দিতে পারে, তখন তার অ্যালার্ম নাও বাজতে পারে।';
+
+  @override
+  String get healthBatteryStep1 => 'নিচে “ব্যাটারি সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthBatteryStep2 => 'ব্যাটারি বেছে নিন।';
+
+  @override
+  String get healthBatteryStep3 => 'বিধিনিষেধহীন (Unrestricted) বেছে নিন।';
+
+  @override
+  String get healthBatteryStep4 => 'Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthAlarmsOk => 'Memō-র জন্য অনুমতি আছে';
+
+  @override
+  String get healthAlarmsBad => 'বন্ধ: Memō নোটিফিকেশনে ফিরে যায়';
+
+  @override
+  String get healthAlarmsBody =>
+      'অ্যালার্মের অনুমতি ছাড়া Memō শুধু নোটিফিকেশন পাঠাতে পারে, যা সাইলেন্ট মোডে চাপা পড়তে পারে।';
+
+  @override
+  String get healthAlarmsStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthAlarmsStep2 =>
+      'অ্যালার্ম বেছে নিন, অথবা ফোন জিজ্ঞেস করলে অনুমতি দিন।';
+
+  @override
+  String get healthAlarmsStep3 => 'এটি চালু করুন, তারপর Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthFocus => 'ফোকাস ও সাইলেন্ট মোড';
+
+  @override
+  String get healthFocusOk => 'অ্যালার্ম বাজে';
+
+  @override
+  String get healthFocusInfo => 'ফোকাস রিমাইন্ডার চুপ করিয়ে দিতে পারে';
+
+  @override
+  String get healthFocusBad => 'ফোকাস রিমাইন্ডার চুপ করিয়ে দিতে পারে';
+
+  @override
+  String get healthFocusBody =>
+      'আসল অ্যালার্ম ফোকাস ও সাইলেন্ট মোডেও বাজতে পারে। অ্যালার্মের অনুমতি ছাড়া তা হয় না।';
+
+  @override
+  String get healthFocusStep1 => 'নিচে “সেটিংস খুলুন” চাপুন।';
+
+  @override
+  String get healthFocusStep2 => 'Memō-র জন্য অ্যালার্মের অনুমতি দিন।';
+
+  @override
+  String get healthFocusStep3 => 'Memō-তে ফিরে আসুন।';
+
+  @override
+  String get healthBackground => 'ব্যাকগ্রাউন্ড রিফ্রেশ';
+
+  @override
+  String get healthBackgroundOk => 'দরকার নেই';
+
+  @override
+  String get onbStep3 => 'ধাপ 3/3';
+
+  @override
+  String get onbBatteryTitle => 'অ্যালার্ম সচল রাখুন';
+
+  @override
+  String get onbBatteryBody =>
+      'কিছু ফোন ব্যাটারি বাঁচাতে ব্যাকগ্রাউন্ড অ্যাপ বন্ধ করে দেয়, তাতে অ্যালার্ম দেরিতে বা একেবারেই বাজতে নাও পারে। একটি সেটিং এই ঝুঁকি কমায়।';
+
+  @override
+  String get onbBatteryStep1 =>
+      'ব্যাকগ্রাউন্ডে চলতে দিন: ব্যাটারি · Memō · বিধিনিষেধহীন';
+
+  @override
+  String get onbBatteryStep2 =>
+      'অটোস্টার্টের অনুমতি দিন: ফোনের অটোস্টার্ট তালিকায় Memō খুঁজে চালু করুন।';
+
+  @override
+  String get onbDidThis => 'আমি করেছি';
+
+  @override
+  String get onbSkipRisk => 'বাদ দিন, আমি ঝুঁকি নিচ্ছি';
+
+  @override
+  String get healthNotifications => 'নোটিফিকেশন';
+
+  @override
+  String get healthExact => 'সঠিক সময়ের অ্যালার্ম';
+
+  @override
+  String get healthFullScreen => 'ফুল-স্ক্রিন অ্যালার্ম';
+
+  @override
+  String get healthOverlay => 'স্ক্রিন দখল করুন';
+
+  @override
+  String get healthAlarms => 'অ্যালার্ম';
 
   @override
   String get languageTitle => 'ভাষা';

@@ -81,6 +81,19 @@ class NativeAlarm {
 
   Future<void> openOverlaySettings() => _call<void>('openOverlaySettings');
 
+  /// Android: whether the OS lets Memō run unrestricted in the background,
+  /// and who made the phone (some makers add their own autostart list).
+  Future<({bool unrestricted, String maker})> battery() async {
+    final m = await _call<Map>('battery');
+    return (
+      unrestricted: m?['unrestricted'] == true,
+      maker: (m?['maker'] as String?) ?? '',
+    );
+  }
+
+  /// Opens Memō's page in system settings, where Battery lives.
+  Future<void> openBatterySettings() => _call<void>('openBatterySettings');
+
   /// iOS: copy a clip into Library/Sounds so a notification can ring it.
   Future<void> installSound(String path, String id) =>
       _call<void>('installSound', {'path': path, 'id': id});

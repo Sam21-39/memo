@@ -514,40 +514,8 @@
   "@settingsAppLanguage": {
     "description": "Settings row and language page section"
   },
-  "settingsAlarms": "Alarms",
-  "@settingsAlarms": {
-    "description": "Settings screen"
-  },
-  "settingsNotifications": "Notifications",
-  "@settingsNotifications": {
-    "description": "Settings screen"
-  },
-  "settingsExactAlarms": "Exact alarms",
-  "@settingsExactAlarms": {
-    "description": "Settings screen"
-  },
-  "settingsFullScreenAlarms": "Full-screen alarms",
-  "@settingsFullScreenAlarms": {
-    "description": "Settings screen"
-  },
-  "settingsTakeOver": "Take over the screen",
-  "@settingsTakeOver": {
-    "description": "Settings screen"
-  },
-  "settingsFullScreenAlarm": "Full-screen alarm",
-  "@settingsFullScreenAlarm": {
-    "description": "Settings screen"
-  },
-  "settingsDefaultNag": "Default nag",
-  "@settingsDefaultNag": {
-    "description": "Settings screen"
-  },
   "settingsDefaultNagBody": "New reminders ring again this often until done. Each one can change it.",
   "@settingsDefaultNagBody": {
-    "description": "Settings screen"
-  },
-  "settingsReadAloud": "Read reminders aloud",
-  "@settingsReadAloud": {
     "description": "Settings screen"
   },
   "settingsVoice": "Voice",
@@ -562,84 +530,12 @@
   "@settingsMale": {
     "description": "Settings screen"
   },
-  "settingsAllowed": "Allowed",
-  "@settingsAllowed": {
-    "description": "Settings screen"
-  },
-  "settingsNotAllowed": "Not allowed",
-  "@settingsNotAllowed": {
-    "description": "Settings screen"
-  },
-  "settingsTakeOverHint": "Allow \"Take over the screen\" so an alarm fills the screen while you use the phone, not just a banner.",
-  "@settingsTakeOverHint": {
-    "description": "Settings screen"
-  },
-  "settingsNotificationsHint": "Without this a reminder can be saved but never heard.",
-  "@settingsNotificationsHint": {
-    "description": "Settings screen"
-  },
-  "settingsCapture": "Capture",
-  "@settingsCapture": {
-    "description": "Settings screen"
-  },
-  "settingsDictation": "Dictation language",
-  "@settingsDictation": {
-    "description": "Settings screen"
-  },
-  "settingsDictationNone": "Not on this phone",
-  "@settingsDictationNone": {
-    "description": "Settings screen"
-  },
-  "settingsEnglish": "English",
-  "@settingsEnglish": {
-    "description": "Settings screen"
-  },
-  "settingsReadPhotos": "Read photos on device",
-  "@settingsReadPhotos": {
-    "description": "Settings screen"
-  },
-  "settingsNoSpeechModel": "This phone has no on-device speech model, so a held voice note keeps its clip and rings, but is titled \"Voice note\". Nothing is sent to a server.",
-  "@settingsNoSpeechModel": {
-    "description": "Settings screen"
-  },
-  "settingsLook": "Look",
-  "@settingsLook": {
-    "description": "Settings screen"
-  },
   "settingsAppearance": "Appearance",
   "@settingsAppearance": {
     "description": "Settings screen"
   },
   "settingsSystem": "System",
   "@settingsSystem": {
-    "description": "Settings screen"
-  },
-  "settingsGlass": "Glass chrome",
-  "@settingsGlass": {
-    "description": "Settings screen"
-  },
-  "settingsFollowsIos": "Follows iOS",
-  "@settingsFollowsIos": {
-    "description": "Settings screen"
-  },
-  "settingsSolid": "Solid",
-  "@settingsSolid": {
-    "description": "Settings screen"
-  },
-  "settingsPhase2": "Phase 2",
-  "@settingsPhase2": {
-    "description": "Settings screen"
-  },
-  "settingsCloudSync": "Cloud sync",
-  "@settingsCloudSync": {
-    "description": "Settings screen"
-  },
-  "settingsShared": "Shared reminders",
-  "@settingsShared": {
-    "description": "Settings screen"
-  },
-  "settingsSoon": "Soon",
-  "@settingsSoon": {
     "description": "Settings screen"
   },
   "settingsFooter": "Memō {version} · Nothing leaves this phone.",
@@ -650,6 +546,415 @@
         "type": "String"
       }
     }
+  },
+  "settingsReminders": "Reminders",
+  "@settingsReminders": {
+    "description": "Settings screen"
+  },
+  "settingsNoResponse": "If I don’t respond",
+  "@settingsNoResponse": {
+    "description": "Settings screen"
+  },
+  "settingsReadTitle": "Read title aloud",
+  "@settingsReadTitle": {
+    "description": "Settings screen"
+  },
+  "settingsReliability": "Alarm reliability",
+  "@settingsReliability": {
+    "description": "Settings screen"
+  },
+  "settingsHealth": "Alarm health",
+  "@settingsHealth": {
+    "description": "Settings screen"
+  },
+  "healthAllSet": "All set",
+  "@healthAllSet": {
+    "description": "Settings screen"
+  },
+  "healthToFix": "{count, plural, =1{1 thing to fix} other{{count} things to fix}}",
+  "@healthToFix": {
+    "description": "Settings screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTest": "Test alarm",
+  "@settingsTest": {
+    "description": "Settings screen"
+  },
+  "settingsTestValue": "Ring in 10 s",
+  "@settingsTestValue": {
+    "description": "Settings screen"
+  },
+  "testStarted": "Lock the phone. It rings in about 10 seconds.",
+  "@testStarted": {
+    "description": "Toast after starting a test alarm"
+  },
+  "testFailed": "Couldn’t set the test alarm. Try again.",
+  "@testFailed": {
+    "description": "Shown when the test alarm could not be scheduled"
+  },
+  "testAlarmTitle": "Test alarm",
+  "@testAlarmTitle": {
+    "description": "Title of the test reminder"
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Settings screen"
+  },
+  "settingsLight": "Light",
+  "@settingsLight": {
+    "description": "Settings screen"
+  },
+  "settingsDark": "Dark",
+  "@settingsDark": {
+    "description": "Settings screen"
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "Settings screen"
+  },
+  "settingsPrivacy": "Privacy",
+  "@settingsPrivacy": {
+    "description": "Settings screen"
+  },
+  "settingsPrivacyValue": "Nothing leaves this phone",
+  "@settingsPrivacyValue": {
+    "description": "Settings screen"
+  },
+  "privacyBody": "Your reminders are stored on this phone. Speech is turned into text on this phone. There is no account and no analytics.",
+  "@privacyBody": {
+    "description": "Privacy sheet"
+  },
+  "healthTitle": "Alarm health",
+  "@healthTitle": {
+    "description": "Alarm health screen"
+  },
+  "healthBodyOk": "This phone is set up to ring Memō reminders. No phone can promise every alarm, so test once.",
+  "@healthBodyOk": {
+    "description": "Alarm health screen"
+  },
+  "healthBodyFix": "{count, plural, =1{1 setting may stop reminders from ringing on time.} other{{count} settings may stop reminders from ringing on time.}}",
+  "@healthBodyFix": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthAllowed": "Allowed",
+  "@healthAllowed": {
+    "description": "Status pill"
+  },
+  "healthOk": "OK",
+  "@healthOk": {
+    "description": "Status pill"
+  },
+  "healthFix": "Fix",
+  "@healthFix": {
+    "description": "Status pill"
+  },
+  "healthOff": "Off",
+  "@healthOff": {
+    "description": "Status pill"
+  },
+  "healthFixFirst": "Fix: {title}",
+  "@healthFixFirst": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "healthTestButton": "Ring a test alarm in 10 seconds",
+  "@healthTestButton": {
+    "description": "Alarm health screen"
+  },
+  "healthLastTest": "Last test started: {when}.",
+  "@healthLastTest": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "healthFixStep": "Fix {n} of {total}",
+  "@healthFixStep": {
+    "description": "Alarm health fix screen",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDetected": "Detected: {maker}.",
+  "@healthDetected": {
+    "description": "Alarm health fix screen",
+    "placeholders": {
+      "maker": {
+        "type": "String"
+      }
+    }
+  },
+  "healthOpenBattery": "Open battery settings",
+  "@healthOpenBattery": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOpenSettings": "Open settings",
+  "@healthOpenSettings": {
+    "description": "Alarm health fix screen"
+  },
+  "healthCheckAgain": "I changed it, check again",
+  "@healthCheckAgain": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsOk": "Banners and sound",
+  "@healthNotificationsOk": {
+    "description": "Alarm health screen"
+  },
+  "healthNotificationsBad": "Off: reminders cannot ring",
+  "@healthNotificationsBad": {
+    "description": "Alarm health screen"
+  },
+  "healthNotificationsBody": "Without notifications a reminder can be saved but not heard.",
+  "@healthNotificationsBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep1": "Tap “Open settings” below.",
+  "@healthNotificationsStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep2": "Choose Notifications.",
+  "@healthNotificationsStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep3": "Turn on notifications, then come back to Memō.",
+  "@healthNotificationsStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactOk": "Allowed",
+  "@healthExactOk": {
+    "description": "Alarm health screen"
+  },
+  "healthExactBad": "Off: alarms can ring late",
+  "@healthExactBad": {
+    "description": "Alarm health screen"
+  },
+  "healthExactBody": "Without exact alarms the phone may delay a reminder by many minutes.",
+  "@healthExactBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep1": "Tap “Open settings” below.",
+  "@healthExactStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep2": "Find Memō in the list.",
+  "@healthExactStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep3": "Turn on Allow, then come back to Memō.",
+  "@healthExactStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenOk": "Allowed",
+  "@healthFullScreenOk": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreenBad": "Off: alarm shows as a small banner",
+  "@healthFullScreenBad": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreenBody": "Without this, an alarm on a locked phone shows as a small banner.",
+  "@healthFullScreenBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep1": "Tap “Open settings” below.",
+  "@healthFullScreenStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep2": "Turn on full-screen notifications for Memō.",
+  "@healthFullScreenStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep3": "Come back to Memō.",
+  "@healthFullScreenStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayOk": "Allowed",
+  "@healthOverlayOk": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlayBad": "Off: only a banner while you use the phone",
+  "@healthOverlayBad": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlayBody": "Without this, an alarm while you use the phone is only a banner.",
+  "@healthOverlayBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep1": "Tap “Open settings” below.",
+  "@healthOverlayStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep2": "Choose Memō.",
+  "@healthOverlayStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep3": "Turn on display over other apps, then come back to Memō.",
+  "@healthOverlayStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBattery": "Battery",
+  "@healthBattery": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryOk": "Unrestricted",
+  "@healthBatteryOk": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryBad": "Not unrestricted: phone may stop Memō",
+  "@healthBatteryBad": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryBody": "Unless a phone lets an app run unrestricted, it can stop it, and its alarms may not ring.",
+  "@healthBatteryBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep1": "Tap “Open battery settings” below.",
+  "@healthBatteryStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep2": "Choose Battery.",
+  "@healthBatteryStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep3": "Choose Unrestricted.",
+  "@healthBatteryStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep4": "Come back to Memō.",
+  "@healthBatteryStep4": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsOk": "Allowed for Memō",
+  "@healthAlarmsOk": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarmsBad": "Off: Memō falls back to notifications",
+  "@healthAlarmsBad": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarmsBody": "Without alarm permission Memō can only send notifications, which silent mode can hide.",
+  "@healthAlarmsBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep1": "Tap “Open settings” below.",
+  "@healthAlarmsStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep2": "Choose Alarms, or allow when the phone asks.",
+  "@healthAlarmsStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep3": "Turn it on, then come back to Memō.",
+  "@healthAlarmsStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocus": "Focus and silent mode",
+  "@healthFocus": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusOk": "Alarms ring through",
+  "@healthFocusOk": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusInfo": "Focus can silence reminders",
+  "@healthFocusInfo": {
+    "description": "Alarm health screen, iOS before 26: informational"
+  },
+  "healthFocusBad": "Focus can silence reminders",
+  "@healthFocusBad": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusBody": "Real alarms can ring through Focus and silent mode. Without alarm permission they cannot.",
+  "@healthFocusBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep1": "Tap “Open settings” below.",
+  "@healthFocusStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep2": "Allow alarms for Memō.",
+  "@healthFocusStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep3": "Come back to Memō.",
+  "@healthFocusStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBackground": "Background refresh",
+  "@healthBackground": {
+    "description": "Alarm health screen"
+  },
+  "healthBackgroundOk": "Not needed",
+  "@healthBackgroundOk": {
+    "description": "Alarm health screen"
+  },
+  "onbStep3": "Step 3 of 3",
+  "@onbStep3": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryTitle": "Keep alarms alive",
+  "@onbBatteryTitle": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryBody": "Some phones stop background apps to save battery, which can make an alarm ring late or not at all. One setting lowers that risk.",
+  "@onbBatteryBody": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryStep1": "Allow in background: Battery · Memō · Unrestricted",
+  "@onbBatteryStep1": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryStep2": "Allow autostart: find Memō in your phone’s autostart list and turn it on.",
+  "@onbBatteryStep2": {
+    "description": "Onboarding screens"
+  },
+  "onbDidThis": "I did this",
+  "@onbDidThis": {
+    "description": "Onboarding screens"
+  },
+  "onbSkipRisk": "Skip, I will risk it",
+  "@onbSkipRisk": {
+    "description": "Onboarding screens"
+  },
+  "healthNotifications": "Notifications",
+  "@healthNotifications": {
+    "description": "Alarm health screen"
+  },
+  "healthExact": "Exact alarms",
+  "@healthExact": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreen": "Full-screen alarms",
+  "@healthFullScreen": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlay": "Take over the screen",
+  "@healthOverlay": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarms": "Alarms",
+  "@healthAlarms": {
+    "description": "Alarm health screen"
   },
   "languageTitle": "Language",
   "@languageTitle": {

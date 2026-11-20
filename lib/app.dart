@@ -36,10 +36,19 @@ import 'features/reminders/presentation/home/capture_cubit.dart';
 import 'features/reminders/presentation/home/home_cubit.dart';
 import 'features/reminders/presentation/home/home_state.dart';
 import 'features/reminders/presentation/home/home_page.dart';
+import 'features/settings/health_fix_page.dart';
+import 'features/settings/health_page.dart';
 import 'features/settings/language_page.dart';
 import 'features/settings/settings_cubit.dart';
 import 'features/settings/settings_page.dart';
 import 'l10n/l10n.dart';
+
+SettingsCubit _settingsCubit() => SettingsCubit(
+  sl<AppPrefs>(),
+  sl<NativeAlarm>(),
+  sl<SaveReminder>(),
+  sl<DeleteReminder>(),
+);
 
 GoRouter buildRouter(AppPrefs prefs) {
   late final GoRouter router;
@@ -135,12 +144,30 @@ GoRouter buildRouter(AppPrefs prefs) {
       GoRoute(
         path: '/settings',
         builder: (_, _) => BlocProvider(
-          create: (_) =>
-              SettingsCubit(sl<AppPrefs>(), sl<NativeAlarm>())..refresh(),
+          create: (_) => _settingsCubit()..refresh(),
           child: const SettingsPage(),
         ),
         routes: [
           GoRoute(path: 'language', builder: (_, _) => const LanguagePage()),
+          GoRoute(
+            path: 'health',
+            builder: (_, _) => BlocProvider(
+              create: (_) => _settingsCubit()..refresh(),
+              child: const HealthPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'fix/:id',
+                builder: (_, state) => BlocProvider(
+                  create: (_) => _settingsCubit()..refresh(),
+                  child: HealthFixPage(
+                    id: state.pathParameters['id']!,
+                    step: state.extra as ({int n, int total})?,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     ],

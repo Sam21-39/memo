@@ -63,6 +63,15 @@ class AppPrefs {
   Future<void> setLastTimeZone(String zone) =>
       _prefs.setString('last_time_zone', zone);
 
+  /// When the user last started a test alarm.
+  DateTime? get lastTestAt {
+    final ms = _prefs.getInt('last_test_at');
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> setLastTestAt(DateTime at) =>
+      _prefs.setInt('last_test_at', at.millisecondsSinceEpoch);
+
   /// system | en | hi | bn
   String get interfaceLocale => _prefs.getString('interface_locale') ?? 'en';
   Future<void> setInterfaceLocale(String v) =>

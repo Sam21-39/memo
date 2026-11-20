@@ -17,12 +17,16 @@ class MemoNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          TextButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            child: Text(context.l10n.commonBack),
+          Flexible(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              child: Text(context.l10n.commonBack),
+            ),
           ),
           if (actionLabel != null)
-            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            Flexible(
+              child: TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            ),
         ],
       ),
     );

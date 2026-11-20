@@ -272,7 +272,12 @@ void main() {
         MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (_) => SettingsCubit(sl<AppPrefs>(), NativeAlarm()),
+              create: (_) => SettingsCubit(
+                sl<AppPrefs>(),
+                NativeAlarm(),
+                sl<SaveReminder>(),
+                sl<DeleteReminder>(),
+              ),
             ),
             BlocProvider(create: (_) => AppSettingsCubit(sl<AppPrefs>())),
           ],

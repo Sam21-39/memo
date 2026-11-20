@@ -1,5 +1,6 @@
 import '../alarm/alarm_scheduler.dart';
 import '../entities/reminder.dart';
+import '../test_reminder.dart';
 import '../repositories/reminder_repository.dart';
 
 /// Run on launch, on resume and after every notification action.
@@ -7,7 +8,8 @@ import '../repositories/reminder_repository.dart';
 /// 1. Roll forward: a live repeat more than one full cycle in the past moves
 ///    to its next real occurrence. One cycle late stays overdue, so today's
 ///    missed pills still show.
-/// 2. Re-register every live alarm from scratch, which also retries rows a
+/// 2. Delete a leftover test alarm (done, or due over 2 minutes ago).
+/// 3. Re-register every live alarm from scratch, which also retries rows a
 ///    failed schedule flagged `needsSchedule`.
 class SyncAlarms {
   const SyncAlarms(this._repository, this._scheduler);
@@ -19,6 +21,15 @@ class SyncAlarms {
     final at = now ?? DateTime.now();
     final live = <Reminder>[];
     for (final reminder in await _repository.getAll()) {
+      if (reminder.id == testReminderId &&
+          (reminder.isDone ||
+              reminder.dueAt.isBefore(
+                at.subtract(const Duration(minutes: 2)),
+              ))) {
+        await _scheduler.cancel(reminder.id);
+        await _repository.delete(reminder.id);
+        continue;
+      }
       if (reminder.isDone) continue;
       var current = reminder;
       final oneCycle = reminder.repeat.nextAfter(reminder.dueAt);

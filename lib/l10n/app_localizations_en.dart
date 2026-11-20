@@ -367,32 +367,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAppLanguage => 'App language';
 
   @override
-  String get settingsAlarms => 'Alarms';
-
-  @override
-  String get settingsNotifications => 'Notifications';
-
-  @override
-  String get settingsExactAlarms => 'Exact alarms';
-
-  @override
-  String get settingsFullScreenAlarms => 'Full-screen alarms';
-
-  @override
-  String get settingsTakeOver => 'Take over the screen';
-
-  @override
-  String get settingsFullScreenAlarm => 'Full-screen alarm';
-
-  @override
-  String get settingsDefaultNag => 'Default nag';
-
-  @override
   String get settingsDefaultNagBody =>
       'New reminders ring again this often until done. Each one can change it.';
-
-  @override
-  String get settingsReadAloud => 'Read reminders aloud';
 
   @override
   String get settingsVoice => 'Voice';
@@ -404,72 +380,337 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMale => 'Male';
 
   @override
-  String get settingsAllowed => 'Allowed';
-
-  @override
-  String get settingsNotAllowed => 'Not allowed';
-
-  @override
-  String get settingsTakeOverHint =>
-      'Allow \"Take over the screen\" so an alarm fills the screen while you use the phone, not just a banner.';
-
-  @override
-  String get settingsNotificationsHint =>
-      'Without this a reminder can be saved but never heard.';
-
-  @override
-  String get settingsCapture => 'Capture';
-
-  @override
-  String get settingsDictation => 'Dictation language';
-
-  @override
-  String get settingsDictationNone => 'Not on this phone';
-
-  @override
-  String get settingsEnglish => 'English';
-
-  @override
-  String get settingsReadPhotos => 'Read photos on device';
-
-  @override
-  String get settingsNoSpeechModel =>
-      'This phone has no on-device speech model, so a held voice note keeps its clip and rings, but is titled \"Voice note\". Nothing is sent to a server.';
-
-  @override
-  String get settingsLook => 'Look';
-
-  @override
   String get settingsAppearance => 'Appearance';
 
   @override
   String get settingsSystem => 'System';
 
   @override
-  String get settingsGlass => 'Glass chrome';
-
-  @override
-  String get settingsFollowsIos => 'Follows iOS';
-
-  @override
-  String get settingsSolid => 'Solid';
-
-  @override
-  String get settingsPhase2 => 'Phase 2';
-
-  @override
-  String get settingsCloudSync => 'Cloud sync';
-
-  @override
-  String get settingsShared => 'Shared reminders';
-
-  @override
-  String get settingsSoon => 'Soon';
-
-  @override
   String settingsFooter(String version) {
     return 'Memō $version · Nothing leaves this phone.';
   }
+
+  @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String get settingsNoResponse => 'If I don’t respond';
+
+  @override
+  String get settingsReadTitle => 'Read title aloud';
+
+  @override
+  String get settingsReliability => 'Alarm reliability';
+
+  @override
+  String get settingsHealth => 'Alarm health';
+
+  @override
+  String get healthAllSet => 'All set';
+
+  @override
+  String healthToFix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count things to fix',
+      one: '1 thing to fix',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsTest => 'Test alarm';
+
+  @override
+  String get settingsTestValue => 'Ring in 10 s';
+
+  @override
+  String get testStarted => 'Lock the phone. It rings in about 10 seconds.';
+
+  @override
+  String get testFailed => 'Couldn’t set the test alarm. Try again.';
+
+  @override
+  String get testAlarmTitle => 'Test alarm';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsLight => 'Light';
+
+  @override
+  String get settingsDark => 'Dark';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsPrivacy => 'Privacy';
+
+  @override
+  String get settingsPrivacyValue => 'Nothing leaves this phone';
+
+  @override
+  String get privacyBody =>
+      'Your reminders are stored on this phone. Speech is turned into text on this phone. There is no account and no analytics.';
+
+  @override
+  String get healthTitle => 'Alarm health';
+
+  @override
+  String get healthBodyOk =>
+      'This phone is set up to ring Memō reminders. No phone can promise every alarm, so test once.';
+
+  @override
+  String healthBodyFix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count settings may stop reminders from ringing on time.',
+      one: '1 setting may stop reminders from ringing on time.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthAllowed => 'Allowed';
+
+  @override
+  String get healthOk => 'OK';
+
+  @override
+  String get healthFix => 'Fix';
+
+  @override
+  String get healthOff => 'Off';
+
+  @override
+  String healthFixFirst(String title) {
+    return 'Fix: $title';
+  }
+
+  @override
+  String get healthTestButton => 'Ring a test alarm in 10 seconds';
+
+  @override
+  String healthLastTest(String when) {
+    return 'Last test started: $when.';
+  }
+
+  @override
+  String healthFixStep(int n, int total) {
+    return 'Fix $n of $total';
+  }
+
+  @override
+  String healthDetected(String maker) {
+    return 'Detected: $maker.';
+  }
+
+  @override
+  String get healthOpenBattery => 'Open battery settings';
+
+  @override
+  String get healthOpenSettings => 'Open settings';
+
+  @override
+  String get healthCheckAgain => 'I changed it, check again';
+
+  @override
+  String get healthNotificationsOk => 'Banners and sound';
+
+  @override
+  String get healthNotificationsBad => 'Off: reminders cannot ring';
+
+  @override
+  String get healthNotificationsBody =>
+      'Without notifications a reminder can be saved but not heard.';
+
+  @override
+  String get healthNotificationsStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthNotificationsStep2 => 'Choose Notifications.';
+
+  @override
+  String get healthNotificationsStep3 =>
+      'Turn on notifications, then come back to Memō.';
+
+  @override
+  String get healthExactOk => 'Allowed';
+
+  @override
+  String get healthExactBad => 'Off: alarms can ring late';
+
+  @override
+  String get healthExactBody =>
+      'Without exact alarms the phone may delay a reminder by many minutes.';
+
+  @override
+  String get healthExactStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthExactStep2 => 'Find Memō in the list.';
+
+  @override
+  String get healthExactStep3 => 'Turn on Allow, then come back to Memō.';
+
+  @override
+  String get healthFullScreenOk => 'Allowed';
+
+  @override
+  String get healthFullScreenBad => 'Off: alarm shows as a small banner';
+
+  @override
+  String get healthFullScreenBody =>
+      'Without this, an alarm on a locked phone shows as a small banner.';
+
+  @override
+  String get healthFullScreenStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthFullScreenStep2 =>
+      'Turn on full-screen notifications for Memō.';
+
+  @override
+  String get healthFullScreenStep3 => 'Come back to Memō.';
+
+  @override
+  String get healthOverlayOk => 'Allowed';
+
+  @override
+  String get healthOverlayBad => 'Off: only a banner while you use the phone';
+
+  @override
+  String get healthOverlayBody =>
+      'Without this, an alarm while you use the phone is only a banner.';
+
+  @override
+  String get healthOverlayStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthOverlayStep2 => 'Choose Memō.';
+
+  @override
+  String get healthOverlayStep3 =>
+      'Turn on display over other apps, then come back to Memō.';
+
+  @override
+  String get healthBattery => 'Battery';
+
+  @override
+  String get healthBatteryOk => 'Unrestricted';
+
+  @override
+  String get healthBatteryBad => 'Not unrestricted: phone may stop Memō';
+
+  @override
+  String get healthBatteryBody =>
+      'Unless a phone lets an app run unrestricted, it can stop it, and its alarms may not ring.';
+
+  @override
+  String get healthBatteryStep1 => 'Tap “Open battery settings” below.';
+
+  @override
+  String get healthBatteryStep2 => 'Choose Battery.';
+
+  @override
+  String get healthBatteryStep3 => 'Choose Unrestricted.';
+
+  @override
+  String get healthBatteryStep4 => 'Come back to Memō.';
+
+  @override
+  String get healthAlarmsOk => 'Allowed for Memō';
+
+  @override
+  String get healthAlarmsBad => 'Off: Memō falls back to notifications';
+
+  @override
+  String get healthAlarmsBody =>
+      'Without alarm permission Memō can only send notifications, which silent mode can hide.';
+
+  @override
+  String get healthAlarmsStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthAlarmsStep2 =>
+      'Choose Alarms, or allow when the phone asks.';
+
+  @override
+  String get healthAlarmsStep3 => 'Turn it on, then come back to Memō.';
+
+  @override
+  String get healthFocus => 'Focus and silent mode';
+
+  @override
+  String get healthFocusOk => 'Alarms ring through';
+
+  @override
+  String get healthFocusInfo => 'Focus can silence reminders';
+
+  @override
+  String get healthFocusBad => 'Focus can silence reminders';
+
+  @override
+  String get healthFocusBody =>
+      'Real alarms can ring through Focus and silent mode. Without alarm permission they cannot.';
+
+  @override
+  String get healthFocusStep1 => 'Tap “Open settings” below.';
+
+  @override
+  String get healthFocusStep2 => 'Allow alarms for Memō.';
+
+  @override
+  String get healthFocusStep3 => 'Come back to Memō.';
+
+  @override
+  String get healthBackground => 'Background refresh';
+
+  @override
+  String get healthBackgroundOk => 'Not needed';
+
+  @override
+  String get onbStep3 => 'Step 3 of 3';
+
+  @override
+  String get onbBatteryTitle => 'Keep alarms alive';
+
+  @override
+  String get onbBatteryBody =>
+      'Some phones stop background apps to save battery, which can make an alarm ring late or not at all. One setting lowers that risk.';
+
+  @override
+  String get onbBatteryStep1 =>
+      'Allow in background: Battery · Memō · Unrestricted';
+
+  @override
+  String get onbBatteryStep2 =>
+      'Allow autostart: find Memō in your phone’s autostart list and turn it on.';
+
+  @override
+  String get onbDidThis => 'I did this';
+
+  @override
+  String get onbSkipRisk => 'Skip, I will risk it';
+
+  @override
+  String get healthNotifications => 'Notifications';
+
+  @override
+  String get healthExact => 'Exact alarms';
+
+  @override
+  String get healthFullScreen => 'Full-screen alarms';
+
+  @override
+  String get healthOverlay => 'Take over the screen';
+
+  @override
+  String get healthAlarms => 'Alarms';
 
   @override
   String get languageTitle => 'Language';
