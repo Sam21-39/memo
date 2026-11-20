@@ -178,7 +178,7 @@ class _CaptureBarState extends State<CaptureBar> {
                 late
                     ? S.captureLeft(secs(left))
                     : S.captureElapsed(secs(state.recorded)),
-                style: mono.copyWith(color: c.accent),
+                style: mono.copyWith(color: c.accentText),
               ),
               const SizedBox(width: MemoSpace.space3),
               Expanded(
@@ -225,7 +225,7 @@ class _CaptureBarState extends State<CaptureBar> {
           style: MemoType.bodyLarge.copyWith(color: c.ink),
           decoration: InputDecoration(
             hintText: S.reminderHint,
-            hintStyle: MemoType.bodyLarge.copyWith(color: c.ink45),
+            hintStyle: MemoType.bodyLarge.copyWith(color: c.ink70),
             filled: false,
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
@@ -425,7 +425,7 @@ class _Mic extends StatelessWidget {
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
           decoration: BoxDecoration(
-            color: active ? c.accentPressed : c.accent,
+            color: active ? c.accentPressed : c.accentText,
             shape: BoxShape.circle,
             border: active ? Border.all(color: c.accentSoft, width: 4) : null,
           ),

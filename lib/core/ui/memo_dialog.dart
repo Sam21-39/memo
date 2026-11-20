@@ -15,7 +15,7 @@ Future<bool> showMemoConfirm(
   bool destructive = false,
 }) async {
   final c = MemoColors.of(context);
-  final confirmColor = destructive ? c.destructive : c.accent;
+  final confirmColor = destructive ? c.destructive : c.accentText;
   final ios = Theme.of(context).platform == TargetPlatform.iOS;
   final result = ios
       ? await showCupertinoDialog<bool>(

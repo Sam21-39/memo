@@ -15,6 +15,7 @@ class MemoColors extends ThemeExtension<MemoColors> {
     required this.ink6,
     required this.hairline,
     required this.accent,
+    required this.accentText,
     required this.accentPressed,
     required this.accentSoft,
     required this.destructive,
@@ -24,6 +25,9 @@ class MemoColors extends ThemeExtension<MemoColors> {
     required this.chromeTint,
     required this.chromeStroke,
     required this.chromeHighlight,
+    required this.caution,
+    required this.cautionSoft,
+    required this.ok,
   });
 
   /// Screen background. Paper. Everything sits on this.
@@ -38,7 +42,7 @@ class MemoColors extends ThemeExtension<MemoColors> {
   /// Secondary text: notes, times, hints. 6.7:1 on canvas.
   final Color ink70;
 
-  /// Section labels, counts, idle check ring, placeholder. Decorative only: never body text. 3.2:1 on canvas, passes only at 24px+ or for borders.
+  /// Idle check ring, hairline-weight icons, decorative strokes only. Never text: 2.95:1 on canvas. Labels and placeholders use ink-70.
   final Color ink45;
 
   /// Idle chip fill, segmented track, icon button fill on chrome. 6 % ink.
@@ -47,8 +51,11 @@ class MemoColors extends ThemeExtension<MemoColors> {
   /// Card borders, row separators, outlined buttons, solid chrome stroke. No drop shadows anywhere.
   final Color hairline;
 
-  /// The logo dot. Overdue text, done check disc, primary text buttons, complete band, recording mic. On canvas 3.1:1 light: use for 17px+ semibold text or non-text only.
+  /// The logo dot. Done disc, overdue ring, complete band, large non-text marks. Never small text (3.05:1); use accent-text.
   final Color accent;
+
+  /// Accent as text or icon ground: overdue times, text buttons, links, mic and recording fill with white icon. 4.7:1 on canvas.
+  final Color accentText;
 
   /// Accent while pressed.
   final Color accentPressed;
@@ -77,6 +84,15 @@ class MemoColors extends ThemeExtension<MemoColors> {
   /// Specular along the top edge of glass chrome. Transparent on solid chrome.
   final Color chromeHighlight;
 
+  /// Needs your decision: the Confirm time border and badge, health warnings. Never for overdue or delete.
+  final Color caution;
+
+  /// Ground behind an unsure field and warning pills.
+  final Color cautionSoft;
+
+  /// Alarm health only: allowed, ready.
+  final Color ok;
+
   static const light = MemoColors(
     canvas: Color(0xFFF4F3F0),
     surface: Color(0xFFFBFAF8),
@@ -86,6 +102,7 @@ class MemoColors extends ThemeExtension<MemoColors> {
     ink6: Color(0x0F191816),
     hairline: Color(0xFFE4E2DC),
     accent: Color(0xFFFF5A5F),
+    accentText: Color(0xFFC2363C),
     accentPressed: Color(0xFFD93B41),
     accentSoft: Color(0xFFFFEBEC),
     destructive: Color(0xFFA33A2A),
@@ -95,6 +112,9 @@ class MemoColors extends ThemeExtension<MemoColors> {
     chromeTint: Color(0xB3FBFAF8),
     chromeStroke: Color(0x66FFFFFF),
     chromeHighlight: Color(0x99FFFFFF),
+    caution: Color(0xFFB26A00),
+    cautionSoft: Color(0xFFFFF4E5),
+    ok: Color(0xFF2E7D4F),
   );
 
   static const dark = MemoColors(
@@ -106,6 +126,7 @@ class MemoColors extends ThemeExtension<MemoColors> {
     ink6: Color(0x0FF2F0EC),
     hairline: Color(0xFF2B2A27),
     accent: Color(0xFFFF7E82),
+    accentText: Color(0xFFFF7E82),
     accentPressed: Color(0xFFFF7E82),
     accentSoft: Color(0x29FF7E82),
     destructive: Color(0xFFE06A58),
@@ -115,6 +136,9 @@ class MemoColors extends ThemeExtension<MemoColors> {
     chromeTint: Color(0x991B1A18),
     chromeStroke: Color(0x26FFFFFF),
     chromeHighlight: Color(0x40FFFFFF),
+    caution: Color(0xFFE0A040),
+    cautionSoft: Color(0xFF2E2412),
+    ok: Color(0xFF7CC79A),
   );
 
   /// Dim behind sheets and the expanded capture bar: always dark ink, so
@@ -139,6 +163,7 @@ class MemoColors extends ThemeExtension<MemoColors> {
       ink6: Color.lerp(ink6, other.ink6, t)!,
       hairline: Color.lerp(hairline, other.hairline, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
+      accentText: Color.lerp(accentText, other.accentText, t)!,
       accentPressed: Color.lerp(accentPressed, other.accentPressed, t)!,
       accentSoft: Color.lerp(accentSoft, other.accentSoft, t)!,
       destructive: Color.lerp(destructive, other.destructive, t)!,
@@ -148,6 +173,9 @@ class MemoColors extends ThemeExtension<MemoColors> {
       chromeTint: Color.lerp(chromeTint, other.chromeTint, t)!,
       chromeStroke: Color.lerp(chromeStroke, other.chromeStroke, t)!,
       chromeHighlight: Color.lerp(chromeHighlight, other.chromeHighlight, t)!,
+      caution: Color.lerp(caution, other.caution, t)!,
+      cautionSoft: Color.lerp(cautionSoft, other.cautionSoft, t)!,
+      ok: Color.lerp(ok, other.ok, t)!,
     );
   }
 }
@@ -157,11 +185,13 @@ class MemoColors extends ThemeExtension<MemoColors> {
 abstract final class MemoType {
   static const sans = 'Instrument Sans';
   static const mono = 'IBM Plex Mono';
+  static const fallback = ['Noto Sans Devanagari', 'Noto Sans Bengali'];
   static const _tabular = [FontFeature.tabularFigures()];
 
   /// Screen title, reminder title on detail and alarm screens.
   static const display = TextStyle(
     fontFamily: sans,
+    fontFamilyFallback: fallback,
     fontSize: 34.0,
     height: 1.1470588235294117,
     fontWeight: FontWeight.w600,
@@ -171,6 +201,7 @@ abstract final class MemoType {
   /// Sheet and page titles, dialog titles.
   static const title = TextStyle(
     fontFamily: sans,
+    fontFamilyFallback: fallback,
     fontSize: 22.0,
     height: 1.1818181818181819,
     fontWeight: FontWeight.w600,
@@ -180,6 +211,7 @@ abstract final class MemoType {
   /// Row title, capture field.
   static const bodyLarge = TextStyle(
     fontFamily: sans,
+    fontFamilyFallback: fallback,
     fontSize: 17.0,
     height: 1.2941176470588236,
     fontWeight: FontWeight.w500,
@@ -188,6 +220,7 @@ abstract final class MemoType {
   /// Notes, hints, onboarding copy, dialog body. ink-70.
   static const body = TextStyle(
     fontFamily: sans,
+    fontFamilyFallback: fallback,
     fontSize: 15.0,
     height: 1.4,
     fontWeight: FontWeight.w400,
@@ -196,23 +229,45 @@ abstract final class MemoType {
   /// Primary, secondary and text buttons.
   static const button = TextStyle(
     fontFamily: sans,
+    fontFamilyFallback: fallback,
     fontSize: 16.0,
     height: 1.0,
     fontWeight: FontWeight.w600,
   );
 
-  /// Times, dates, counts, pill values, chip labels. ink-70, accent when overdue.
+  /// Reminder title on the alarm screen only.
+  static const alarmTitle = TextStyle(
+    fontFamily: sans,
+    fontFamilyFallback: fallback,
+    fontSize: 40.0,
+    height: 1.15,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.8,
+  );
+
+  /// Alarm Done and Snooze, 64 px high.
+  static const buttonLarge = TextStyle(
+    fontFamily: sans,
+    fontFamilyFallback: fallback,
+    fontSize: 20.0,
+    height: 1.0,
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Times, dates, counts, pill values, chip labels. ink-70, accent-text when overdue.
   static const labelMedium = TextStyle(
     fontFamily: mono,
+    fontFamilyFallback: fallback,
     fontSize: 13.0,
     height: 1.2307692307692308,
     fontWeight: FontWeight.w400,
     fontFeatures: _tabular,
   );
 
-  /// Section headers, uppercase applied by the component. ink-45; accent for the overdue header.
+  /// Section headers, uppercase applied by the component. ink-70; accent-text for the overdue header. Latin only: Hindi and Bengali headers use body 13/500 sentence case, no tracking.
   static const labelSmall = TextStyle(
     fontFamily: mono,
+    fontFamilyFallback: fallback,
     fontSize: 11.0,
     height: 1.1818181818181819,
     fontWeight: FontWeight.w500,
@@ -222,6 +277,7 @@ abstract final class MemoType {
   /// Alarm screen time, empty-state 00 ring. Tabular figures.
   static const clock = TextStyle(
     fontFamily: mono,
+    fontFamilyFallback: fallback,
     fontSize: 56.0,
     height: 1.0,
     fontWeight: FontWeight.w400,

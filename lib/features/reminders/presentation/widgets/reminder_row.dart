@@ -62,9 +62,9 @@ class ReminderRow extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: MemoType.bodyLarge.copyWith(
-                        color: done ? c.ink45 : c.ink,
+                        color: done ? c.ink70 : c.ink,
                         decoration: done ? TextDecoration.lineThrough : null,
-                        decorationColor: c.ink45,
+                        decorationColor: c.ink70,
                       ),
                     ),
                     if (subtitle != null)
@@ -97,7 +97,7 @@ class ReminderRow extends StatelessWidget {
                 Icon(
                   Icons.repeat_rounded,
                   size: 14,
-                  color: c.ink45,
+                  color: c.ink70,
                   semanticLabel: S.repeatsSemantic,
                 ),
               ],
@@ -105,7 +105,7 @@ class ReminderRow extends StatelessWidget {
               Text(
                 trailing,
                 style: MemoType.labelMedium.copyWith(
-                  color: overdue ? c.accent : c.ink70,
+                  color: overdue ? c.accentText : c.ink70,
                 ),
               ),
             ],

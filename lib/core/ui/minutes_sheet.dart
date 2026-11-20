@@ -87,7 +87,7 @@ class _MinutesPickerState extends State<_MinutesPicker> {
                     ),
                   ),
                 ),
-                if (selected) Icon(Icons.check_rounded, color: c.accent),
+                if (selected) Icon(Icons.check_rounded, color: c.accentText),
               ],
             ),
           ),

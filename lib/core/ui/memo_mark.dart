@@ -64,7 +64,7 @@ class EmptyRing extends StatelessWidget {
       ),
       child: Text(
         '00',
-        style: MemoType.labelMedium.copyWith(fontSize: 20, color: c.ink45),
+        style: MemoType.labelMedium.copyWith(fontSize: 20, color: c.ink70),
       ),
     );
   }

@@ -302,7 +302,7 @@ class _SoundCard extends StatelessWidget {
           IconButton(
             tooltip: S.voiceDelete,
             onPressed: cubit.deleteClip,
-            icon: Icon(Icons.close_rounded, color: c.ink45, size: 18),
+            icon: Icon(Icons.close_rounded, color: c.ink70, size: 18),
           ),
         ],
       );
@@ -317,7 +317,7 @@ class _SoundCard extends StatelessWidget {
                     children: [
                       Text(
                         S.captureElapsed(secs(state.recorded)),
-                        style: mono.copyWith(color: c.accent),
+                        style: mono.copyWith(color: c.accentText),
                       ),
                       Text(
                         S.editRecordingMax(secs(VoiceClip.maxLength)),
@@ -392,7 +392,7 @@ class _HoldToRecord extends StatelessWidget {
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
           decoration: BoxDecoration(
-            color: active ? c.accentPressed : c.accent,
+            color: active ? c.accentPressed : c.accentText,
             shape: BoxShape.circle,
             border: active ? Border.all(color: c.accentSoft, width: 4) : null,
           ),

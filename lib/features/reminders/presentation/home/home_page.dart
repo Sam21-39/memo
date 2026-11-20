@@ -9,6 +9,7 @@ import '../../../../core/ui/memo_mark.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/memo_toast.dart';
 import '../../../../core/ui/minute_clock.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
@@ -198,8 +199,8 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  summary.toUpperCase(),
-                  style: MemoType.labelSmall.copyWith(color: c.ink45),
+                  sectionLabelText(context, summary),
+                  style: sectionLabelStyle(context).copyWith(color: c.ink70),
                 ),
               ],
             ),

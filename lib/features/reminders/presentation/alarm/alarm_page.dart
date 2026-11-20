@@ -79,7 +79,7 @@ class AlarmPage extends StatelessWidget {
                             Text(
                               formatLateness(late),
                               style: MemoType.labelSmall.copyWith(
-                                color: c.accent,
+                                color: c.accentText,
                               ),
                             ),
                         ],
@@ -115,7 +115,7 @@ class AlarmPage extends StatelessWidget {
                                   : S.voicePlay,
                               style: IconButton.styleFrom(
                                 fixedSize: const Size.square(MemoSpace.hitMin),
-                                backgroundColor: c.accent,
+                                backgroundColor: c.accentText,
                                 foregroundColor: c.onAccent,
                               ),
                               icon: Icon(

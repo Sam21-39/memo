@@ -249,7 +249,7 @@ class _Body extends StatelessWidget {
                 ElevatedButton(
                   onPressed: reminder.isDone ? cubit.reopen : cubit.complete,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: c.accent,
+                    backgroundColor: c.accentText,
                     foregroundColor: c.onAccent,
                   ),
                   child: Text(

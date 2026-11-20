@@ -26,6 +26,7 @@ Future<T?> showMemoSheet<T>(
         ),
         child: MemoChrome(
           shape: ChromeShape.sheet,
+          solid: true,
           child: SafeArea(
             top: false,
             child: Padding(

@@ -55,7 +55,7 @@ class MemoIconButton extends StatelessWidget {
         fixedSize: const Size.square(36),
         minimumSize: const Size.square(MemoSpace.hitMin),
         tapTargetSize: MaterialTapTargetSize.padded,
-        backgroundColor: accent ? c.accent : c.ink6,
+        backgroundColor: accent ? c.accentText : c.ink6,
         foregroundColor: accent ? c.onAccent : c.ink,
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
 import '../../domain/entities/reminder.dart';
@@ -63,10 +64,13 @@ class ArchivePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          S
-                              .archiveThisWeek(state.completedSince(weekStart))
-                              .toUpperCase(),
-                          style: MemoType.labelSmall.copyWith(color: c.ink45),
+                          sectionLabelText(
+                            context,
+                            S.archiveThisWeek(state.completedSince(weekStart)),
+                          ),
+                          style: sectionLabelStyle(
+                            context,
+                          ).copyWith(color: c.ink70),
                         ),
                         const SizedBox(height: MemoSpace.gutter),
                         TextField(

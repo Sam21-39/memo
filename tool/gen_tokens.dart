@@ -158,6 +158,9 @@ void _type(StringBuffer b, Map<String, dynamic> type) {
     ..writeln('abstract final class MemoType {')
     ..writeln("  static const sans = 'Instrument Sans';")
     ..writeln("  static const mono = 'IBM Plex Mono';")
+    ..writeln(
+      "  static const fallback = ['Noto Sans Devanagari', 'Noto Sans Bengali'];",
+    )
     ..writeln('  static const _tabular = [FontFeature.tabularFigures()];');
   for (final group in (type['groups'] as List).cast<Map<String, dynamic>>()) {
     final family = group['family'] == 'mono' ? 'mono' : 'sans';
@@ -174,6 +177,7 @@ void _type(StringBuffer b, Map<String, dynamic> type) {
         ..writeln('  /// ${s['usage']}')
         ..writeln('  static const $name = TextStyle(')
         ..writeln('    fontFamily: $family,')
+        ..writeln('    fontFamilyFallback: fallback,')
         ..writeln('    fontSize: ${_num(size)},')
         ..writeln('    height: ${line / size},')
         ..writeln('    fontWeight: FontWeight.w$weight,');
