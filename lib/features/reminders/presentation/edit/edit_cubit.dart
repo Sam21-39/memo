@@ -244,6 +244,9 @@ class EditCubit extends Cubit<EditState> {
 
   Future<void> toggleRecording() async => _hold?.toggle();
 
+  /// Backgrounded: a latched take must not run on behind the lock screen.
+  Future<void> cancelRecording() async => _hold?.cancel();
+
   Future<void> deleteClip() async {
     await media?.discardDraft();
     emit(

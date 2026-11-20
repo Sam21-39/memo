@@ -180,7 +180,7 @@ class CaptureCubit extends Cubit<CaptureState> {
           media!.draftVoicePath,
           tempPath: media!.draftTempPath,
           onTick: (elapsed, level) {
-            if (isClosed) return;
+            if (isClosed || !_canRecord) return;
             emit(
               state.copyWith(
                 phase: CapturePhase.recording,
@@ -258,13 +258,24 @@ class CaptureCubit extends Cubit<CaptureState> {
 
   /// Back from Settings: a granted microphone clears the denied look.
   Future<void> recheckMic() async {
-    if (!state.micDenied || !(await voice?.hasPermission() ?? false)) return;
-    if (!isClosed) emit(state.copyWith(micDenied: false, clearError: true));
+    if (!state.micDenied) return;
+    var granted = false;
+    try {
+      granted = await voice?.hasPermission() ?? false;
+    } catch (_) {
+      // Still denied.
+    }
+    if (granted && !isClosed) {
+      emit(state.copyWith(micDenied: false, clearError: true));
+    }
   }
 
   /// Typing → confirmation.
   void review() {
-    if (state.canContinue) emit(state.copyWith(phase: CapturePhase.confirming));
+    if (!state.canContinue) return;
+    // A start still in flight must not land on the confirmation.
+    _hold?.cancel();
+    emit(state.copyWith(phase: CapturePhase.confirming));
   }
 
   void backToTyping() {
@@ -276,7 +287,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   void chooseTime(DateTime at) => setDueAt(at);
 
   Future<void> _onHold(HoldResult result) async {
-    if (isClosed) return;
+    if (isClosed || !_canRecord) return;
     switch (result) {
       case HoldDropped(:final notice, :final denied):
         final hasClip = media?.hasDraft ?? false;

@@ -85,8 +85,7 @@ class HoldRecorder {
     }
     if (_recording) return;
     if (_starting) {
-      // Second tap while the recorder is still starting: that is a stop.
-      _stopAfterStart = true;
+      _pressWhileStarting();
       return;
     }
     _starting = true;
@@ -99,6 +98,20 @@ class HoldRecorder {
     }
   }
 
+  /// A tap while the recorder is still starting is a stop, unless a cancel
+  /// came first: then it re-arms the pending start, so the new press records
+  /// (one start, no stale result).
+  void _pressWhileStarting() {
+    if (_cancelled) {
+      _cancelled = false;
+      _stopAfterStart = false;
+      _holding = true;
+      _downAt = DateTime.now();
+    } else {
+      _stopAfterStart = true;
+    }
+  }
+
   Future<void> _start() async {
     _holding = true;
     _downAt = DateTime.now();
@@ -107,11 +120,9 @@ class HoldRecorder {
       _holding = false;
       _latched = false;
       onResult(
-        _cancelled
-            ? const HoldDropped(null)
-            : granted
-            ? HoldDropped(l10n().holdMicOn)
-            : HoldDropped(l10n().holdMicDenied, denied: true),
+        !granted
+            ? HoldDropped(l10n().holdMicDenied, denied: true)
+            : HoldDropped(_cancelled ? null : l10n().holdMicOn),
       );
       return;
     }
@@ -160,7 +171,8 @@ class HoldRecorder {
   Future<void> toggle() async {
     if (_recording) return _finish();
     if (_starting) {
-      _stopAfterStart = true;
+      _pressWhileStarting();
+      if (!_stopAfterStart) _latched = true;
       return;
     }
     _latched = true;
@@ -197,7 +209,13 @@ class HoldRecorder {
       } else {
         await _voice.stop();
         final take = File(_temp);
-        if (_temp != _path && await take.exists()) await take.rename(_path);
+        if (_temp != _path) {
+          if (!await take.exists()) {
+            onResult(HoldDropped(l10n().holdHint));
+            return;
+          }
+          await take.rename(_path);
+        }
         onResult(HoldKept(elapsed));
       }
     } catch (_) {

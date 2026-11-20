@@ -66,13 +66,21 @@ class _FakeVoice implements VoiceClip {
   Future<void> stopPlaying() async {}
 }
 
+class _GatedPermission extends _FakeVoice {
+  _GatedPermission(this.gate);
+  final Completer<bool> gate;
+  @override
+  Future<bool> hasPermission({bool request = false}) =>
+      request ? gate.future : Future.value(false);
+}
+
 void main() {
   late _FakeVoice voice;
   late EditCubit cubit;
 
   setUp(() {
     final repo = InMemoryRepository();
-    voice = _FakeVoice();
+    voice = _FakeVoice()..onStart = (path) => File(path).writeAsBytesSync([1]);
     cubit = EditCubit(
       SaveReminder(repo, FakeScheduler()),
       media: MediaStore(Directory.systemTemp.createTempSync('media')),
@@ -134,11 +142,46 @@ void main() {
     expect(cubit.state.hasClip, isTrue);
   });
 
+  testWidgets('hiding the app stops a latched edit recording', (tester) async {
+    await setUpDi();
+    tester.view.physicalSize = const Size(1200, 4000);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      themed(
+        Scaffold(
+          body: BlocProvider.value(
+            value: cubit,
+            child: const EditForm(knownTags: []),
+          ),
+        ),
+      ),
+    );
+    await tester.runAsync(() => cubit.toggleRecording());
+    expect(cubit.state.recording, isTrue);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    expect(cubit.state.recording, isFalse);
+    expect(cubit.state.hasClip, isFalse);
+    expect(voice.recording, isFalse);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  });
+
+  test('cancelRecording discards a latched edit take', () async {
+    await cubit.toggleRecording();
+    await cubit.cancelRecording();
+    expect(cubit.state.recording, isFalse);
+    expect(cubit.state.hasClip, isFalse);
+    expect(voice.cancelled, isTrue);
+  });
+
   group('HoldRecorder', () {
     late List<HoldResult> results;
     late HoldRecorder recorder;
 
     setUp(() {
+      voice.onStart = null;
       results = [];
       recorder = HoldRecorder(
         voice,
@@ -205,6 +248,51 @@ void main() {
       await first;
       expect(recorder.recording, isFalse);
       expect((results.single as HoldDropped).notice, isNull);
+    });
+
+    test('a press after a cancel mid-start starts one fresh take', () async {
+      voice.startGate = Completer<void>();
+      final first = recorder.press();
+      await recorder.cancel();
+      await recorder.press(); // re-arms; no second start
+      voice.startGate!.complete();
+      await first;
+      expect(voice.starts, 1);
+      expect(recorder.recording, isTrue);
+      expect(results, isEmpty);
+    });
+
+    test('cancel during the permission prompt still reports denied', () async {
+      final gate = Completer<bool>();
+      final v = _GatedPermission(gate);
+      final r = HoldRecorder(
+        v,
+        Directory.systemTemp.createTempSync('rec').path,
+        onTick: (_, _) {},
+        onResult: results.add,
+      );
+      final first = r.press();
+      await pumpEventQueue();
+      await r.cancel();
+      gate.complete(false);
+      await first;
+      expect((results.single as HoldDropped).denied, isTrue);
+    });
+
+    test('a take that never reached disk is dropped, not kept', () async {
+      final dir = Directory.systemTemp.createTempSync('rec');
+      final r = HoldRecorder(
+        voice,
+        '${dir.path}/draft.wav',
+        tempPath: '${dir.path}/draft.rec.wav',
+        onTick: (_, _) {},
+        onResult: results.add,
+      );
+      await r.toggle();
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      await r.toggle();
+      expect(results.single, isA<HoldDropped>());
+      await r.dispose();
     });
 
     test('a recorder that fails on stop still ends the take', () async {
@@ -287,7 +375,11 @@ void main() {
     expect(mic, findsOneWidget, reason: 'the mic must stay under the finger');
 
     await finger.up();
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    for (var i = 0; i < 50 && cubit.state.recording; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+    }
     await tester.pump();
     expect(cubit.state.recording, isFalse);
     expect(cubit.state.hasClip, isTrue);

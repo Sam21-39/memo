@@ -85,8 +85,20 @@ class _EditFormState extends State<EditForm> {
     text: context.read<EditCubit>().state.note,
   );
 
+  late final _lifecycle = AppLifecycleListener(
+    onHide: () => context.read<EditCubit>().cancelRecording(),
+    onPause: () => context.read<EditCubit>().cancelRecording(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
     _title.dispose();
     _note.dispose();
     super.dispose();

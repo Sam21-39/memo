@@ -47,8 +47,11 @@ class _Voice implements VoiceClip {
 
   /// What the OS prompt answers when asked.
   bool grants = false;
+  bool throwsOnCheck = false;
+  Completer<void>? startGate;
   @override
   Future<bool> hasPermission({bool request = false}) async {
+    if (throwsOnCheck) throw StateError('no');
     if (request) allowed = grants;
     return allowed;
   }
@@ -57,7 +60,11 @@ class _Voice implements VoiceClip {
   Future<double> level() async => 0.5;
   String? path;
   @override
-  Future<void> start(String path) async => this.path = path;
+  Future<void> start(String path) async {
+    this.path = path;
+    await startGate?.future;
+  }
+
   @override
   Future<void> stop() async =>
       File(path!).writeAsBytesSync(List.filled(44 + 64000, 0));
@@ -321,6 +328,33 @@ void main() {
     await cubit.stopRecording();
     expect(cubit.state.phase, CapturePhase.idle);
     expect(cubit.state.notice, 'Tap the mic, speak, then tap Stop.');
+  });
+
+  test(
+    'Continue during a slow start is not overwritten by the start',
+    () async {
+      final gate = Completer<void>();
+      voice.startGate = gate;
+      final cubit = build()..setText('Bins at 7pm');
+      final starting = cubit.startRecording();
+      await pumpEventQueue();
+      cubit.review();
+      expect(cubit.state.phase, CapturePhase.confirming);
+      gate.complete();
+      await starting;
+      await pumpEventQueue();
+      expect(cubit.state.phase, CapturePhase.confirming);
+    },
+  );
+
+  test('a recheck that throws stays denied', () async {
+    voice.allowed = false;
+    final cubit = build();
+    await cubit.startRecording();
+    expect(cubit.state.micDenied, isTrue);
+    voice.throwsOnCheck = true;
+    await cubit.recheckMic();
+    expect(cubit.state.micDenied, isTrue);
   });
 
   test('a refused microphone is flagged with an error', () async {

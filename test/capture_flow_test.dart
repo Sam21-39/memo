@@ -23,7 +23,7 @@ class _Voice implements VoiceClip {
   @override
   Future<double> level() async => 0.5;
   @override
-  Future<void> start(String path) async {}
+  Future<void> start(String path) async => File(path).writeAsBytesSync([1]);
   @override
   Future<void> stop() async {}
   @override
@@ -70,6 +70,18 @@ Future<void> _pump(WidgetTester tester, {DateTime Function()? clock}) async {
     ),
   );
   await tester.pumpAndSettle();
+}
+
+/// Real file I/O backs the stop: wait in short real hops, bounded, until the
+/// recording panel is gone.
+Future<void> _untilNotRecording(WidgetTester tester) async {
+  for (var i = 0; i < 50; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+    if (find.text('Recording').evaluate().isEmpty) break;
+  }
 }
 
 bool _enabled(WidgetTester tester, String label) =>
@@ -184,7 +196,7 @@ void main() {
     expect(identical(tester.element(_mic), before), isTrue);
 
     await finger.up(); // lands on the mic, not the panel above it
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await _untilNotRecording(tester);
     await tester.pumpAndSettle();
     expect(find.text('Recording'), findsNothing);
     expect(find.text('Type it instead'), findsOneWidget);
@@ -200,7 +212,7 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 1100)),
     );
     await tester.tap(find.text('Stop'));
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await _untilNotRecording(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Couldn’t turn that into text'), findsOneWidget);
