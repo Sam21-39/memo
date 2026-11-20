@@ -359,4 +359,92 @@ void main() {
       expect(p.dueAt, DateTime(2026, 11, 27, 9));
     });
   });
+
+  group('ambiguity', () {
+    test('a bare hour asks morning or evening', () {
+      const input = 'call mum tomorrow at 8';
+      final p = parseReminder(input, now: now);
+      final a = p.ambiguity!;
+      expect(a.kinds, {AmbiguityKind.amPm});
+      expect(a.choices, [at(5, 8), at(5, 20)]);
+      expect(input.substring(a.span!.start, a.span!.end), 'at 8');
+    });
+
+    test('no bare-hour choice is in the past', () {
+      final a = parseReminder('call mum at 8', now: now).ambiguity!;
+      expect(a.choices, [at(4, 20), at(5, 8)]);
+      expect(a.choices.every((c) => c.isAfter(now)), isTrue);
+    });
+
+    test('a bare 8:30 is ambiguous, 20:30 is not', () {
+      expect(parseReminder('call at 8:30', now: now).ambiguity, isNotNull);
+      expect(parseReminder('call at 20:30', now: now).ambiguity, isNull);
+    });
+
+    test('no time at all is a noTime guess', () {
+      final p = parseReminder('pay rent', now: now);
+      expect(p.ambiguity!.kinds, {AmbiguityKind.noTime});
+      expect(p.ambiguity!.choices, [p.dueAt]);
+    });
+
+    test('a date with no time is a noTime guess', () {
+      final p = parseReminder('pay rent tomorrow', now: now);
+      expect(p.ambiguity!.kinds, {AmbiguityKind.noTime});
+    });
+
+    test('stated times are not ambiguous', () {
+      expect(parseReminder('pills at 8pm', now: now).ambiguity, isNull);
+      expect(parseReminder('pills at 8 tonight', now: now).ambiguity, isNull);
+      expect(parseReminder('pills in 2 hours', now: now).ambiguity, isNull);
+    });
+
+    group('a named day keeps only readings that are ahead', () {
+      DateTime on(int h) => DateTime(2026, 11, 4, h);
+
+      test('today at 8, 09:00: only the evening is left, nothing to ask', () {
+        final p = parseReminder('call today at 8', now: on(9));
+        expect(p.ambiguity, isNull);
+        expect(p.dueAt, at(4, 20));
+      });
+
+      test('today at 8, 12:00: only the evening is left, nothing to ask', () {
+        final p = parseReminder('call today at 8', now: on(12));
+        expect(p.ambiguity, isNull);
+        expect(p.dueAt, at(4, 20));
+      });
+
+      test('today at 8, 21:00: both roll to tomorrow and are asked', () {
+        final p = parseReminder('call today at 8', now: on(21));
+        expect(p.ambiguity!.choices, [at(5, 8), at(5, 20)]);
+        expect(p.dueAt, at(5, 8));
+      });
+
+      test(
+        'friday at 8 on a Friday afternoon: only 20:00 is left, nothing to ask',
+        () {
+          final fri = DateTime(2026, 11, 27, 15);
+          final p = parseReminder('call friday at 8', now: fri);
+          expect(p.ambiguity, isNull);
+          expect(p.dueAt, DateTime(2026, 11, 27, 20));
+        },
+      );
+    });
+
+    test('dueAt is unchanged by ambiguity', () {
+      expect(parseReminder('call mum at 8', now: now).dueAt, at(4, 20));
+    });
+
+    test('a weekly rule keeps every choice on a picked day', () {
+      final a = parseReminder('gym every monday at 8', now: now).ambiguity!;
+      expect(a.choices.every((c) => c.weekday == DateTime.monday), isTrue);
+    });
+
+    test('non-ASCII input keeps spans on the original string', () {
+      const input = 'İstanbul at 8pm';
+      final p = parseReminder(input, now: now);
+      final s = p.timeSpans.single;
+      expect(input.substring(s.start, s.end), 'at 8pm');
+      expect(p.title, 'İstanbul');
+    });
+  });
 }

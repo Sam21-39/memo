@@ -341,7 +341,9 @@ class _SoundCard extends StatelessWidget {
                       const SizedBox(width: MemoSpace.space3),
                       Expanded(
                         child: Text(
-                          context.l10n.editReleaseToStop,
+                          state.latched
+                              ? context.l10n.micTapToStop
+                              : context.l10n.editReleaseToStop,
                           textAlign: TextAlign.end,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -394,7 +396,10 @@ class _HoldToRecord extends StatelessWidget {
     // sheet's scrolling can cancel it mid-hold. Down records, up stops.
     return Semantics(
       button: true,
-      label: context.l10n.captureHoldToRecord,
+      label: context.l10n.micRecord,
+      hint: active ? context.l10n.micTapToStop : context.l10n.micTapToStart,
+      onTap: cubit.toggleRecording,
+      excludeSemantics: true,
       child: Listener(
         onPointerDown: (_) {
           HapticFeedback.selectionClick();
@@ -403,7 +408,9 @@ class _HoldToRecord extends StatelessWidget {
         onPointerUp: (_) => cubit.stopRecording(),
         onPointerCancel: (_) => cubit.stopRecording(),
         child: AnimatedContainer(
-          duration: MemoMotion.fast,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : MemoMotion.fast,
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
           decoration: BoxDecoration(

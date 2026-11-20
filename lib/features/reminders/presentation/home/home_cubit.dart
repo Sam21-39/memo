@@ -23,6 +23,7 @@ class HomeCubit extends Cubit<HomeState> {
   final DeleteReminder _delete;
   late final StreamSubscription<void> _changes;
   Timer? _undoTimer;
+  Timer? _savedTimer;
   Timer? _deleteTimer;
   String? _inFlight;
 
@@ -69,7 +70,8 @@ class HomeCubit extends Cubit<HomeState> {
     final current = state;
     if (current is! HomeReady) return;
     _undoTimer?.cancel();
-    emit(current.copyWith(undo: reminder));
+    _savedTimer?.cancel();
+    emit(current.copyWith(undo: reminder, clearSaved: true));
     _undoTimer = Timer(undoWindow, dismissUndo);
   }
 
@@ -89,6 +91,24 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  /// The "Reminder set" toast: one at a time, so it replaces an Undo.
+  void showSaved(Reminder reminder) {
+    final current = state;
+    if (current is! HomeReady) return;
+    _undoTimer?.cancel();
+    _savedTimer?.cancel();
+    emit(current.copyWith(saved: reminder, clearUndo: true));
+    _savedTimer = Timer(undoWindow, dismissSaved);
+  }
+
+  void dismissSaved() {
+    _savedTimer?.cancel();
+    final current = state;
+    if (current is HomeReady && current.saved != null) {
+      emit(current.copyWith(clearSaved: true));
+    }
+  }
+
   Future<void> snooze(Reminder reminder, {Duration? by}) => _write(
     () => _save(const SnoozeReminder()(reminder, now: DateTime.now(), by: by)),
   );
@@ -97,6 +117,7 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> delete(Reminder reminder) async {
     await commitPendingDelete();
     dismissUndo();
+    dismissSaved();
     final current = state;
     if (current is! HomeReady) return;
     emit(current.copyWith(pendingDelete: reminder));
@@ -155,6 +176,7 @@ class HomeCubit extends Cubit<HomeState> {
   @override
   Future<void> close() async {
     _undoTimer?.cancel();
+    _savedTimer?.cancel();
     _deleteTimer?.cancel();
     _changes.cancel();
     final current = state;

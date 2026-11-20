@@ -199,12 +199,6 @@ abstract class AppLocalizations {
   /// Shared button or label
   ///
   /// In en, this message translates to:
-  /// **'More'**
-  String get commonMore;
-
-  /// Shared button or label
-  ///
-  /// In en, this message translates to:
   /// **'Snooze 10 minutes'**
   String get commonSnoozeTenMinutes;
 
@@ -355,7 +349,7 @@ abstract class AppLocalizations {
   /// Home screen text
   ///
   /// In en, this message translates to:
-  /// **'Bins, pills, that call.\nType below to add one.'**
+  /// **'Bins, pills, that call.\nType below, or tap the mic and speak.'**
   String get homeEmptyBody;
 
   /// Home screen text
@@ -391,44 +385,8 @@ abstract class AppLocalizations {
   /// Capture bar and capture sheets
   ///
   /// In en, this message translates to:
-  /// **'Hold to record'**
-  String get captureHoldToRecord;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Release to stop. Transcript becomes the title.'**
-  String get captureReleaseToStop;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Saving'**
-  String get captureSaving;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Listening · {elapsed}'**
-  String captureListening(String elapsed);
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
   /// **'● {elapsed}'**
   String captureElapsed(String elapsed);
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'● {left} left'**
-  String captureLeft(String left);
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'+ Repeat'**
-  String get captureRepeatNone;
 
   /// Capture bar and capture sheets
   ///
@@ -441,36 +399,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every {day}'**
   String repeatEveryDay(String day);
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'+ Tag'**
-  String get captureTagNone;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Read aloud'**
-  String get captureReadAloud;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Silent'**
-  String get captureSilent;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Read aloud when it rings: on'**
-  String get captureReadAloudOn;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
-  /// **'Read aloud when it rings: off'**
-  String get captureReadAloudOff;
 
   /// Capture bar and capture sheets
   ///
@@ -517,19 +445,13 @@ abstract class AppLocalizations {
   /// Capture bar and capture sheets
   ///
   /// In en, this message translates to:
-  /// **'Saved as a voice note. Type a title if you like.'**
-  String get captureVoiceSaved;
-
-  /// Capture bar and capture sheets
-  ///
-  /// In en, this message translates to:
   /// **'Voice note · {length}'**
   String voiceNoteTitle(String length);
 
   /// Capture bar and capture sheets
   ///
   /// In en, this message translates to:
-  /// **'Microphone on. Hold the mic to record.'**
+  /// **'Microphone on. Tap the mic to record.'**
   String get holdMicOn;
 
   /// Capture bar and capture sheets
@@ -541,7 +463,7 @@ abstract class AppLocalizations {
   /// Capture bar and capture sheets
   ///
   /// In en, this message translates to:
-  /// **'Hold the mic to record.'**
+  /// **'Tap the mic, speak, then tap Stop.'**
   String get holdHint;
 
   /// Edit reminder sheet
@@ -589,7 +511,7 @@ abstract class AppLocalizations {
   /// Edit reminder sheet
   ///
   /// In en, this message translates to:
-  /// **'Hold to record a voice note'**
+  /// **'Tap to record a voice note'**
   String get editHoldToRecordNote;
 
   /// Edit reminder sheet
@@ -1143,6 +1065,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That time has passed. Pick a later time.'**
   String get timePassed;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Type, or tap the mic and speak'**
+  String get captureHintLine;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat: {value}'**
+  String repeatChip(String value);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Record a reminder'**
+  String get micRecord;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to start recording'**
+  String get micTapToStart;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to stop'**
+  String get micTapToStop;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get recRecording;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} / {max}'**
+  String recTimer(String elapsed, String max);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Say what and when. For example: “Pay the bill on Friday at 10”.'**
+  String get recHint;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get recStop;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Stop recording'**
+  String get recStopLabel;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: press and hold the mic to record, release to stop.'**
+  String get recTipHold;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Release to stop, or tap Stop.'**
+  String get recReleaseToStop;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Understanding your recording'**
+  String get recUnderstanding;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'On this phone, in {language}. Nothing is sent anywhere.'**
+  String recOnThisPhone(String language);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t turn that into text'**
+  String get recFailedTitle;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'{language} speech isn’t available offline on this phone. Your recording is kept.'**
+  String recFailedUnavailable(String language);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was recognised. Your recording is kept.'**
+  String get recFailedEmpty;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Recording kept'**
+  String get recKeptTitle;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to do with it.'**
+  String get recKeptBody;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Kept'**
+  String get recKept;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Type it instead'**
+  String get recTypeInstead;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Save as voice note, pick a time'**
+  String get recSaveAsNote;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'You wrote: “{text}”'**
+  String confirmYouWrote(String text);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'You said: “{text}”'**
+  String confirmYouSaid(String text);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Save reminder'**
+  String get confirmSave;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get confirmEdit;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm time'**
+  String get confirmTimeBadge;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Is this the right time?'**
+  String get confirmTimeQuestion;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'You said “{phrase}”. Pick morning or evening.'**
+  String confirmReasonAmPm(String phrase);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'No time was given. Pick one.'**
+  String get confirmReasonNoTime;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'“{phrase}” can mean two days. Pick one.'**
+  String confirmReasonDayWord(String phrase);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Other time…'**
+  String get confirmOtherTime;
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for today at {time}.'**
+  String savedToday(String time);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for tomorrow at {time}.'**
+  String savedTomorrow(String time);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for {date} at {time}.'**
+  String savedOn(String date, String time);
+
+  /// V2 capture, confirmation and voice
+  ///
+  /// In en, this message translates to:
+  /// **'Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.'**
+  String get welcomeBody1NoPhoto;
 }
 
 class _AppLocalizationsDelegate

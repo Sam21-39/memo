@@ -32,6 +32,7 @@ class EditState {
     this.removeClip = false,
     this.readAloud = true,
     this.recording = false,
+    this.latched = false,
     this.recorded = Duration.zero,
   });
 
@@ -48,7 +49,7 @@ class EditState {
   final EditStatus status;
   final String? error;
 
-  /// A neutral hint, e.g. "Hold the mic to record".
+  /// A neutral hint, e.g. "Tap the mic, speak, then tap Stop."
   final String? notice;
 
   /// A clip will exist after save: the reminder's own, or a new recording.
@@ -61,6 +62,9 @@ class EditState {
   final bool removeClip;
   final bool readAloud;
   final bool recording;
+
+  /// Recording goes on after the finger lifted (tap mode).
+  final bool latched;
   final Duration recorded;
 
   /// A clip alone is enough: it saves as "Voice note · 0:08" and still rings.
@@ -98,6 +102,7 @@ class EditState {
     bool? removeClip,
     bool? readAloud,
     bool? recording,
+    bool? latched,
     Duration? recorded,
   }) => EditState(
     title: title ?? this.title,
@@ -116,6 +121,7 @@ class EditState {
     removeClip: removeClip ?? this.removeClip,
     readAloud: readAloud ?? this.readAloud,
     recording: recording ?? this.recording,
+    latched: latched ?? this.latched,
     recorded: recorded ?? this.recorded,
   );
 }
@@ -184,11 +190,13 @@ class EditCubit extends Cubit<EditState> {
       : HoldRecorder(
           voice!,
           media!.draftVoicePath,
-          onTick: (elapsed) {
+          tempPath: media!.draftTempPath,
+          onTick: (elapsed, _) {
             if (!isClosed) {
               emit(
                 state.copyWith(
                   recording: true,
+                  latched: _hold?.latched ?? false,
                   recorded: elapsed,
                   clearError: true,
                   clearNotice: true,
@@ -201,6 +209,7 @@ class EditCubit extends Cubit<EditState> {
             emit(switch (result) {
               HoldKept(:final length) => state.copyWith(
                 recording: false,
+                latched: false,
                 hasClip: true,
                 draftClip: true,
                 removeClip: false,
@@ -208,15 +217,32 @@ class EditCubit extends Cubit<EditState> {
               ),
               HoldDropped(:final notice, :final denied) =>
                 denied
-                    ? state.copyWith(recording: false, error: notice)
-                    : state.copyWith(recording: false, notice: notice),
+                    ? state.copyWith(
+                        recording: false,
+                        latched: false,
+                        error: notice,
+                      )
+                    : state.copyWith(
+                        recording: false,
+                        latched: false,
+                        notice: notice,
+                      ),
             });
           },
         );
 
   Future<void> startRecording() async => _hold?.press();
 
-  Future<void> stopRecording() async => _hold?.release();
+  Future<void> stopRecording() async {
+    await _hold?.release();
+    // A quick release latches: show it now, not on the next tick.
+    final latched = _hold?.latched ?? false;
+    if (!isClosed && state.recording && state.latched != latched) {
+      emit(state.copyWith(latched: latched));
+    }
+  }
+
+  Future<void> toggleRecording() async => _hold?.toggle();
 
   Future<void> deleteClip() async {
     await media?.discardDraft();

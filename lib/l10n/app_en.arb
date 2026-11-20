@@ -64,10 +64,6 @@
   "@commonReopen": {
     "description": "Shared button or label"
   },
-  "commonMore": "More",
-  "@commonMore": {
-    "description": "Shared button or label"
-  },
   "commonSnoozeTenMinutes": "Snooze 10 minutes",
   "@commonSnoozeTenMinutes": {
     "description": "Shared button or label"
@@ -212,7 +208,7 @@
   "@homeEmptyTitle": {
     "description": "Home screen text"
   },
-  "homeEmptyBody": "Bins, pills, that call.\nType below to add one.",
+  "homeEmptyBody": "Bins, pills, that call.\nType below, or tap the mic and speak.",
   "@homeEmptyBody": {
     "description": "Home screen text"
   },
@@ -246,27 +242,6 @@
   "@captureAddPhoto": {
     "description": "Capture bar and capture sheets"
   },
-  "captureHoldToRecord": "Hold to record",
-  "@captureHoldToRecord": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureReleaseToStop": "Release to stop. Transcript becomes the title.",
-  "@captureReleaseToStop": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureSaving": "Saving",
-  "@captureSaving": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureListening": "Listening · {elapsed}",
-  "@captureListening": {
-    "description": "Capture bar and capture sheets",
-    "placeholders": {
-      "elapsed": {
-        "type": "String"
-      }
-    }
-  },
   "captureElapsed": "● {elapsed}",
   "@captureElapsed": {
     "description": "Capture bar and capture sheets",
@@ -275,19 +250,6 @@
         "type": "String"
       }
     }
-  },
-  "captureLeft": "● {left} left",
-  "@captureLeft": {
-    "description": "Capture bar and capture sheets",
-    "placeholders": {
-      "left": {
-        "type": "String"
-      }
-    }
-  },
-  "captureRepeatNone": "+ Repeat",
-  "@captureRepeatNone": {
-    "description": "Capture bar and capture sheets"
   },
   "captureRepeatWeekdays": "Weekdays",
   "@captureRepeatWeekdays": {
@@ -301,26 +263,6 @@
         "type": "String"
       }
     }
-  },
-  "captureTagNone": "+ Tag",
-  "@captureTagNone": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureReadAloud": "Read aloud",
-  "@captureReadAloud": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureSilent": "Silent",
-  "@captureSilent": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureReadAloudOn": "Read aloud when it rings: on",
-  "@captureReadAloudOn": {
-    "description": "Capture bar and capture sheets"
-  },
-  "captureReadAloudOff": "Read aloud when it rings: off",
-  "@captureReadAloudOff": {
-    "description": "Capture bar and capture sheets"
   },
   "captureTime": "Time: {when}",
   "@captureTime": {
@@ -370,10 +312,6 @@
   "@tagNewHint": {
     "description": "Capture bar and capture sheets"
   },
-  "captureVoiceSaved": "Saved as a voice note. Type a title if you like.",
-  "@captureVoiceSaved": {
-    "description": "Capture bar and capture sheets"
-  },
   "voiceNoteTitle": "Voice note · {length}",
   "@voiceNoteTitle": {
     "description": "Capture bar and capture sheets",
@@ -383,7 +321,7 @@
       }
     }
   },
-  "holdMicOn": "Microphone on. Hold the mic to record.",
+  "holdMicOn": "Microphone on. Tap the mic to record.",
   "@holdMicOn": {
     "description": "Capture bar and capture sheets"
   },
@@ -391,7 +329,7 @@
   "@holdMicDenied": {
     "description": "Capture bar and capture sheets"
   },
-  "holdHint": "Hold the mic to record.",
+  "holdHint": "Tap the mic, speak, then tap Stop.",
   "@holdHint": {
     "description": "Capture bar and capture sheets"
   },
@@ -423,7 +361,7 @@
   "@editSound": {
     "description": "Edit reminder sheet"
   },
-  "editHoldToRecordNote": "Hold to record a voice note",
+  "editHoldToRecordNote": "Tap to record a voice note",
   "@editHoldToRecordNote": {
     "description": "Edit reminder sheet"
   },
@@ -842,5 +780,214 @@
   "timePassed": "That time has passed. Pick a later time.",
   "@timePassed": {
     "description": "Error message toast"
+  },
+  "captureHintLine": "Type, or tap the mic and speak",
+  "@captureHintLine": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "repeatChip": "Repeat: {value}",
+  "@repeatChip": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "micRecord": "Record a reminder",
+  "@micRecord": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "micTapToStart": "Double tap to start recording",
+  "@micTapToStart": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "micTapToStop": "Tap to stop",
+  "@micTapToStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "openSettings": "Open Settings",
+  "@openSettings": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recRecording": "Recording",
+  "@recRecording": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTimer": "{elapsed} / {max}",
+  "@recTimer": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "recHint": "Say what and when. For example: “Pay the bill on Friday at 10”.",
+  "@recHint": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recStop": "Stop",
+  "@recStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recStopLabel": "Stop recording",
+  "@recStopLabel": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTipHold": "Tip: press and hold the mic to record, release to stop.",
+  "@recTipHold": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recReleaseToStop": "Release to stop, or tap Stop.",
+  "@recReleaseToStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recUnderstanding": "Understanding your recording",
+  "@recUnderstanding": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recOnThisPhone": "On this phone, in {language}. Nothing is sent anywhere.",
+  "@recOnThisPhone": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "recFailedTitle": "Couldn’t turn that into text",
+  "@recFailedTitle": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recFailedUnavailable": "{language} speech isn’t available offline on this phone. Your recording is kept.",
+  "@recFailedUnavailable": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "recFailedEmpty": "Nothing was recognised. Your recording is kept.",
+  "@recFailedEmpty": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKeptTitle": "Recording kept",
+  "@recKeptTitle": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKeptBody": "Choose what to do with it.",
+  "@recKeptBody": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKept": "Kept",
+  "@recKept": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTypeInstead": "Type it instead",
+  "@recTypeInstead": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recSaveAsNote": "Save as voice note, pick a time",
+  "@recSaveAsNote": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmYouWrote": "You wrote: “{text}”",
+  "@confirmYouWrote": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmYouSaid": "You said: “{text}”",
+  "@confirmYouSaid": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmSave": "Save reminder",
+  "@confirmSave": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmEdit": "Edit details",
+  "@confirmEdit": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmTimeBadge": "Confirm time",
+  "@confirmTimeBadge": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmTimeQuestion": "Is this the right time?",
+  "@confirmTimeQuestion": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmReasonAmPm": "You said “{phrase}”. Pick morning or evening.",
+  "@confirmReasonAmPm": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmReasonNoTime": "No time was given. Pick one.",
+  "@confirmReasonNoTime": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmReasonDayWord": "“{phrase}” can mean two days. Pick one.",
+  "@confirmReasonDayWord": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmOtherTime": "Other time…",
+  "@confirmOtherTime": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "savedToday": "Reminder set for today at {time}.",
+  "@savedToday": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "savedTomorrow": "Reminder set for tomorrow at {time}.",
+  "@savedTomorrow": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "savedOn": "Reminder set for {date} at {time}.",
+  "@savedOn": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeBody1NoPhoto": "Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.",
+  "@welcomeBody1NoPhoto": {
+    "description": "V2 capture, confirmation and voice"
   }
 }

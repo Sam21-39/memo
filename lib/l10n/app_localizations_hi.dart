@@ -57,9 +57,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get commonReopen => 'फिर खोलें';
 
   @override
-  String get commonMore => 'और';
-
-  @override
   String get commonSnoozeTenMinutes => '10 मिनट बाद फिर बजाएँ';
 
   @override
@@ -155,7 +152,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get homeEmptyBody =>
-      'कूड़ा, दवा, वो फ़ोन कॉल।\nजोड़ने के लिए नीचे लिखें।';
+      'कूड़ा, दवा, वो फ़ोन कॉल।\nनीचे लिखें, या माइक टैप करके बोलें।';
 
   @override
   String get homeLoadFailedTitle => 'आपके रिमाइंडर लोड नहीं हो सके';
@@ -178,32 +175,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get captureAddPhoto => 'फ़ोटो जोड़ें';
 
   @override
-  String get captureHoldToRecord => 'रिकॉर्ड करने के लिए दबाए रखें';
-
-  @override
-  String get captureReleaseToStop =>
-      'रोकने के लिए छोड़ें। ट्रांसक्रिप्ट शीर्षक बन जाएगा।';
-
-  @override
-  String get captureSaving => 'सहेज रहे हैं';
-
-  @override
-  String captureListening(String elapsed) {
-    return 'सुन रहे हैं · $elapsed';
-  }
-
-  @override
   String captureElapsed(String elapsed) {
     return '● $elapsed';
   }
-
-  @override
-  String captureLeft(String left) {
-    return '● $left बाकी';
-  }
-
-  @override
-  String get captureRepeatNone => '+ दोहराना';
 
   @override
   String get captureRepeatWeekdays => 'कार्यदिवस';
@@ -212,21 +186,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String repeatEveryDay(String day) {
     return 'हर $day';
   }
-
-  @override
-  String get captureTagNone => '+ टैग';
-
-  @override
-  String get captureReadAloud => 'पढ़कर सुनाएँ';
-
-  @override
-  String get captureSilent => 'चुप';
-
-  @override
-  String get captureReadAloudOn => 'बजने पर पढ़कर सुनाएँ: चालू';
-
-  @override
-  String get captureReadAloudOff => 'बजने पर पढ़कर सुनाएँ: बंद';
 
   @override
   String captureTime(String when) {
@@ -259,24 +218,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get tagNewHint => 'नया टैग…';
 
   @override
-  String get captureVoiceSaved =>
-      'वॉइस नोट के रूप में सहेजा गया। चाहें तो शीर्षक लिखें।';
-
-  @override
   String voiceNoteTitle(String length) {
     return 'वॉइस नोट · $length';
   }
 
   @override
   String get holdMicOn =>
-      'माइक्रोफ़ोन चालू है। रिकॉर्ड करने के लिए माइक दबाए रखें।';
+      'माइक्रोफ़ोन चालू है। रिकॉर्ड करने के लिए माइक टैप करें।';
 
   @override
   String get holdMicDenied =>
       'माइक्रोफ़ोन की अनुमति नहीं है। इसे सेटिंग्स में चालू करें।';
 
   @override
-  String get holdHint => 'रिकॉर्ड करने के लिए माइक दबाए रखें।';
+  String get holdHint => 'माइक टैप करें, बोलें, फिर रोकें दबाएँ।';
 
   @override
   String get editNew => 'नया रिमाइंडर';
@@ -300,7 +255,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get editSound => 'आवाज़';
 
   @override
-  String get editHoldToRecordNote => 'वॉइस नोट रिकॉर्ड करने के लिए दबाए रखें';
+  String get editHoldToRecordNote => 'वॉइस नोट रिकॉर्ड करने के लिए टैप करें';
 
   @override
   String get editReleaseToStop => 'रोकने के लिए छोड़ें';
@@ -611,4 +566,140 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get timePassed => 'वह समय बीत चुका है। बाद का कोई समय चुनें।';
+
+  @override
+  String get captureHintLine => 'लिखें, या माइक टैप करके बोलें';
+
+  @override
+  String repeatChip(String value) {
+    return 'दोहराएँ: $value';
+  }
+
+  @override
+  String get micRecord => 'रिमाइंडर रिकॉर्ड करें';
+
+  @override
+  String get micTapToStart => 'रिकॉर्डिंग शुरू करने के लिए दो बार टैप करें';
+
+  @override
+  String get micTapToStop => 'रोकने के लिए टैप करें';
+
+  @override
+  String get openSettings => 'सेटिंग्स खोलें';
+
+  @override
+  String get recRecording => 'रिकॉर्डिंग';
+
+  @override
+  String recTimer(String elapsed, String max) {
+    return '$elapsed / $max';
+  }
+
+  @override
+  String get recHint =>
+      'क्या और कब, बोलिए। जैसे: “शुक्रवार को 10 बजे बिल भरना”।';
+
+  @override
+  String get recStop => 'रोकें';
+
+  @override
+  String get recStopLabel => 'रिकॉर्डिंग रोकें';
+
+  @override
+  String get recTipHold => 'सुझाव: माइक को दबाए रखें, छोड़ने पर रुक जाएगा।';
+
+  @override
+  String get recReleaseToStop => 'रोकने के लिए छोड़ें, या रोकें दबाएँ।';
+
+  @override
+  String get recUnderstanding => 'आपकी रिकॉर्डिंग समझी जा रही है';
+
+  @override
+  String recOnThisPhone(String language) {
+    return 'इसी फ़ोन पर, $language में। कुछ भी कहीं नहीं भेजा जाता।';
+  }
+
+  @override
+  String get recFailedTitle => 'इसे टेक्स्ट में नहीं बदल सके';
+
+  @override
+  String recFailedUnavailable(String language) {
+    return 'इस फ़ोन पर $language बोली ऑफ़लाइन उपलब्ध नहीं है। आपकी रिकॉर्डिंग रखी गई है।';
+  }
+
+  @override
+  String get recFailedEmpty =>
+      'कुछ पहचाना नहीं गया। आपकी रिकॉर्डिंग रखी गई है।';
+
+  @override
+  String get recKeptTitle => 'रिकॉर्डिंग रखी गई';
+
+  @override
+  String get recKeptBody => 'इसका क्या करना है, चुनें।';
+
+  @override
+  String get recKept => 'रखी गई';
+
+  @override
+  String get recTypeInstead => 'इसके बजाय लिखें';
+
+  @override
+  String get recSaveAsNote => 'वॉइस नोट सेव करें, समय चुनें';
+
+  @override
+  String confirmYouWrote(String text) {
+    return 'आपने लिखा: “$text”';
+  }
+
+  @override
+  String confirmYouSaid(String text) {
+    return 'आपने कहा: “$text”';
+  }
+
+  @override
+  String get confirmSave => 'रिमाइंडर सेव करें';
+
+  @override
+  String get confirmEdit => 'बदलें';
+
+  @override
+  String get confirmTimeBadge => 'समय पक्का करें';
+
+  @override
+  String get confirmTimeQuestion => 'क्या यह सही समय है?';
+
+  @override
+  String confirmReasonAmPm(String phrase) {
+    return 'आपने “$phrase” कहा। सुबह या शाम, चुनें।';
+  }
+
+  @override
+  String get confirmReasonNoTime => 'कोई समय नहीं बताया गया। एक चुनें।';
+
+  @override
+  String confirmReasonDayWord(String phrase) {
+    return '“$phrase” दो दिनों का हो सकता है। एक चुनें।';
+  }
+
+  @override
+  String get confirmOtherTime => 'दूसरा समय…';
+
+  @override
+  String savedToday(String time) {
+    return 'रिमाइंडर आज $time के लिए सेट है।';
+  }
+
+  @override
+  String savedTomorrow(String time) {
+    return 'रिमाइंडर कल $time के लिए सेट है।';
+  }
+
+  @override
+  String savedOn(String date, String time) {
+    return 'रिमाइंडर $date को $time के लिए सेट है।';
+  }
+
+  @override
+  String get welcomeBody1NoPhoto =>
+      'जो बात आप भूल जाते हैं, उसे लिखें या बोलें। Memō ठीक उसी समय बजता है, ऐप बंद हो या नेटवर्क न हो तब भी।';
 }

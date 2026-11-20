@@ -20,6 +20,7 @@ class HomeReady extends HomeState {
     this.tagFilter,
     this.undo,
     this.pendingDelete,
+    this.saved,
     this.error,
   });
 
@@ -34,6 +35,9 @@ class HomeReady extends HomeState {
 
   /// A swiped-away reminder: hidden now, deleted when the Undo window ends.
   final Reminder? pendingDelete;
+
+  /// A reminder just saved from capture: the "Reminder set" toast.
+  final Reminder? saved;
 
   /// Inline error, e.g. a schedule failure.
   final String? error;
@@ -66,6 +70,8 @@ class HomeReady extends HomeState {
     bool clearUndo = false,
     Reminder? pendingDelete,
     bool clearPendingDelete = false,
+    Reminder? saved,
+    bool clearSaved = false,
     String? error,
     bool clearError = false,
   }) => HomeReady(
@@ -75,6 +81,7 @@ class HomeReady extends HomeState {
     pendingDelete: clearPendingDelete
         ? null
         : (pendingDelete ?? this.pendingDelete),
+    saved: clearSaved ? null : (saved ?? this.saved),
     error: clearError ? null : (error ?? this.error),
   );
 }

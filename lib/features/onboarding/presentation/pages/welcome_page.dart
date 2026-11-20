@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/di.dart';
+import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
 import '../../../../l10n/l10n.dart';
@@ -20,7 +22,12 @@ class WelcomePage extends StatelessWidget {
     return OnboardingScaffold(
       art: MemoMark(),
       title: context.l10n.welcomeTitle,
-      paragraphs: [context.l10n.welcomeBody1, context.l10n.welcomeBody2],
+      paragraphs: [
+        sl<FeatureFlags>().imageCapture
+            ? context.l10n.welcomeBody1
+            : context.l10n.welcomeBody1NoPhoto,
+        context.l10n.welcomeBody2,
+      ],
       actions: [
         ElevatedButton(
           onPressed: onContinue,

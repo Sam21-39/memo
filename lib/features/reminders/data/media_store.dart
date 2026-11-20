@@ -50,6 +50,9 @@ class MediaStore {
   /// Where a clip records before its reminder is saved.
   String get draftVoicePath => p.join(_dir.path, 'draft.wav');
 
+  /// Where a take records; it replaces [draftVoicePath] only when kept.
+  String get draftTempPath => p.join(_dir.path, 'draft.rec.wav');
+
   String _backupPath(String id) => p.join(_dir.path, '$id.bak.wav');
 
   /// Moves a recorded draft to the reminder's clip and installs it as a

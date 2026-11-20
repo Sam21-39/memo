@@ -57,9 +57,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonReopen => 'Reopen';
 
   @override
-  String get commonMore => 'More';
-
-  @override
   String get commonSnoozeTenMinutes => 'Snooze 10 minutes';
 
   @override
@@ -155,7 +152,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEmptyTitle => 'Nothing scheduled';
 
   @override
-  String get homeEmptyBody => 'Bins, pills, that call.\nType below to add one.';
+  String get homeEmptyBody =>
+      'Bins, pills, that call.\nType below, or tap the mic and speak.';
 
   @override
   String get homeLoadFailedTitle => 'Couldn\'t load your reminders';
@@ -178,32 +176,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get captureAddPhoto => 'Add a photo';
 
   @override
-  String get captureHoldToRecord => 'Hold to record';
-
-  @override
-  String get captureReleaseToStop =>
-      'Release to stop. Transcript becomes the title.';
-
-  @override
-  String get captureSaving => 'Saving';
-
-  @override
-  String captureListening(String elapsed) {
-    return 'Listening · $elapsed';
-  }
-
-  @override
   String captureElapsed(String elapsed) {
     return '● $elapsed';
   }
-
-  @override
-  String captureLeft(String left) {
-    return '● $left left';
-  }
-
-  @override
-  String get captureRepeatNone => '+ Repeat';
 
   @override
   String get captureRepeatWeekdays => 'Weekdays';
@@ -212,21 +187,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String repeatEveryDay(String day) {
     return 'Every $day';
   }
-
-  @override
-  String get captureTagNone => '+ Tag';
-
-  @override
-  String get captureReadAloud => 'Read aloud';
-
-  @override
-  String get captureSilent => 'Silent';
-
-  @override
-  String get captureReadAloudOn => 'Read aloud when it rings: on';
-
-  @override
-  String get captureReadAloudOff => 'Read aloud when it rings: off';
 
   @override
   String captureTime(String when) {
@@ -259,22 +219,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tagNewHint => 'New tag…';
 
   @override
-  String get captureVoiceSaved =>
-      'Saved as a voice note. Type a title if you like.';
-
-  @override
   String voiceNoteTitle(String length) {
     return 'Voice note · $length';
   }
 
   @override
-  String get holdMicOn => 'Microphone on. Hold the mic to record.';
+  String get holdMicOn => 'Microphone on. Tap the mic to record.';
 
   @override
   String get holdMicDenied => 'Microphone not allowed. Turn it on in Settings.';
 
   @override
-  String get holdHint => 'Hold the mic to record.';
+  String get holdHint => 'Tap the mic, speak, then tap Stop.';
 
   @override
   String get editNew => 'New reminder';
@@ -299,7 +255,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSound => 'Sound';
 
   @override
-  String get editHoldToRecordNote => 'Hold to record a voice note';
+  String get editHoldToRecordNote => 'Tap to record a voice note';
 
   @override
   String get editReleaseToStop => 'Release to stop';
@@ -609,4 +565,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timePassed => 'That time has passed. Pick a later time.';
+
+  @override
+  String get captureHintLine => 'Type, or tap the mic and speak';
+
+  @override
+  String repeatChip(String value) {
+    return 'Repeat: $value';
+  }
+
+  @override
+  String get micRecord => 'Record a reminder';
+
+  @override
+  String get micTapToStart => 'Double tap to start recording';
+
+  @override
+  String get micTapToStop => 'Tap to stop';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get recRecording => 'Recording';
+
+  @override
+  String recTimer(String elapsed, String max) {
+    return '$elapsed / $max';
+  }
+
+  @override
+  String get recHint =>
+      'Say what and when. For example: “Pay the bill on Friday at 10”.';
+
+  @override
+  String get recStop => 'Stop';
+
+  @override
+  String get recStopLabel => 'Stop recording';
+
+  @override
+  String get recTipHold =>
+      'Tip: press and hold the mic to record, release to stop.';
+
+  @override
+  String get recReleaseToStop => 'Release to stop, or tap Stop.';
+
+  @override
+  String get recUnderstanding => 'Understanding your recording';
+
+  @override
+  String recOnThisPhone(String language) {
+    return 'On this phone, in $language. Nothing is sent anywhere.';
+  }
+
+  @override
+  String get recFailedTitle => 'Couldn’t turn that into text';
+
+  @override
+  String recFailedUnavailable(String language) {
+    return '$language speech isn’t available offline on this phone. Your recording is kept.';
+  }
+
+  @override
+  String get recFailedEmpty =>
+      'Nothing was recognised. Your recording is kept.';
+
+  @override
+  String get recKeptTitle => 'Recording kept';
+
+  @override
+  String get recKeptBody => 'Choose what to do with it.';
+
+  @override
+  String get recKept => 'Kept';
+
+  @override
+  String get recTypeInstead => 'Type it instead';
+
+  @override
+  String get recSaveAsNote => 'Save as voice note, pick a time';
+
+  @override
+  String confirmYouWrote(String text) {
+    return 'You wrote: “$text”';
+  }
+
+  @override
+  String confirmYouSaid(String text) {
+    return 'You said: “$text”';
+  }
+
+  @override
+  String get confirmSave => 'Save reminder';
+
+  @override
+  String get confirmEdit => 'Edit details';
+
+  @override
+  String get confirmTimeBadge => 'Confirm time';
+
+  @override
+  String get confirmTimeQuestion => 'Is this the right time?';
+
+  @override
+  String confirmReasonAmPm(String phrase) {
+    return 'You said “$phrase”. Pick morning or evening.';
+  }
+
+  @override
+  String get confirmReasonNoTime => 'No time was given. Pick one.';
+
+  @override
+  String confirmReasonDayWord(String phrase) {
+    return '“$phrase” can mean two days. Pick one.';
+  }
+
+  @override
+  String get confirmOtherTime => 'Other time…';
+
+  @override
+  String savedToday(String time) {
+    return 'Reminder set for today at $time.';
+  }
+
+  @override
+  String savedTomorrow(String time) {
+    return 'Reminder set for tomorrow at $time.';
+  }
+
+  @override
+  String savedOn(String date, String time) {
+    return 'Reminder set for $date at $time.';
+  }
+
+  @override
+  String get welcomeBody1NoPhoto =>
+      'Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.';
 }

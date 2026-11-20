@@ -29,21 +29,25 @@ void main() {
     delete = DeleteReminder(repo, scheduler, (_) async {});
   });
 
-  test('capture save failure returns to typing with an error', () async {
-    final media = MediaStore(Directory.systemTemp.createTempSync('fail'));
-    final cubit = CaptureCubit(
-      save,
-      media: media,
-      voice: null,
-      stt: null,
-      knownTags: () => const [],
-      clock: () => when,
-    )..setText('Bins at 7pm');
-    repo.failSave = true;
-    await cubit.save();
-    expect(cubit.state.phase, CapturePhase.typing);
-    expect(cubit.state.error, "Couldn't save. Nothing changed, try again.");
-  });
+  test(
+    'capture save failure stays on the confirmation with an error',
+    () async {
+      final media = MediaStore(Directory.systemTemp.createTempSync('fail'));
+      final cubit = CaptureCubit(
+        save,
+        media: media,
+        voice: null,
+        stt: null,
+        knownTags: () => const [],
+        clock: () => when,
+      )..setText('Bins at 7pm');
+      cubit.review();
+      repo.failSave = true;
+      await cubit.save();
+      expect(cubit.state.phase, CapturePhase.confirming);
+      expect(cubit.state.error, "Couldn't save. Nothing changed, try again.");
+    },
+  );
 
   test('edit save failure leaves the form editable with an error', () async {
     final cubit = EditCubit(save)..setTitle('Bins');

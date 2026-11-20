@@ -12,7 +12,18 @@ import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
 import '../../../../l10n/l10n.dart';
 
-enum CapturePhase { idle, typing, recording, transcribing, saving }
+enum CapturePhase {
+  idle,
+  typing,
+  recording,
+  transcribing,
+  voiceFailed,
+  confirming,
+  saving,
+}
+
+/// Why a recording did not become text.
+enum VoiceFailure { unavailable, empty, cancelled }
 
 class CaptureState {
   const CaptureState({
@@ -28,6 +39,12 @@ class CaptureState {
     this.recorded = Duration.zero,
     this.notice,
     this.error,
+    this.spoken = false,
+    this.latched = false,
+    this.level = 0,
+    this.failure,
+    this.micDenied = false,
+    this.saved,
   });
 
   final CapturePhase phase;
@@ -49,19 +66,39 @@ class CaptureState {
   final String? notice;
   final String? error;
 
+  /// [text] came from speech, not the keyboard.
+  final bool spoken;
+
+  /// Recording goes on after the finger lifted (tap mode).
+  final bool latched;
+
+  /// Input level 0..1 while recording.
+  final double level;
+  final VoiceFailure? failure;
+  final bool micDenied;
+
+  /// The reminder just saved. Set for one emit only: [copyWith] drops it.
+  final Reminder? saved;
+
   DateTime? get dueAt => dueOverride ?? parsed?.dueAt;
 
-  /// The time chip draws dashed: nothing in the text said when.
-  bool get timeGuessed => dueOverride == null && (parsed?.timeGuessed ?? true);
+  /// The parser could not settle the time and the user has not picked one.
+  TimeAmbiguity? get unsure => dueOverride == null ? parsed?.ambiguity : null;
   RepeatRule get repeat => repeatOverride ?? parsed?.repeat ?? RepeatRule.none;
   String? get tag => tagCleared ? null : (tagOverride ?? parsed?.tag);
   String get title => parsed?.title ?? '';
 
-  /// The bar shows chips and Save, over a dimmed list.
+  /// The bar shows chips and Continue, over a dimmed list.
   bool get expanded => phase != CapturePhase.idle;
 
-  bool get canSave =>
+  bool get canContinue =>
       phase == CapturePhase.typing && (title.isNotEmpty || hasClip);
+
+  /// Nothing is scheduled from a guess: an unsure time blocks Save.
+  bool get canSave =>
+      phase == CapturePhase.confirming &&
+      unsure == null &&
+      (title.isNotEmpty || hasClip);
 
   CaptureState copyWith({
     CapturePhase? phase,
@@ -79,6 +116,12 @@ class CaptureState {
     bool clearNotice = false,
     String? error,
     bool clearError = false,
+    bool? spoken,
+    bool? latched,
+    double? level,
+    VoiceFailure? failure,
+    bool clearFailure = false,
+    bool? micDenied,
   }) => CaptureState(
     phase: phase ?? this.phase,
     text: text ?? this.text,
@@ -92,6 +135,11 @@ class CaptureState {
     recorded: recorded ?? this.recorded,
     notice: clearNotice ? null : (notice ?? this.notice),
     error: clearError ? null : (error ?? this.error),
+    spoken: spoken ?? this.spoken,
+    latched: latched ?? this.latched,
+    level: level ?? this.level,
+    failure: clearFailure ? null : (failure ?? this.failure),
+    micDenied: micDenied ?? this.micDenied,
   );
 }
 
@@ -130,12 +178,16 @@ class CaptureCubit extends Cubit<CaptureState> {
       : HoldRecorder(
           voice!,
           media!.draftVoicePath,
-          onTick: (elapsed) {
+          tempPath: media!.draftTempPath,
+          onTick: (elapsed, level) {
             if (isClosed) return;
             emit(
               state.copyWith(
                 phase: CapturePhase.recording,
                 recorded: elapsed,
+                level: level,
+                latched: _hold?.latched ?? false,
+                micDenied: false,
                 clearNotice: true,
                 clearError: true,
               ),
@@ -156,13 +208,16 @@ class CaptureCubit extends Cubit<CaptureState> {
         text: text,
         parsed: parseReminder(text, now: _clock(), knownTags: knownTags()),
         readAloud: state.phase == CapturePhase.idle ? readAloudDefault() : null,
+        spoken: false,
         clearError: true,
         clearNotice: true,
+        clearFailure: true,
       ),
     );
   }
 
-  void setDueAt(DateTime at) => emit(state.copyWith(dueOverride: at));
+  void setDueAt(DateTime at) =>
+      emit(state.copyWith(dueOverride: at, clearError: true));
   void setRepeat(RepeatRule repeat) =>
       emit(state.copyWith(repeatOverride: repeat));
   void setTag(String? tag) => emit(
@@ -172,21 +227,72 @@ class CaptureCubit extends Cubit<CaptureState> {
   );
   void setReadAloud(bool value) => emit(state.copyWith(readAloud: value));
 
-  Future<void> startRecording() async => _hold?.press();
+  /// Not while transcribing, confirming or saving: a take then would race
+  /// the clip those steps hold.
+  bool get _canRecord =>
+      state.phase == CapturePhase.idle ||
+      state.phase == CapturePhase.typing ||
+      state.phase == CapturePhase.recording;
 
-  Future<void> stopRecording() async => _hold?.release();
+  Future<void> startRecording() async {
+    if (_canRecord) await _hold?.press();
+  }
+
+  Future<void> stopRecording() async {
+    await _hold?.release();
+    // A quick release latches: show it now, not on the next tick.
+    final latched = _hold?.latched ?? false;
+    if (!isClosed &&
+        state.phase == CapturePhase.recording &&
+        state.latched != latched) {
+      emit(state.copyWith(latched: latched));
+    }
+  }
+
+  /// Screen readers and the Stop button.
+  Future<void> toggleRecording() async {
+    if (_canRecord) await _hold?.toggle();
+  }
+
+  Future<void> cancelRecording() async => _hold?.cancel();
+
+  /// Back from Settings: a granted microphone clears the denied look.
+  Future<void> recheckMic() async {
+    if (!state.micDenied || !(await voice?.hasPermission() ?? false)) return;
+    if (!isClosed) emit(state.copyWith(micDenied: false, clearError: true));
+  }
+
+  /// Typing → confirmation.
+  void review() {
+    if (state.canContinue) emit(state.copyWith(phase: CapturePhase.confirming));
+  }
+
+  void backToTyping() {
+    if (state.phase == CapturePhase.confirming) {
+      emit(state.copyWith(phase: CapturePhase.typing));
+    }
+  }
+
+  void chooseTime(DateTime at) => setDueAt(at);
 
   Future<void> _onHold(HoldResult result) async {
     if (isClosed) return;
     switch (result) {
       case HoldDropped(:final notice, :final denied):
+        final hasClip = media?.hasDraft ?? false;
         emit(
           state.copyWith(
-            phase: state.text.trim().isEmpty && !state.hasClip
+            phase: state.text.trim().isEmpty && !hasClip
                 ? CapturePhase.idle
                 : CapturePhase.typing,
+            hasClip: hasClip,
+            latched: false,
+            level: 0,
+            micDenied: denied ? true : null,
             notice: denied ? null : notice,
             error: denied ? notice : null,
+            clearNotice: notice == null,
+            clearError: notice == null,
           ),
         );
       case HoldKept(:final length):
@@ -195,23 +301,43 @@ class CaptureCubit extends Cubit<CaptureState> {
             phase: CapturePhase.transcribing,
             hasClip: true,
             recorded: length,
+            latched: false,
+            level: 0,
           ),
         );
-        final transcript = await stt?.transcribeFile(media!.draftVoicePath);
+        String? transcript;
+        try {
+          transcript = (await stt?.transcribeFile(
+            media!.draftVoicePath,
+          ))?.trim();
+        } catch (_) {
+          // Same as "heard nothing": never stuck on transcribing.
+        }
         if (isClosed || state.phase != CapturePhase.transcribing) return;
-        // Typed words win; a transcript fills an empty field.
-        final text = state.text.trim().isNotEmpty
-            ? state.text
-            : (transcript ?? '');
-        emit(state.copyWith(phase: CapturePhase.typing));
-        setText(text);
-        if (text.trim().isEmpty) {
+        if ((transcript == null || transcript.isEmpty) &&
+            state.text.trim().isNotEmpty) {
+          // Typed words win; the clip stays attached.
+          emit(state.copyWith(phase: CapturePhase.typing));
+        } else if (transcript == null || transcript.isEmpty) {
+          bool up;
+          try {
+            up = await stt?.available() ?? false;
+          } catch (_) {
+            up = false;
+          }
+          if (isClosed || state.phase != CapturePhase.transcribing) return;
           emit(
             state.copyWith(
-              phase: CapturePhase.typing,
-              notice: l10n().captureVoiceSaved,
+              phase: CapturePhase.voiceFailed,
+              failure: up ? VoiceFailure.empty : VoiceFailure.unavailable,
             ),
           );
+        } else if (state.text.trim().isEmpty) {
+          setText(transcript);
+          emit(state.copyWith(phase: CapturePhase.confirming, spoken: true));
+        } else {
+          // Typed words win, as before.
+          emit(state.copyWith(phase: CapturePhase.typing));
         }
     }
   }
@@ -219,8 +345,40 @@ class CaptureCubit extends Cubit<CaptureState> {
   /// Stop transcribing; the clip stays.
   void cancelTranscription() {
     if (state.phase == CapturePhase.transcribing) {
-      emit(state.copyWith(phase: CapturePhase.typing));
+      emit(
+        state.copyWith(
+          phase: CapturePhase.voiceFailed,
+          failure: VoiceFailure.cancelled,
+        ),
+      );
     }
+  }
+
+  /// Failure panel: keep the clip, go back to the field.
+  void typeInstead() {
+    if (state.phase == CapturePhase.voiceFailed) setText(state.text);
+  }
+
+  /// Failure panel: the clip is the reminder, so a time must be picked.
+  void saveAsVoiceNote() {
+    if (state.phase != CapturePhase.voiceFailed) return;
+    emit(
+      state.copyWith(
+        phase: CapturePhase.confirming,
+        parsed: parseReminder(
+          state.text,
+          now: _clock(),
+          knownTags: knownTags(),
+        ),
+        spoken: false,
+        clearFailure: true,
+      ),
+    );
+  }
+
+  Future<void> tryAgain() async {
+    await discard();
+    await toggleRecording();
   }
 
   /// The draft can vanish while the edit sheet had it ("More"); drop the chip.
@@ -234,7 +392,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   }
 
   Future<void> discard() async {
-    await _hold?.release();
+    await _hold?.cancel();
     if (state.hasClip) await media?.discardDraft();
     emit(CaptureState(readAloud: readAloudDefault()));
   }
@@ -246,15 +404,12 @@ class CaptureCubit extends Cubit<CaptureState> {
         : l10n().voiceNoteTitle(
             MediaStore.clipLength(media?.draftVoicePath ?? ''),
           );
-    final now = _clock();
-    // Voice-only: the next whole hour at least 30 min away, as the parser guesses.
-    final soon = now.add(const Duration(minutes: 30));
     return const CreateReminder()(
       title: title,
-      dueAt:
-          state.dueAt ??
-          DateTime(soon.year, soon.month, soon.day, soon.hour + 1),
-      now: now,
+      // Never invented: canSave guarantees a parse, and an unsure time is
+      // picked first.
+      dueAt: state.dueAt!,
+      now: _clock(),
       repeat: state.repeat,
       tag: state.tag,
       nagMin: defaultNagMin(),
@@ -264,9 +419,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   Future<void> save() async {
     if (!state.canSave) return;
     final candidate = draft();
-    if (state.dueAt != null &&
-        !candidate.repeat.repeats &&
-        candidate.dueAt.isBefore(_clock())) {
+    if (!candidate.repeat.repeats && candidate.dueAt.isBefore(_clock())) {
       emit(state.copyWith(error: l10n().timePassed));
       return;
     }
@@ -286,13 +439,23 @@ class CaptureCubit extends Cubit<CaptureState> {
       if (committed) await media!.uncommitVoice(reminder.id);
       if (!isClosed) {
         emit(
-          state.copyWith(phase: CapturePhase.typing, error: l10n().saveFailed),
+          state.copyWith(
+            phase: CapturePhase.confirming,
+            error: l10n().saveFailed,
+          ),
         );
       }
       return;
     }
     if (isClosed) return;
-    emit(CaptureState(readAloud: readAloudDefault(), error: error));
+    emit(
+      CaptureState(
+        readAloud: readAloudDefault(),
+        // A toast "Reminder set" only when the alarm was.
+        saved: error == null ? reminder : null,
+        error: error,
+      ),
+    );
   }
 
   @override

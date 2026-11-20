@@ -18,6 +18,19 @@ class SourceSpan {
   String toString() => 'SourceSpan($start, $end)';
 }
 
+enum AmbiguityKind { amPm, noTime, dayWord }
+
+/// A time the parser could not settle. [choices] are complete date-times,
+/// soonest first, all in the future; the UI makes the user pick one.
+class TimeAmbiguity {
+  const TimeAmbiguity(this.kinds, this.choices, {this.span});
+  final Set<AmbiguityKind> kinds;
+  final List<DateTime> choices;
+
+  /// The words that were unclear, for the reason line.
+  final SourceSpan? span;
+}
+
 class ParsedReminder {
   const ParsedReminder({
     required this.title,
@@ -28,6 +41,7 @@ class ParsedReminder {
     this.timeSpans = const [],
     this.repeatSpan,
     this.tagSpan,
+    this.ambiguity,
   });
 
   /// What is left once every match is removed, trimmed.
@@ -43,6 +57,9 @@ class ParsedReminder {
   final List<SourceSpan> timeSpans;
   final SourceSpan? repeatSpan;
   final SourceSpan? tagSpan;
+
+  /// Set when [dueAt] is a guess; [dueAt] itself is unchanged by it.
+  final TimeAmbiguity? ambiguity;
 }
 
 const _weekdays = {
@@ -119,7 +136,11 @@ ParsedReminder parseReminder(
   required DateTime now,
   List<String> knownTags = const [],
 }) {
-  var work = input.toLowerCase();
+  // ASCII-only lowering: length never changes, so spans stay valid.
+  var work = input.replaceAllMapped(
+    RegExp('[A-Z]'),
+    (m) => m[0]!.toLowerCase(),
+  );
 
   RegExpMatch? take(RegExp re) {
     final m = re.firstMatch(work);
@@ -323,6 +344,7 @@ ParsedReminder parseReminder(
   // ── Time of day ─────────────────────────────────────────────────────────
   int? hour, minute;
   var ambiguous = false;
+  SourceSpan? clockSpan;
   if (exact == null) {
     if (take(
           RegExp(
@@ -343,7 +365,7 @@ ParsedReminder parseReminder(
       minute = int.parse(m.group(2)!);
       // "8:30" with no am/pm is as ambiguous as "at 8"; "20:00" is not.
       ambiguous = hour >= 1 && hour <= 12 && !m.group(1)!.startsWith('0');
-      timeSpans.add(spanOf(m));
+      timeSpans.add(clockSpan = spanOf(m));
     } else if (take(RegExp(r'(?:\bat\s+|@\s*)?\b(noon|midday|midnight)\b'))
         case final m?) {
       (hour, minute) = _namedTimes[m.group(1)]!;
@@ -357,7 +379,7 @@ ParsedReminder parseReminder(
         hour = h;
         minute = 0;
         ambiguous = h >= 1 && h <= 12;
-        timeSpans.add(spanOf(m));
+        timeSpans.add(clockSpan = spanOf(m));
       }
     }
     // "tonight" / "this morning" set both a part of day and, absent a
@@ -383,6 +405,7 @@ ParsedReminder parseReminder(
 
   // ── Combine ─────────────────────────────────────────────────────────────
   var guessed = false;
+  TimeAmbiguity? ambiguity;
   DateTime due;
   if (exact != null) {
     due = exact;
@@ -404,6 +427,24 @@ ParsedReminder parseReminder(
         orElse: () =>
             DateTime(base.year, base.month, base.day + 1, hour!, minute!),
       );
+      // Same candidates as [due], every one in the future. With no date a
+      // passed one rolls to tomorrow; a dated day keeps only what is ahead
+      // (or, when none is, rolls as [due] does).
+      DateTime next(DateTime c) =>
+          DateTime(c.year, c.month, c.day + 1, c.hour, c.minute);
+      var choices = day == null
+          ? [for (final c in candidates) c.isAfter(now) ? c : next(c)]
+          : candidates.where((c) => c.isAfter(now)).toList();
+      if (choices.isEmpty) choices = [for (final c in candidates) next(c)];
+      // One reading left (a dated day, the other already passed): [due] is
+      // that reading, nothing to ask.
+      if (choices.length > 1) {
+        ambiguity = TimeAmbiguity(
+          const {AmbiguityKind.amPm},
+          (choices..sort()),
+          span: clockSpan,
+        );
+      }
     } else {
       due = at(hour);
       if (day == null && !due.isAfter(now)) {
@@ -425,19 +466,32 @@ ParsedReminder parseReminder(
     due = DateTime(soon.year, soon.month, soon.day, soon.hour + 1);
     guessed = true;
   }
-
-  // "friday" said on a Friday after the time means next Friday.
-  if (fromWeekday && !due.isAfter(now)) {
-    due = DateTime(due.year, due.month, due.day + 7, due.hour, due.minute);
+  // "friday" said on a Friday after the time means next Friday; a weekly
+  // rule with no date starts on its first picked day; a daily one on the
+  // next time that is ahead. Applied to the choices too, so a pick is valid.
+  DateTime settle(DateTime d) {
+    if (fromWeekday && !d.isAfter(now)) {
+      d = DateTime(d.year, d.month, d.day + 7, d.hour, d.minute);
+    }
+    if (repeat.type == RepeatType.weekly && day == null && exact == null) {
+      while (!repeat.weekdays.contains(d.weekday) || !d.isAfter(now)) {
+        d = DateTime(d.year, d.month, d.day + 1, d.hour, d.minute);
+      }
+    } else if (repeat.type == RepeatType.daily && !d.isAfter(now)) {
+      d = DateTime(d.year, d.month, d.day + 1, d.hour, d.minute);
+    }
+    return d;
   }
 
-  // A weekly rule with no date starts on its first picked day.
-  if (repeat.type == RepeatType.weekly && day == null && exact == null) {
-    while (!repeat.weekdays.contains(due.weekday) || !due.isAfter(now)) {
-      due = DateTime(due.year, due.month, due.day + 1, due.hour, due.minute);
-    }
-  } else if (repeat.type == RepeatType.daily && !due.isAfter(now)) {
-    due = DateTime(due.year, due.month, due.day + 1, due.hour, due.minute);
+  due = settle(due);
+  if (guessed) {
+    ambiguity = TimeAmbiguity(const {AmbiguityKind.noTime}, [due]);
+  } else if (ambiguity != null) {
+    ambiguity = TimeAmbiguity(
+      ambiguity.kinds,
+      ({for (final c in ambiguity.choices) settle(c)}.toList()..sort()),
+      span: ambiguity.span,
+    );
   }
 
   return ParsedReminder(
@@ -449,6 +503,7 @@ ParsedReminder parseReminder(
     timeSpans: timeSpans..sort((a, b) => a.start.compareTo(b.start)),
     repeatSpan: repeatSpan,
     tagSpan: tagSpan,
+    ambiguity: ambiguity,
   );
 }
 
@@ -519,5 +574,9 @@ String _title(String input, String work) {
   }
   t = t.replaceAll(RegExp(r'\s+([,.!?])'), r'$1');
   if (t.isEmpty) return t;
-  return t[0].toUpperCase() + t.substring(1);
+  final first = t.codeUnitAt(0);
+  // Only a-z: upper-casing anything else can change the length.
+  return first >= 0x61 && first <= 0x7a
+      ? String.fromCharCode(first - 32) + t.substring(1)
+      : t;
 }

@@ -191,28 +191,35 @@ void main() {
     expect(find.text('Pills deleted'), findsNothing);
   });
 
-  testWidgets('typing in the bar shows parsed chips, Save writes it', (
-    tester,
-  ) async {
-    final (repo, scheduler) = await setUpDi();
-    await _pump(tester);
-    await tester.enterText(
-      find.byType(TextField),
-      'Pills at 8 tonight every day',
-    );
-    await tester.pumpAndSettle();
-    expect(find.textContaining('8:00 PM'), findsOneWidget);
-    expect(find.text('Daily'), findsOneWidget);
-    expect(find.text('OVERDUE'), findsNothing);
+  testWidgets(
+    'typing in the bar shows parsed chips, Continue then Save writes it',
+    (tester) async {
+      final (repo, scheduler) = await setUpDi();
+      await _pump(tester);
+      await tester.enterText(
+        find.byType(TextField),
+        'Pills at 8 tonight every day',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('8:00 PM'), findsOneWidget);
+      expect(find.text('Repeat: Daily'), findsOneWidget);
+      expect(find.text('OVERDUE'), findsNothing);
 
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(repo.all.single.title, 'Pills');
-    expect(repo.all.single.dueAt, DateTime(2026, 11, 4, 20));
-    expect(repo.all.single.repeat.repeats, isTrue);
-    expect(scheduler.scheduled.single.title, 'Pills');
-    expect(find.text('Save'), findsNothing); // back to idle
-  });
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('You wrote: “Pills at 8 tonight every day”'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Save reminder'));
+      await tester.pumpAndSettle();
+      expect(repo.all.single.title, 'Pills');
+      expect(repo.all.single.dueAt, DateTime(2026, 11, 4, 20));
+      expect(repo.all.single.repeat.repeats, isTrue);
+      expect(scheduler.scheduled.single.title, 'Pills');
+      expect(find.text('Save reminder'), findsNothing); // back to idle
+    },
+  );
 
   testWidgets('an overdue row is opaque in dark mode, hiding its actions', (
     tester,

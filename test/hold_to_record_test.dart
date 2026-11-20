@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
+import 'package:memo/features/reminders/presentation/voice/hold_recorder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_cubit.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
@@ -20,6 +21,11 @@ class _FakeVoice implements VoiceClip {
 
   /// Completes the recorder's start when the test says so.
   Completer<void>? startGate;
+  int starts = 0;
+  bool stopThrows = false;
+
+  /// Writes the take, as a real recorder does.
+  void Function(String path)? onStart;
 
   @override
   Future<bool> hasPermission({bool request = false}) async {
@@ -32,18 +38,26 @@ class _FakeVoice implements VoiceClip {
 
   @override
   Future<void> start(String path) async {
+    starts++;
     await startGate?.future;
     recording = true;
+    onStart?.call(path);
   }
 
   @override
-  Future<void> stop() async => recording = false;
+  Future<void> stop() async {
+    if (stopThrows) throw StateError('recorder died');
+    recording = false;
+  }
 
   @override
   Future<void> cancel() async {
     recording = false;
     cancelled = true;
   }
+
+  @override
+  Future<double> level() async => 0.5;
 
   @override
   Future<void> play(String path) async {}
@@ -81,6 +95,8 @@ void main() {
   test('a release while the recorder is starting cancels it', () async {
     voice.startGate = Completer();
     final starting = cubit.startRecording();
+    // A held finger, not a tap: a quick release would latch instead.
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     await cubit.stopRecording(); // finger up before start returns
     voice.startGate!.complete();
     await starting;
@@ -89,12 +105,148 @@ void main() {
     expect(cubit.state.hasClip, isFalse);
   });
 
-  test('a tap shorter than a second keeps nothing', () async {
+  test('a hold shorter than a second keeps nothing', () async {
     await cubit.startRecording();
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     await cubit.stopRecording();
     expect(voice.cancelled, isTrue);
     expect(cubit.state.hasClip, isFalse);
-    expect(cubit.state.notice, 'Hold the mic to record.');
+    expect(cubit.state.notice, 'Tap the mic, speak, then tap Stop.');
+  });
+
+  test('a quick tap latches; the second tap keeps the clip', () async {
+    await cubit.startRecording();
+    await cubit.stopRecording(); // up inside 300 ms
+    expect(cubit.state.recording, isTrue);
+    expect(cubit.state.latched, isTrue);
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    await cubit.startRecording(); // second tap
+    expect(cubit.state.recording, isFalse);
+    expect(cubit.state.hasClip, isTrue);
+  });
+
+  test('toggle starts and stops for screen readers', () async {
+    await cubit.toggleRecording();
+    expect(cubit.state.recording, isTrue);
+    expect(cubit.state.latched, isTrue);
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    await cubit.toggleRecording();
+    expect(cubit.state.hasClip, isTrue);
+  });
+
+  group('HoldRecorder', () {
+    late List<HoldResult> results;
+    late HoldRecorder recorder;
+
+    setUp(() {
+      results = [];
+      recorder = HoldRecorder(
+        voice,
+        Directory.systemTemp.createTempSync('rec').path,
+        onTick: (_, _) {},
+        onResult: results.add,
+        maxLength: const Duration(milliseconds: 1200),
+      );
+    });
+
+    tearDown(() => recorder.dispose());
+
+    test('cancel drops without a notice and without a clip', () async {
+      await recorder.press();
+      await recorder.release(); // quick: latched
+      await recorder.cancel();
+      expect(voice.cancelled, isTrue);
+      expect(recorder.recording, isFalse);
+      expect(recorder.latched, isFalse);
+      final r = results.single as HoldDropped;
+      expect(r.notice, isNull);
+      expect(r.denied, isFalse);
+    });
+
+    test(
+      'a second tap while the recorder starts is a stop, not a restart',
+      () async {
+        voice.startGate = Completer<void>();
+        final ticks = <Duration>[];
+        final r = HoldRecorder(
+          voice,
+          Directory.systemTemp.createTempSync('rec').path,
+          onTick: (e, _) => ticks.add(e),
+          onResult: results.add,
+        );
+        final first = r.press();
+        await r.press(); // returns at once: no second start
+        voice.startGate!.complete();
+        await first;
+        expect(voice.starts, 1);
+        expect(r.recording, isFalse);
+        expect(ticks, isEmpty);
+        expect((results.single as HoldDropped).notice, isNull);
+        await r.dispose();
+      },
+    );
+
+    test('toggle while the recorder starts is a stop too', () async {
+      voice.startGate = Completer<void>();
+      final first = recorder.toggle();
+      await recorder.toggle();
+      voice.startGate!.complete();
+      await first;
+      expect(voice.starts, 1);
+      expect(recorder.recording, isFalse);
+      expect((results.single as HoldDropped).notice, isNull);
+    });
+
+    test('cancel while the recorder starts drops without a notice', () async {
+      voice.startGate = Completer<void>();
+      final first = recorder.press();
+      await recorder.cancel();
+      voice.startGate!.complete();
+      await first;
+      expect(recorder.recording, isFalse);
+      expect((results.single as HoldDropped).notice, isNull);
+    });
+
+    test('a recorder that fails on stop still ends the take', () async {
+      await recorder.press();
+      await recorder.release();
+      voice.stopThrows = true;
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      await recorder.toggle();
+      expect(recorder.recording, isFalse);
+      expect(results.single, isA<HoldDropped>());
+    });
+
+    test('a take replaces the clip only when kept', () async {
+      final dir = Directory.systemTemp.createTempSync('rec');
+      final draft = File('${dir.path}/draft.wav')..writeAsBytesSync([1]);
+      voice.onStart = (path) => File(path).writeAsBytesSync([2]);
+      final r = HoldRecorder(
+        voice,
+        draft.path,
+        tempPath: '${dir.path}/draft.rec.wav',
+        onTick: (_, _) {},
+        onResult: results.add,
+      );
+      await r.toggle();
+      await r.cancel();
+      expect(draft.readAsBytesSync(), [1]);
+      await r.toggle();
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      await r.toggle();
+      expect(results.last, isA<HoldKept>());
+      expect(draft.readAsBytesSync(), [2]);
+      await r.dispose();
+    });
+
+    test('the cap ends a latched recording as a kept clip', () async {
+      await recorder.press();
+      await recorder.release();
+      expect(recorder.latched, isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 1600));
+      expect(results.single, isA<HoldKept>());
+      expect(recorder.recording, isFalse);
+    });
   });
 
   test('first use asks for the mic and does not record yet', () async {
@@ -103,7 +255,7 @@ void main() {
     expect(voice.asked, isTrue);
     expect(voice.recording, isFalse);
     expect(cubit.state.recording, isFalse);
-    expect(cubit.state.notice, contains('Hold the mic'));
+    expect(cubit.state.notice, contains('Tap the mic'));
   });
 
   testWidgets('releasing the real mic button stops the recording', (
