@@ -32,17 +32,22 @@ class WeekdaySelector extends StatelessWidget {
                       : {...selected, day},
                 ),
                 child: Container(
-                  height: 36,
+                  constraints: const BoxConstraints(
+                    minHeight: MemoSpace.hitMin,
+                  ),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: selected.contains(day) ? c.ink : c.ink6,
                     borderRadius: BorderRadius.circular(MemoRadius.chip),
                   ),
-                  child: Text(
-                    weekdayShort(context, day),
-                    style: MemoType.labelMedium.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: selected.contains(day) ? c.onInk : c.ink70,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      weekdayShort(context, day),
+                      style: MemoType.labelMedium.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: selected.contains(day) ? c.onInk : c.ink70,
+                      ),
                     ),
                   ),
                 ),

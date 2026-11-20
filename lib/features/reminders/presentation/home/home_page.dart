@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,7 @@ import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/memo_toast.dart';
+import '../../../../core/ui/motion.dart';
 import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
@@ -21,6 +23,7 @@ import '../widgets/reminder_row.dart';
 import '../widgets/section_card.dart';
 import '../widgets/swipeable_reminder_row.dart';
 import '../voice/recording_panel.dart';
+import '../edit/edit_sheet.dart';
 import 'capture_bar.dart';
 import 'capture_cubit.dart';
 import 'home_cubit.dart';
@@ -93,7 +96,11 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _Header(ready: ready, overdue: grouped.overdue.length),
+                        _Header(
+                          ready: ready,
+                          overdue: grouped.overdue.length,
+                          now: now,
+                        ),
                         if (flags.tags &&
                             (ready?.filterTags.isNotEmpty ?? false))
                           _TagFilterBar(state: ready!),
@@ -195,7 +202,6 @@ Widget _toast(BuildContext context, HomeReady? ready) {
       : ready.saved != null
       ? MemoToast(message: _savedText(context, ready.saved!))
       : null;
-  if (toast == null) return const SizedBox.shrink();
   return Positioned(
     left: MemoSpace.gutter,
     right: MemoSpace.gutter,
@@ -204,7 +210,27 @@ Widget _toast(BuildContext context, HomeReady? ready) {
         MediaQuery.paddingOf(context).bottom +
         MemoSpace.barHeight * 2 +
         MemoSpace.space3,
-    child: toast,
+    child: AnimatedSwitcher(
+      duration: motion(context, MemoMotion.base),
+      switchInCurve: MemoMotion.curve,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(
+            begin: const Offset(0, 0.5),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.bottomCenter,
+        children: [...previous, ?current],
+      ),
+      child: toast == null
+          ? const SizedBox.shrink(key: ValueKey(''))
+          : KeyedSubtree(key: ValueKey(toast.message), child: toast),
+    ),
   );
 }
 
@@ -239,9 +265,7 @@ class _CapturePanel extends StatelessWidget {
       _ => ('none', const SizedBox.shrink()),
     };
     return AnimatedSwitcher(
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : MemoMotion.base,
+      duration: motion(context, MemoMotion.base),
       switchInCurve: MemoMotion.curve,
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
@@ -263,10 +287,15 @@ class _CapturePanel extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.ready, required this.overdue});
+  const _Header({
+    required this.ready,
+    required this.overdue,
+    required this.now,
+  });
 
   final HomeReady? ready;
   final int overdue;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +308,9 @@ class _Header extends StatelessWidget {
         : overdue > 0
         ? context.l10n.homeScheduledOverdue(scheduled, overdue)
         : context.l10n.homeScheduled(scheduled);
+    final next = ready?.upcoming
+        .where((r) => r.ringsAt.isAfter(now))
+        .firstOrNull;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         MemoSpace.gutter,
@@ -305,6 +337,41 @@ class _Header extends StatelessWidget {
                   sectionLabelText(context, summary),
                   style: sectionLabelStyle(context).copyWith(color: c.ink70),
                 ),
+                if (next != null) ...[
+                  const SizedBox(height: MemoSpace.space2),
+                  // Type, not a card: the one thing that rings next.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: MemoSpace.space2,
+                    children: [
+                      Text(
+                        context.l10n.homeNext,
+                        style: MemoType.body.copyWith(
+                          fontSize: 13,
+                          height: 18 / 13,
+                          color: c.ink70,
+                        ),
+                      ),
+                      Text(
+                        next.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: MemoType.bodyLarge.copyWith(
+                          fontSize: 17,
+                          color: c.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        context.l10n.homeNextWhen(
+                          formatTime(context, next.ringsAt),
+                          formatUntil(context, next.ringsAt.difference(now)),
+                        ),
+                        style: MemoType.labelMedium.copyWith(color: c.ink70),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -333,16 +400,16 @@ class _TagFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<HomeCubit>();
     final selected = state.tagFilter;
-    return SizedBox(
-      height: 46,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(
-          MemoSpace.gutter,
-          MemoSpace.space4,
-          MemoSpace.gutter,
-          0,
-        ),
+    // Intrinsic height: a scaled chip grows the bar instead of clipping.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(
+        MemoSpace.gutter,
+        MemoSpace.space4,
+        MemoSpace.gutter,
+        0,
+      ),
+      child: Row(
         children: [
           TagChip(
             label: context.l10n.homeAll,
@@ -420,7 +487,7 @@ class _ReminderList extends StatelessWidget {
   }
 }
 
-class _Row extends StatelessWidget {
+class _Row extends StatefulWidget {
   const _Row({
     super.key,
     required this.reminder,
@@ -433,29 +500,105 @@ class _Row extends StatelessWidget {
   final Color? background;
 
   @override
+  State<_Row> createState() => _RowState();
+}
+
+class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
+  // 1 = shown. Completing a one-off or deleting folds the row away, then
+  // calls the cubit, so the list never jumps.
+  late final _shown = AnimationController(
+    vsync: this,
+    duration: MemoMotion.base,
+    value: 1,
+  );
+
+  @override
+  void dispose() {
+    _shown.dispose();
+    super.dispose();
+  }
+
+  bool _folding = false;
+
+  /// Folds the row away, then runs [run]; true keeps it folded (it leaves
+  /// the list on the next load), false brings it back. The action always
+  /// runs, even if this row is disposed mid-fold, and only once.
+  Future<void> _fold(Future<bool> Function() run) async {
+    if (_folding) return;
+    final d = motion(context, MemoMotion.base);
+    setState(() => _folding = true);
+    if (d != Duration.zero) {
+      _shown.duration = d;
+      try {
+        await _shown.reverse().orCancel;
+      } on TickerCanceled {
+        // Disposed mid-fold: the action below still runs.
+      }
+    }
+    final ok = await run();
+    if (!ok && mounted) {
+      setState(() => _folding = false);
+      _shown.value = 1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final reminder = widget.reminder;
     final flags = sl<FeatureFlags>();
     final cubit = context.read<HomeCubit>();
-    final overdue = reminder.isOverdue(now);
+    final overdue = reminder.isOverdue(widget.now);
     final tag = flags.tags ? reminder.tag : null;
-    return SwipeableReminderRow(
-      background: background,
-      onComplete: () => cubit.complete(reminder),
-      onSnooze: flags.snooze
-          ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
-          : null,
-      onDelete: () => cubit.delete(reminder),
-      child: ReminderRow(
-        title: reminder.title,
-        state: overdue ? CheckState.overdue : CheckState.idle,
-        trailing: overdue
-            ? formatLateness(context, now.difference(reminder.ringsAt))
-            : formatTime(context, reminder.ringsAt),
-        subtitle: tag ?? reminder.note?.split('\n').first,
-        tagColor: tag == null ? null : tagColor(tag),
-        repeats: flags.repeatReminders && reminder.repeat.repeats,
-        onCheckTap: () => cubit.complete(reminder),
-        onTap: () => context.push('/reminder/${reminder.id}'),
+    void complete() => reminder.repeat.repeats
+        ? cubit.complete(reminder)
+        : _fold(() => cubit.complete(reminder));
+    final curved = CurvedAnimation(parent: _shown, curve: MemoMotion.curve);
+    return SizeTransition(
+      sizeFactor: curved,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(
+        opacity: curved,
+        child: SwipeableReminderRow(
+          background: widget.background,
+          title: reminder.title,
+          onComplete: complete,
+          onSnooze: flags.snooze
+              ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
+              : null,
+          onEdit: () => showEditSheet(
+            context,
+            existing: reminder,
+            knownTags: cubit.state is HomeReady
+                ? (cubit.state as HomeReady).tagsInUse
+                : const [],
+          ),
+          onDelete: () {
+            HapticFeedback.mediumImpact();
+            _fold(() async {
+              await cubit.delete(reminder);
+              return true;
+            });
+          },
+          child: ReminderRow(
+            title: reminder.title,
+            state: _folding
+                ? CheckState.done
+                : overdue
+                ? CheckState.overdue
+                : CheckState.idle,
+            trailing: overdue
+                ? formatLateness(
+                    context,
+                    widget.now.difference(reminder.ringsAt),
+                  )
+                : formatTime(context, reminder.ringsAt),
+            subtitle: tag ?? reminder.note?.split('\n').first,
+            tagColor: tag == null ? null : tagColor(tag),
+            repeats: flags.repeatReminders && reminder.repeat.repeats,
+            onCheckTap: complete,
+            onTap: () => context.push('/reminder/${reminder.id}'),
+          ),
+        ),
       ),
     );
   }

@@ -84,8 +84,10 @@ class AlarmPage extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  DaySectionHeader(
-                                    label: context.l10n.alarmReminder,
+                                  Flexible(
+                                    child: DaySectionHeader(
+                                      label: context.l10n.alarmReminder,
+                                    ),
                                   ),
                                   if (late.inMinutes >= 1)
                                     Flexible(

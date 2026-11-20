@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/motion.dart';
 import '../../domain/onboarding_repository.dart';
 import '../cubit/onboarding_cubit.dart';
 import 'permission_primer_page.dart';
@@ -53,10 +54,12 @@ class _OnboardingPagesState extends State<_OnboardingPages> {
       physics: const NeverScrollableScrollPhysics(),
       children: [
         WelcomePage(
-          onContinue: () => _controller.nextPage(
-            duration: MemoMotion.slow,
-            curve: MemoMotion.curve,
-          ),
+          onContinue: () {
+            final d = motion(context, MemoMotion.slow);
+            d == Duration.zero
+                ? _controller.jumpToPage(1)
+                : _controller.nextPage(duration: d, curve: MemoMotion.curve);
+          },
           onSkip: cubit.skip,
         ),
         PermissionPrimerPage(

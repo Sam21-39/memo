@@ -50,7 +50,11 @@ class ReminderRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              CheckControl(state: state, onTap: onCheckTap),
+              CheckControl(
+                state: state,
+                onTap: onCheckTap,
+                semanticLabel: context.l10n.markDoneNamed(title),
+              ),
               const SizedBox(width: MemoSpace.space1),
               Expanded(
                 child: Column(
@@ -59,7 +63,8 @@ class ReminderRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      maxLines: 2,
+                      maxLines: 3,
+                      softWrap: true,
                       overflow: TextOverflow.ellipsis,
                       style: MemoType.bodyLarge.copyWith(
                         color: done ? c.ink70 : c.ink,
@@ -102,10 +107,18 @@ class ReminderRow extends StatelessWidget {
                 ),
               ],
               const SizedBox(width: MemoSpace.space2),
-              Text(
-                trailing,
-                style: MemoType.labelMedium.copyWith(
-                  color: overdue ? c.accentText : c.ink70,
+              // Capped so a scaled "2 h late" wraps instead of starving the
+              // title.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.3,
+                ),
+                child: Text(
+                  trailing,
+                  textAlign: TextAlign.end,
+                  style: MemoType.labelMedium.copyWith(
+                    color: overdue ? c.accentText : c.ink70,
+                  ),
                 ),
               ),
             ],

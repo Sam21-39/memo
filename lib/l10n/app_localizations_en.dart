@@ -60,9 +60,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSnoozeTenMinutes => 'Snooze 10 minutes';
 
   @override
-  String get commonDeleteShort => 'Del';
-
-  @override
   String get commonTryAgain => 'Try again';
 
   @override
@@ -245,7 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editPreAlarmBody => 'An early heads-up before it rings.';
 
   @override
-  String get editNagTitle => 'Nag until done';
+  String get editNagTitle => 'If I don’t respond';
 
   @override
   String get editNagBody =>
@@ -261,7 +258,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editReleaseToStop => 'Release to stop';
 
   @override
-  String get editReadAloudWhenRings => 'Read aloud when it rings';
+  String get editReadAloudWhenRings => 'Read title aloud';
 
   @override
   String get editNewTagChip => '+ New';
@@ -323,16 +320,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSnooze => 'Snooze';
 
   @override
-  String get snoozeTenMinutes => '10m';
-
-  @override
   String get alarmReminder => 'Reminder';
 
   @override
-  String get archiveSearchHint => 'Search done';
-
-  @override
-  String get archiveEmpty => 'Nothing completed yet.';
+  String get archiveSearchHint => 'Search';
 
   @override
   String get archiveNoMatch => 'Nothing matches.';
@@ -745,4 +736,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get repeatEveryDayLong => 'Every day';
+
+  @override
+  String get homeNext => 'Next';
+
+  @override
+  String homeNextWhen(String time, String until) {
+    return '$time · $until';
+  }
+
+  @override
+  String untilDays(int count) {
+    return 'in $count d';
+  }
+
+  @override
+  String untilHours(int count) {
+    return 'in $count h';
+  }
+
+  @override
+  String untilMinutes(int count) {
+    return 'in $count min';
+  }
+
+  @override
+  String markDoneNamed(String title) {
+    return 'Mark $title done';
+  }
+
+  @override
+  String get swipeSnooze => 'Snooze\n10 min';
+
+  @override
+  String get archiveSearchLabel => 'Search done reminders';
+
+  @override
+  String get archiveEmptyTitle => 'Nothing done yet';
+
+  @override
+  String get archiveEmptyBody =>
+      'Reminders you mark done show up here. You can reopen them.';
+
+  @override
+  String get commonNone => 'None';
+
+  @override
+  String get editWhat => 'What';
+
+  @override
+  String get editPickDate => 'Pick date';
+
+  @override
+  String get editChangeTime => 'Change time';
+
+  @override
+  String get editMoreOptions => 'More options: note, tag, nag, sound';
+
+  @override
+  String get editBackBasic => '‹ Basic';
+
+  @override
+  String get editMoreTitle => 'More options';
+
+  @override
+  String get editNote => 'Note';
+
+  @override
+  String get editRemindEarlier => 'Remind me earlier';
+
+  @override
+  String nagSummary(int minutes) {
+    return 'Every $minutes min, 6 times';
+  }
+
+  @override
+  String get editOptionalBody =>
+      'These are optional. Most reminders only need what and when.';
 }

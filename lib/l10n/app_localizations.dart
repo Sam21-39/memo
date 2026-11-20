@@ -205,12 +205,6 @@ abstract class AppLocalizations {
   /// Shared button or label
   ///
   /// In en, this message translates to:
-  /// **'Del'**
-  String get commonDeleteShort;
-
-  /// Shared button or label
-  ///
-  /// In en, this message translates to:
   /// **'Try again'**
   String get commonTryAgain;
 
@@ -493,7 +487,7 @@ abstract class AppLocalizations {
   /// Edit reminder sheet
   ///
   /// In en, this message translates to:
-  /// **'Nag until done'**
+  /// **'If I don’t respond'**
   String get editNagTitle;
 
   /// Edit reminder sheet
@@ -523,7 +517,7 @@ abstract class AppLocalizations {
   /// Edit reminder sheet
   ///
   /// In en, this message translates to:
-  /// **'Read aloud when it rings'**
+  /// **'Read title aloud'**
   String get editReadAloudWhenRings;
 
   /// Edit reminder sheet
@@ -640,12 +634,6 @@ abstract class AppLocalizations {
   /// **'Snooze'**
   String get detailSnooze;
 
-  /// Snooze preset label
-  ///
-  /// In en, this message translates to:
-  /// **'10m'**
-  String get snoozeTenMinutes;
-
   /// Alarm screen
   ///
   /// In en, this message translates to:
@@ -655,14 +643,8 @@ abstract class AppLocalizations {
   /// Done archive screen
   ///
   /// In en, this message translates to:
-  /// **'Search done'**
+  /// **'Search'**
   String get archiveSearchHint;
-
-  /// Done archive screen
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing completed yet.'**
-  String get archiveEmpty;
 
   /// Done archive screen
   ///
@@ -1365,6 +1347,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every day'**
   String get repeatEveryDayLong;
+
+  /// Home screen text
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get homeNext;
+
+  /// Home next-reminder line: time then how far off
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · {until}'**
+  String homeNextWhen(String time, String until);
+
+  /// How far off the next reminder is
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} d'**
+  String untilDays(int count);
+
+  /// How far off the next reminder is
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} h'**
+  String untilHours(int count);
+
+  /// How far off the next reminder is
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} min'**
+  String untilMinutes(int count);
+
+  /// Screen reader label for a reminder's check
+  ///
+  /// In en, this message translates to:
+  /// **'Mark {title} done'**
+  String markDoneNamed(String title);
+
+  /// Swipe action label, two lines
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze\n10 min'**
+  String get swipeSnooze;
+
+  /// Done archive screen
+  ///
+  /// In en, this message translates to:
+  /// **'Search done reminders'**
+  String get archiveSearchLabel;
+
+  /// Done archive screen
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing done yet'**
+  String get archiveEmptyTitle;
+
+  /// Done archive screen
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders you mark done show up here. You can reopen them.'**
+  String get archiveEmptyBody;
+
+  /// Shared button or label
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get commonNone;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'What'**
+  String get editWhat;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Pick date'**
+  String get editPickDate;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get editChangeTime;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'More options: note, tag, nag, sound'**
+  String get editMoreOptions;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'‹ Basic'**
+  String get editBackBasic;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get editMoreTitle;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get editNote;
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me earlier'**
+  String get editRemindEarlier;
+
+  /// Edit reminder sheet: nag value
+  ///
+  /// In en, this message translates to:
+  /// **'Every {minutes} min, 6 times'**
+  String nagSummary(int minutes);
+
+  /// Edit reminder sheet
+  ///
+  /// In en, this message translates to:
+  /// **'These are optional. Most reminders only need what and when.'**
+  String get editOptionalBody;
 }
 
 class _AppLocalizationsDelegate

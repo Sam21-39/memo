@@ -34,6 +34,7 @@ class EditState {
     this.recording = false,
     this.latched = false,
     this.recorded = Duration.zero,
+    this.advanced = false,
   });
 
   final String title;
@@ -66,6 +67,9 @@ class EditState {
   /// Recording goes on after the finger lifted (tap mode).
   final bool latched;
   final Duration recorded;
+
+  /// The "More options" view of the sheet is showing.
+  final bool advanced;
 
   /// A clip alone is enough: it saves as "Voice note · 0:08" and still rings.
   bool get canSave =>
@@ -104,6 +108,7 @@ class EditState {
     bool? recording,
     bool? latched,
     Duration? recorded,
+    bool? advanced,
   }) => EditState(
     title: title ?? this.title,
     note: note ?? this.note,
@@ -123,6 +128,7 @@ class EditState {
     recording: recording ?? this.recording,
     latched: latched ?? this.latched,
     recorded: recorded ?? this.recorded,
+    advanced: advanced ?? this.advanced,
   );
 }
 
@@ -256,6 +262,12 @@ class EditCubit extends Cubit<EditState> {
         removeClip: state.existing?.hasVoice ?? false,
       ),
     );
+  }
+
+  void showAdvanced(bool value) {
+    // The mic lives on Basic: a take must not run on, unseen, with Save off.
+    if (state.recording) _hold?.cancel();
+    emit(state.copyWith(advanced: value));
   }
 
   void setReadAloud(bool value) => emit(state.copyWith(readAloud: value));

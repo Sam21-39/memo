@@ -24,7 +24,7 @@ class MemoToast extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Container(
-        height: MemoSpace.hitMin,
+        constraints: const BoxConstraints(minHeight: MemoSpace.hitMin),
         padding: EdgeInsets.only(
           left: MemoSpace.space4,
           right: action == null ? MemoSpace.space4 : MemoSpace.space1,
@@ -38,7 +38,7 @@ class MemoToast extends StatelessWidget {
             Expanded(
               child: Text(
                 message,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: MemoType.body.copyWith(
                   color: c.onInk,

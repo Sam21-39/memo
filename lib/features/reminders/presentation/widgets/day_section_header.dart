@@ -35,7 +35,7 @@ class DaySectionHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(sectionLabelText(context, label), style: style),
+          Flexible(child: Text(sectionLabelText(context, label), style: style)),
           if (count != null) Text('$count', style: style),
         ],
       ),

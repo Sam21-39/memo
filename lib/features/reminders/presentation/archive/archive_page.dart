@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/memo_mark.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
@@ -75,11 +76,24 @@ class ArchivePage extends StatelessWidget {
                           ).copyWith(color: c.ink70),
                         ),
                         const SizedBox(height: MemoSpace.gutter),
-                        TextField(
-                          onChanged: cubit.search,
-                          style: MemoType.body.copyWith(color: c.ink),
-                          decoration: InputDecoration(
-                            hintText: context.l10n.archiveSearchHint,
+                        ExcludeSemantics(
+                          child: Text(
+                            context.l10n.archiveSearchLabel,
+                            style: MemoType.body.copyWith(
+                              color: c.ink70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: MemoSpace.space2),
+                        Semantics(
+                          label: context.l10n.archiveSearchLabel,
+                          child: TextField(
+                            onChanged: cubit.search,
+                            style: MemoType.body.copyWith(color: c.ink),
+                            decoration: InputDecoration(
+                              hintText: context.l10n.archiveSearchHint,
+                            ),
                           ),
                         ),
                         if (state.visible.isEmpty)
@@ -87,13 +101,15 @@ class ArchivePage extends StatelessWidget {
                             padding: const EdgeInsets.only(
                               top: MemoSpace.space8,
                             ),
-                            child: Text(
-                              state.query.isEmpty
-                                  ? context.l10n.archiveEmpty
-                                  : context.l10n.archiveNoMatch,
-                              textAlign: TextAlign.center,
-                              style: MemoType.body.copyWith(color: c.ink70),
-                            ),
+                            child: state.query.isEmpty
+                                ? const _EmptyArchive()
+                                : Text(
+                                    context.l10n.archiveNoMatch,
+                                    textAlign: TextAlign.center,
+                                    style: MemoType.body.copyWith(
+                                      color: c.ink70,
+                                    ),
+                                  ),
                           ),
                         for (final entry in groups.entries) ...[
                           const SizedBox(height: MemoSpace.space6),
@@ -116,6 +132,32 @@ class ArchivePage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _EmptyArchive extends StatelessWidget {
+  const _EmptyArchive();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = MemoColors.of(context);
+    return Column(
+      children: [
+        const EmptyRing(),
+        const SizedBox(height: MemoSpace.space4),
+        Text(
+          context.l10n.archiveEmptyTitle,
+          textAlign: TextAlign.center,
+          style: MemoType.title.copyWith(color: c.ink),
+        ),
+        const SizedBox(height: MemoSpace.space1),
+        Text(
+          context.l10n.archiveEmptyBody,
+          textAlign: TextAlign.center,
+          style: MemoType.body.copyWith(color: c.ink70),
+        ),
+      ],
     );
   }
 }
@@ -149,6 +191,8 @@ class _DoneRow extends StatelessWidget {
                 children: [
                   Text(
                     reminder.title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: MemoType.bodyLarge.copyWith(color: c.ink),
                   ),
                   Text(

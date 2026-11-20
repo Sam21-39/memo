@@ -68,10 +68,6 @@
   "@commonSnoozeTenMinutes": {
     "description": "Shared button or label"
   },
-  "commonDeleteShort": "Del",
-  "@commonDeleteShort": {
-    "description": "Shared button or label"
-  },
   "commonTryAgain": "Try again",
   "@commonTryAgain": {
     "description": "Shared button or label"
@@ -349,7 +345,7 @@
   "@editPreAlarmBody": {
     "description": "Edit reminder sheet"
   },
-  "editNagTitle": "Nag until done",
+  "editNagTitle": "If I don’t respond",
   "@editNagTitle": {
     "description": "Edit reminder sheet"
   },
@@ -369,7 +365,7 @@
   "@editReleaseToStop": {
     "description": "Edit reminder sheet"
   },
-  "editReadAloudWhenRings": "Read aloud when it rings",
+  "editReadAloudWhenRings": "Read title aloud",
   "@editReadAloudWhenRings": {
     "description": "Edit reminder sheet"
   },
@@ -454,20 +450,12 @@
   "@detailSnooze": {
     "description": "Reminder detail screen"
   },
-  "snoozeTenMinutes": "10m",
-  "@snoozeTenMinutes": {
-    "description": "Snooze preset label"
-  },
   "alarmReminder": "Reminder",
   "@alarmReminder": {
     "description": "Alarm screen"
   },
-  "archiveSearchHint": "Search done",
+  "archiveSearchHint": "Search",
   "@archiveSearchHint": {
-    "description": "Done archive screen"
-  },
-  "archiveEmpty": "Nothing completed yet.",
-  "@archiveEmpty": {
     "description": "Done archive screen"
   },
   "archiveNoMatch": "Nothing matches.",
@@ -1054,5 +1042,122 @@
   "repeatEveryDayLong": "Every day",
   "@repeatEveryDayLong": {
     "description": "Daily repeat in the detail page and alarm screen"
+  },
+  "homeNext": "Next",
+  "@homeNext": {
+    "description": "Home screen text"
+  },
+  "homeNextWhen": "{time} · {until}",
+  "@homeNextWhen": {
+    "description": "Home next-reminder line: time then how far off",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "untilDays": "in {count} d",
+  "@untilDays": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "untilHours": "in {count} h",
+  "@untilHours": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "untilMinutes": "in {count} min",
+  "@untilMinutes": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "markDoneNamed": "Mark {title} done",
+  "@markDoneNamed": {
+    "description": "Screen reader label for a reminder's check",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "swipeSnooze": "Snooze\n10 min",
+  "@swipeSnooze": {
+    "description": "Swipe action label, two lines"
+  },
+  "archiveSearchLabel": "Search done reminders",
+  "@archiveSearchLabel": {
+    "description": "Done archive screen"
+  },
+  "archiveEmptyTitle": "Nothing done yet",
+  "@archiveEmptyTitle": {
+    "description": "Done archive screen"
+  },
+  "archiveEmptyBody": "Reminders you mark done show up here. You can reopen them.",
+  "@archiveEmptyBody": {
+    "description": "Done archive screen"
+  },
+  "commonNone": "None",
+  "@commonNone": {
+    "description": "Shared button or label"
+  },
+  "editWhat": "What",
+  "@editWhat": {
+    "description": "Edit reminder sheet"
+  },
+  "editPickDate": "Pick date",
+  "@editPickDate": {
+    "description": "Edit reminder sheet"
+  },
+  "editChangeTime": "Change time",
+  "@editChangeTime": {
+    "description": "Edit reminder sheet"
+  },
+  "editMoreOptions": "More options: note, tag, nag, sound",
+  "@editMoreOptions": {
+    "description": "Edit reminder sheet"
+  },
+  "editBackBasic": "‹ Basic",
+  "@editBackBasic": {
+    "description": "Edit reminder sheet"
+  },
+  "editMoreTitle": "More options",
+  "@editMoreTitle": {
+    "description": "Edit reminder sheet"
+  },
+  "editNote": "Note",
+  "@editNote": {
+    "description": "Edit reminder sheet"
+  },
+  "editRemindEarlier": "Remind me earlier",
+  "@editRemindEarlier": {
+    "description": "Edit reminder sheet"
+  },
+  "nagSummary": "Every {minutes} min, 6 times",
+  "@nagSummary": {
+    "description": "Edit reminder sheet: nag value",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "editOptionalBody": "These are optional. Most reminders only need what and when.",
+  "@editOptionalBody": {
+    "description": "Edit reminder sheet"
   }
 }

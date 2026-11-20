@@ -176,6 +176,20 @@ void main() {
     expect(voice.cancelled, isTrue);
   });
 
+  test(
+    'leaving the recording view drops a latched take, Save stays live',
+    () async {
+      cubit.setTitle('Bins');
+      await cubit.toggleRecording();
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(cubit.state.recording, isTrue);
+      cubit.showAdvanced(true);
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.recording, isFalse);
+      expect(cubit.state.canSave, isTrue);
+    },
+  );
+
   group('HoldRecorder', () {
     late List<HoldResult> results;
     late HoldRecorder recorder;
@@ -364,6 +378,7 @@ void main() {
       ),
     );
     final mic = find.byIcon(Icons.mic_none_rounded);
+    cubit.showAdvanced(true); // the Sound row lives under More options
     await tester.pumpAndSettle();
 
     final finger = await tester.startGesture(tester.getCenter(mic));

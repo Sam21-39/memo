@@ -29,30 +29,45 @@ class TagChip extends StatelessWidget {
       selected: selected,
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          height: 30,
-          padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space3),
-          decoration: BoxDecoration(
-            color: selected ? c.ink : (dashed ? null : c.ink6),
-            borderRadius: BorderRadius.circular(MemoRadius.chip),
-            border: dashed ? Border.all(color: c.ink45) : null,
+        behavior: HitTestBehavior.opaque,
+        // 30 drawn, 44 hit.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: MemoSpace.hitMin,
+            minWidth: MemoSpace.hitMin,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dotColor != null) ...[
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: selected ? c.onInk : dotColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text(label, style: MemoType.labelMedium.copyWith(color: fg)),
-            ],
+          child: Center(
+            widthFactor: 1,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 30),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MemoSpace.space3,
+                vertical: MemoSpace.space1,
+              ),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? c.ink : (dashed ? null : c.ink6),
+                borderRadius: BorderRadius.circular(MemoRadius.chip),
+                border: dashed ? Border.all(color: c.ink45) : null,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (dotColor != null) ...[
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: selected ? c.onInk : dotColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(label, style: MemoType.labelMedium.copyWith(color: fg)),
+                ],
+              ),
+            ),
           ),
         ),
       ),

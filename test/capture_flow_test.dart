@@ -123,6 +123,7 @@ void main() {
     expect(repo.all.single.title, 'Call mum');
     expect(find.text('Reminder set for tomorrow at 8:00 PM.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
     expect(find.textContaining('Reminder set for'), findsNothing);
   });
 

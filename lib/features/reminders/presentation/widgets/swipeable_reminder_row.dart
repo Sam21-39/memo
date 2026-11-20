@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/memo_sheet.dart';
+import '../../../../core/ui/motion.dart';
+import 'key_value_row.dart';
+import 'section_card.dart';
 import '../../../../l10n/l10n.dart';
 
 /// Swipe right → complete. Swipe left → reveal snooze (optional) + delete.
@@ -14,16 +19,22 @@ class SwipeableReminderRow extends StatefulWidget {
     this.onComplete,
     this.onSnooze,
     this.onDelete,
+    this.onEdit,
+    this.title,
     this.background,
   });
 
-  static const actionWidth = 52.0;
+  static const actionWidth = 72.0;
   static const completeThreshold = 96.0;
 
   final Widget child;
   final VoidCallback? onComplete;
   final VoidCallback? onSnooze;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
+
+  /// Heads the long-press menu.
+  final String? title;
 
   /// The row slides over the action buttons, so it must be opaque. Pass the
   /// surface it sits on — an overdue card is tinted, not plain surface.
@@ -40,6 +51,7 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
   // against an already-deactivated element.
   late final AnimationController _controller;
   double _offset = 0;
+  bool _crossed = false;
 
   double get _openOffset =>
       -SwipeableReminderRow.actionWidth *
@@ -64,6 +76,7 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
     ).animate(CurvedAnimation(parent: _controller, curve: MemoMotion.curve));
     void listener() => setState(() => _offset = animation.value);
     animation.addListener(listener);
+    _controller.duration = motion(context, MemoMotion.base);
     _controller.forward(from: 0).whenCompleteOrCancel(() {
       animation.removeListener(listener);
     });
@@ -83,11 +96,23 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
         if (widget.onSnooze != null)
           CustomSemanticsAction(label: context.l10n.commonSnoozeTenMinutes):
               widget.onSnooze!,
+        if (widget.onEdit != null)
+          CustomSemanticsAction(label: context.l10n.commonEdit): widget.onEdit!,
         if (widget.onDelete != null)
           CustomSemanticsAction(label: context.l10n.commonDelete):
               widget.onDelete!,
       },
       child: GestureDetector(
+        onLongPress: widget.title == null
+            ? null
+            : () => showRowActions(
+                context,
+                title: widget.title!,
+                onComplete: widget.onComplete,
+                onSnooze: widget.onSnooze,
+                onEdit: widget.onEdit,
+                onDelete: widget.onDelete,
+              ),
         onHorizontalDragUpdate: (details) {
           setState(() {
             _offset = (_offset + details.delta.dx).clamp(
@@ -95,8 +120,14 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
               SwipeableReminderRow.completeThreshold + 40,
             );
           });
+          final crossed = _offset > SwipeableReminderRow.completeThreshold;
+          if (crossed != _crossed) {
+            _crossed = crossed;
+            if (crossed) HapticFeedback.selectionClick();
+          }
         },
         onHorizontalDragEnd: (_) {
+          _crossed = false;
           if (_offset > SwipeableReminderRow.completeThreshold) {
             widget.onComplete?.call();
             _animateTo(0);
@@ -121,10 +152,31 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
                           alignment: Alignment.centerLeft,
                           child: Padding(
                             padding: const EdgeInsets.only(left: 16),
-                            child: Icon(
-                              Icons.check,
-                              size: 19,
-                              color: c.onAccent,
+                            // Revealed as it widens; never laid out narrower.
+                            child: ClipRect(
+                              child: OverflowBox(
+                                alignment: Alignment.centerLeft,
+                                maxWidth: double.infinity,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check,
+                                      size: 19,
+                                      color: c.onAccent,
+                                    ),
+                                    const SizedBox(width: MemoSpace.space2),
+                                    Text(
+                                      context.l10n.commonDone,
+                                      softWrap: false,
+                                      style: MemoType.labelMedium.copyWith(
+                                        color: c.onAccent,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -142,14 +194,14 @@ class _SwipeableReminderRowState extends State<SwipeableReminderRow>
                     if (widget.onSnooze != null)
                       _ActionButton(
                         color: c.ink6,
-                        label: context.l10n.snoozeTenMinutes,
+                        label: context.l10n.swipeSnooze,
                         labelColor: c.ink,
                         onTap: widget.onSnooze,
                       ),
                     if (widget.onDelete != null)
                       _ActionButton(
                         color: c.destructive,
-                        label: context.l10n.commonDeleteShort,
+                        label: context.l10n.commonDelete,
                         labelColor: c.onAccent,
                         onTap: widget.onDelete,
                       ),
@@ -198,11 +250,19 @@ class _ActionButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Center(
-            child: Text(
-              label,
-              style: MemoType.labelMedium.copyWith(
-                color: labelColor,
-                fontWeight: FontWeight.w500,
+            // Full words; shrinks rather than breaking one at large text.
+            child: Padding(
+              padding: const EdgeInsets.all(MemoSpace.space1),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: MemoType.labelMedium.copyWith(
+                    color: labelColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           ),
@@ -210,4 +270,50 @@ class _ActionButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The same four actions as the swipe, for a long press. Each closes the
+/// sheet, then runs.
+Future<void> showRowActions(
+  BuildContext context, {
+  required String title,
+  VoidCallback? onComplete,
+  VoidCallback? onSnooze,
+  VoidCallback? onEdit,
+  VoidCallback? onDelete,
+}) {
+  HapticFeedback.selectionClick();
+  final l = context.l10n;
+  return showMemoSheet<void>(
+    context,
+    builder: (sheet) {
+      Widget row(String label, VoidCallback run, {bool destructive = false}) =>
+          KeyValueRow(
+            label: label,
+            destructive: destructive,
+            onTap: () {
+              Navigator.of(sheet).pop();
+              run();
+            },
+            child: const SizedBox.shrink(),
+          );
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SheetHeading(title),
+            SectionCard(
+              children: [
+                if (onComplete != null) row(l.commonMarkDone, onComplete),
+                if (onSnooze != null) row(l.commonSnoozeTenMinutes, onSnooze),
+                if (onEdit != null) row(l.commonEdit, onEdit),
+                if (onDelete != null)
+                  row(l.commonDelete, onDelete, destructive: true),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

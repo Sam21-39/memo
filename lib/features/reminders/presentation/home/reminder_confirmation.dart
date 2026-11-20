@@ -194,7 +194,11 @@ class UnsureTimeBlock extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // Wraps instead of starving the question at large text.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: MemoSpace.space2,
+              runSpacing: MemoSpace.space1,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -212,14 +216,11 @@ class UnsureTimeBlock extends StatelessWidget {
                     ).copyWith(fontWeight: FontWeight.w500, color: c.onAccent),
                   ),
                 ),
-                const SizedBox(width: MemoSpace.space2),
-                Expanded(
-                  child: Text(
-                    l.confirmTimeQuestion,
-                    style: MemoType.bodyLarge.copyWith(
-                      color: c.ink,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  l.confirmTimeQuestion,
+                  style: MemoType.bodyLarge.copyWith(
+                    color: c.ink,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

@@ -53,3 +53,11 @@ String formatLateness(BuildContext c, Duration late) {
   if (late.inHours >= 1) return l.lateHours(late.inHours);
   return l.lateMinutes(late.inMinutes.clamp(1, 59));
 }
+
+/// "in 3 d", "in 2 h", "in 12 min" — how far off the next reminder is.
+String formatUntil(BuildContext c, Duration d) {
+  final l = c.l10n;
+  if (d.inDays >= 1) return l.untilDays(d.inDays);
+  if (d.inHours >= 1) return l.untilHours(d.inHours);
+  return l.untilMinutes(d.inMinutes.clamp(1, 59));
+}

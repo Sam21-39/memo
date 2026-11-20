@@ -43,9 +43,11 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<void> _write(Future<void> Function() action) async {
+  /// True when the write went through.
+  Future<bool> _write(Future<void> Function() action) async {
     try {
       await action();
+      return true;
     } on ScheduleFailure {
       final current = state;
       if (current is HomeReady) {
@@ -57,22 +59,25 @@ class HomeCubit extends Cubit<HomeState> {
         emit(current.copyWith(error: l10n().saveFailed));
       }
     }
+    return false;
   }
 
   /// A one-off gets a 5 s Undo; a repeat moves forward with no toast, since
   /// restoring its old time would only roll forward again.
-  Future<void> complete(Reminder reminder) async {
+  /// False when the write failed (the row must come back).
+  Future<bool> complete(Reminder reminder) async {
     await commitPendingDelete();
-    await _write(
+    final ok = await _write(
       () => _save(const CompleteReminder()(reminder, now: DateTime.now())),
     );
-    if (reminder.repeat.repeats) return;
+    if (!ok || reminder.repeat.repeats) return ok;
     final current = state;
-    if (current is! HomeReady) return;
+    if (current is! HomeReady) return ok;
     _undoTimer?.cancel();
     _savedTimer?.cancel();
     emit(current.copyWith(undo: reminder, clearSaved: true));
     _undoTimer = Timer(undoWindow, dismissUndo);
+    return ok;
   }
 
   Future<void> undo() async {
@@ -109,7 +114,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<void> snooze(Reminder reminder, {Duration? by}) => _write(
+  Future<bool> snooze(Reminder reminder, {Duration? by}) => _write(
     () => _save(const SnoozeReminder()(reminder, now: DateTime.now(), by: by)),
   );
 

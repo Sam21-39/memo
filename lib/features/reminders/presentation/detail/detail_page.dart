@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di.dart';
@@ -88,7 +89,10 @@ class _Body extends StatelessWidget {
       destructive: true,
     );
     if (!confirmed) return;
-    if (await cubit.delete()) navigator.pop();
+    if (await cubit.delete()) {
+      HapticFeedback.mediumImpact();
+      navigator.pop();
+    }
   }
 
   @override

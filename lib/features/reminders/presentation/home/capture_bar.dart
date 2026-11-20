@@ -7,6 +7,7 @@ import '../../../../core/chrome/memo_chrome.dart';
 import '../../../../core/di.dart';
 import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
+import '../../../../core/ui/motion.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../data/media_store.dart';
@@ -96,75 +97,82 @@ class _CaptureBarState extends State<CaptureBar> {
                   MemoChrome(
                     shape: ChromeShape.bar,
                     solid: state.text.trim().isNotEmpty || state.hasClip,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Fixed slots: a slot may be empty, never absent, so
-                        // the row below keeps its index.
-                        typing
-                            ? Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  MemoSpace.space4,
-                                  MemoSpace.space3,
-                                  MemoSpace.space4,
-                                  0,
-                                ),
-                                child: Text(
-                                  l.reminderHint,
-                                  style: MemoType.body.copyWith(
-                                    fontSize: 13,
-                                    height: 18 / 13,
-                                    color: c.ink70,
+                    child: AnimatedSize(
+                      alignment: Alignment.bottomCenter,
+                      duration: motion(context, MemoMotion.base),
+                      curve: MemoMotion.curve,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Fixed slots: a slot may be empty, never absent, so
+                          // the row below keeps its index.
+                          typing
+                              ? Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    MemoSpace.space4,
+                                    MemoSpace.space3,
+                                    MemoSpace.space4,
+                                    0,
+                                  ),
+                                  child: Text(
+                                    l.reminderHint,
+                                    style: MemoType.body.copyWith(
+                                      fontSize: 13,
+                                      height: 18 / 13,
+                                      color: c.ink70,
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minHeight: MemoSpace.barHeight,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Visibility(
+                                    maintainState: true,
+                                    visible: fieldVisible,
+                                    child: _field(context, cubit),
                                   ),
                                 ),
-                              )
-                            : const SizedBox.shrink(),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minHeight: MemoSpace.barHeight,
+                                if (sl<FeatureFlags>().imageCapture &&
+                                    state.phase == CapturePhase.idle)
+                                  MemoIconButton(
+                                    icon: Icons.photo_camera_outlined,
+                                    label: l.captureAddPhoto,
+                                  ),
+                                _Mic(key: _micKey, cubit: cubit, state: state),
+                                const SizedBox(width: MemoSpace.space1),
+                              ],
+                            ),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Visibility(
-                                  maintainState: true,
-                                  visible: fieldVisible,
-                                  child: _field(context, cubit),
-                                ),
-                              ),
-                              if (sl<FeatureFlags>().imageCapture &&
-                                  state.phase == CapturePhase.idle)
-                                MemoIconButton(
-                                  icon: Icons.photo_camera_outlined,
-                                  label: l.captureAddPhoto,
-                                ),
-                              _Mic(key: _micKey, cubit: cubit, state: state),
-                              const SizedBox(width: MemoSpace.space1),
-                            ],
-                          ),
-                        ),
-                        message != null && fieldVisible
-                            ? _Message(state: state, message: message)
-                            : const SizedBox.shrink(),
-                        typing ? _Chips(state: state) : const SizedBox.shrink(),
-                        typing
-                            ? Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  MemoSpace.space4,
-                                  0,
-                                  MemoSpace.space4,
-                                  MemoSpace.space4,
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: state.canContinue
-                                      ? cubit.review
-                                      : null,
-                                  child: Text(l.commonContinue),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ],
+                          message != null && fieldVisible
+                              ? _Message(state: state, message: message)
+                              : const SizedBox.shrink(),
+                          typing
+                              ? _Chips(state: state)
+                              : const SizedBox.shrink(),
+                          typing
+                              ? Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    MemoSpace.space4,
+                                    0,
+                                    MemoSpace.space4,
+                                    MemoSpace.space4,
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: state.canContinue
+                                        ? cubit.review
+                                        : null,
+                                    child: Text(l.commonContinue),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ],
+                      ),
                     ),
                   ),
                   state.phase == CapturePhase.idle
@@ -364,8 +372,11 @@ class _Chip extends StatelessWidget {
           child: Center(
             widthFactor: 1,
             child: Container(
-              height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space3),
+              constraints: const BoxConstraints(minHeight: 34),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MemoSpace.space3,
+                vertical: MemoSpace.space1,
+              ),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: dashed ? null : c.ink6,
@@ -414,9 +425,7 @@ class _Mic extends StatelessWidget {
           onPointerUp: (_) => cubit.stopRecording(),
           onPointerCancel: (_) => cubit.stopRecording(),
           child: AnimatedContainer(
-            duration: MediaQuery.disableAnimationsOf(context)
-                ? Duration.zero
-                : MemoMotion.fast,
+            duration: motion(context, MemoMotion.fast),
             width: MemoSpace.hitMin,
             height: MemoSpace.hitMin,
             decoration: BoxDecoration(

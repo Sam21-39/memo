@@ -7,6 +7,8 @@ import '../../../../core/di.dart';
 import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_pickers.dart';
+import '../../../../core/ui/motion.dart';
+import '../../../../core/ui/option_button.dart';
 import '../../../../core/ui/minutes_sheet.dart';
 import '../../../../core/ui/memo_sheet.dart';
 import '../../../../core/utils/date_format.dart';
@@ -59,6 +61,7 @@ Future<bool> showEditSheet(
           if (state.error != null) {
             messenger?.showSnackBar(SnackBar(content: Text(state.error!)));
           }
+          HapticFeedback.lightImpact();
           Navigator.of(context).pop(true);
         },
         child: EditForm(knownTags: knownTags ?? const []),
@@ -93,6 +96,10 @@ class _EditFormState extends State<EditForm> {
   @override
   void initState() {
     super.initState();
+    // Built now: each field is off-screen in one of the two views, and a lazy
+    // first touch inside dispose() cannot look up the cubit.
+    _title;
+    _note;
     _lifecycle;
   }
 
@@ -109,23 +116,48 @@ class _EditFormState extends State<EditForm> {
     final c = MemoColors.of(context);
     final flags = sl<FeatureFlags>();
     final cubit = context.read<EditCubit>();
+    final l = context.l10n;
     return BlocBuilder<EditCubit, EditState>(
       builder: (context, state) {
         final isNew = state.existing == null;
-        return Column(
+        final status = [
+          if (state.notice != null && state.status == EditStatus.editing)
+            Padding(
+              padding: const EdgeInsets.only(top: MemoSpace.space2),
+              child: Text(
+                state.notice!,
+                style: MemoType.body.copyWith(color: c.ink70),
+              ),
+            ),
+          if (state.error != null && state.status == EditStatus.editing)
+            Padding(
+              padding: const EdgeInsets.only(top: MemoSpace.space2),
+              child: Text(
+                state.error!,
+                style: MemoType.body.copyWith(color: c.destructive),
+              ),
+            ),
+        ];
+        // Basic and More options are two views of one sheet: same header
+        // shape, one cross-fade between them.
+        Widget view(
+          String key,
+          Widget leading,
+          String title,
+          List<Widget> children,
+        ) => Column(
+          key: ValueKey(key),
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Shares of the width, so scaled buttons wrap rather than overflow.
             Row(
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(foregroundColor: c.ink),
-                  child: Text(context.l10n.commonCancel),
-                ),
+                Flexible(flex: 3, child: leading),
                 Expanded(
+                  flex: 4,
                   child: Text(
-                    isNew ? context.l10n.editNew : context.l10n.editExisting,
+                    title,
                     textAlign: TextAlign.center,
                     style: MemoType.bodyLarge.copyWith(
                       color: c.ink,
@@ -133,9 +165,12 @@ class _EditFormState extends State<EditForm> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: state.canSave ? cubit.save : null,
-                  child: Text(context.l10n.commonSave),
+                Flexible(
+                  flex: 3,
+                  child: TextButton(
+                    onPressed: state.canSave ? cubit.save : null,
+                    child: Text(l.commonSave),
+                  ),
                 ),
               ],
             ),
@@ -144,149 +179,254 @@ class _EditFormState extends State<EditForm> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.only(top: MemoSpace.space4),
                 children: [
-                  TextField(
-                    controller: _title,
-                    autofocus: isNew,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: cubit.setTitle,
-                    style: MemoType.bodyLarge.copyWith(color: c.ink),
-                    decoration: InputDecoration(
-                      hintText: context.l10n.reminderHint,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _note,
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: cubit.setNote,
-                    style: MemoType.body.copyWith(color: c.ink),
-                    decoration: InputDecoration(
-                      hintText: context.l10n.editNoteHint,
-                    ),
-                  ),
-                  const SizedBox(height: MemoSpace.space6),
-                  DaySectionHeader(label: context.l10n.fieldWhen),
-                  SectionCard(
-                    children: [
-                      KeyValueRow(
-                        label: context.l10n.fieldTime,
-                        onTap: () async {
-                          final t = await pickTime(context, state.dueAt);
-                          if (t != null) cubit.setDueAt(t);
-                        },
-                        child: PillValue(
-                          formatTime(context, state.dueAt),
-                          active: true,
-                        ),
-                      ),
-                      KeyValueRow(
-                        label: context.l10n.fieldDate,
-                        onTap: () async {
-                          final d = await pickDate(context, state.dueAt);
-                          if (d != null) cubit.setDueAt(d);
-                        },
-                        child: PillValue(
-                          dayHeaderLabel(context, state.dueAt, DateTime.now()),
-                        ),
-                      ),
-                      if (flags.preAlarm)
-                        KeyValueRow(
-                          label: context.l10n.fieldPreAlarm,
-                          onTap: () async {
-                            final m = await showMinutesSheet(
-                              context,
-                              title: context.l10n.fieldPreAlarm,
-                              body: context.l10n.editPreAlarmBody,
-                              presets: const [5, 15, 30, 60],
-                              current: state.preAlarmMin,
-                              label: (m) => preAlarmLabel(context.l10n, m),
-                            );
-                            if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
-                          },
-                          child: PillValue(
-                            state.preAlarmMin == null
-                                ? context.l10n.commonOff
-                                : preAlarmLabel(
-                                    context.l10n,
-                                    state.preAlarmMin!,
-                                  ),
-                          ),
-                        ),
-                      if (flags.nag)
-                        KeyValueRow(
-                          label: context.l10n.editNagTitle,
-                          onTap: () async {
-                            final m = await showMinutesSheet(
-                              context,
-                              title: context.l10n.editNagTitle,
-                              body: context.l10n.editNagBody,
-                              presets: const [5, 10, 30],
-                              current: state.nagMin,
-                              label: (m) => nagLabel(context.l10n, m),
-                            );
-                            if (m != null) cubit.setNag(m == 0 ? null : m);
-                          },
-                          child: PillValue(
-                            state.nagMin == null
-                                ? context.l10n.commonOff
-                                : nagLabel(context.l10n, state.nagMin!),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (state.pastBlocked(DateTime.now()))
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        context.l10n.timePassed,
-                        style: MemoType.body.copyWith(color: c.destructive),
-                      ),
-                    ),
-                  if (flags.repeatReminders) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    DaySectionHeader(label: context.l10n.fieldRepeat),
-                    _RepeatPicker(state: state),
-                  ],
-                  if (flags.tags) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    DaySectionHeader(label: context.l10n.fieldTag),
-                    _TagPicker(
-                      knownTags: widget.knownTags,
-                      selected: state.tag,
-                      onChanged: cubit.setTag,
-                    ),
-                  ],
-                  if (cubit.media != null && cubit.voice != null) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    DaySectionHeader(label: context.l10n.editSound),
-                    _SoundCard(state: state),
-                  ],
-                  if (state.notice != null &&
-                      state.status == EditStatus.editing)
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        state.notice!,
-                        style: MemoType.body.copyWith(color: c.ink70),
-                      ),
-                    ),
-                  if (state.error != null && state.status == EditStatus.editing)
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        state.error!,
-                        style: MemoType.body.copyWith(color: c.destructive),
-                      ),
-                    ),
+                  ...children,
+                  ...status,
                   const SizedBox(height: MemoSpace.space4),
                 ],
               ),
             ),
           ],
         );
+        return AnimatedSwitcher(
+          duration: motion(context, MemoMotion.base),
+          switchInCurve: MemoMotion.curve,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topCenter,
+            children: [...previous, ?current],
+          ),
+          child: state.advanced
+              ? view(
+                  'advanced',
+                  TextButton(
+                    onPressed: () => cubit.showAdvanced(false),
+                    style: TextButton.styleFrom(foregroundColor: c.ink),
+                    child: Text(l.editBackBasic),
+                  ),
+                  l.editMoreTitle,
+                  _advanced(context, c, flags, cubit, state),
+                )
+              : view(
+                  'basic',
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(foregroundColor: c.ink),
+                    child: Text(l.commonCancel),
+                  ),
+                  isNew ? l.editNew : l.editExisting,
+                  _basic(context, c, flags, cubit, state, isNew),
+                ),
+        );
       },
     );
+  }
+
+  Widget _label(MemoColors c, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: MemoSpace.space2),
+    child: Text(
+      text,
+      style: MemoType.body.copyWith(
+        color: c.ink70,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
+
+  List<Widget> _basic(
+    BuildContext context,
+    MemoColors c,
+    FeatureFlags flags,
+    EditCubit cubit,
+    EditState state,
+    bool isNew,
+  ) {
+    final l = context.l10n;
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final today = isSameDay(state.dueAt, now);
+    final tmrw = isSameDay(state.dueAt, tomorrow);
+    DateTime onDay(DateTime day) => DateTime(
+      day.year,
+      day.month,
+      day.day,
+      state.dueAt.hour,
+      state.dueAt.minute,
+    );
+    Future<void> pickDay() async {
+      final d = await pickDate(context, state.dueAt);
+      if (d != null) cubit.setDueAt(d);
+    }
+
+    Future<void> pickClock() async {
+      final t = await pickTime(context, state.dueAt);
+      if (t != null) cubit.setDueAt(t);
+    }
+
+    return [
+      _label(c, l.editWhat),
+      TextField(
+        controller: _title,
+        autofocus: isNew,
+        textCapitalization: TextCapitalization.sentences,
+        onChanged: cubit.setTitle,
+        style: MemoType.bodyLarge.copyWith(color: c.ink),
+        decoration: InputDecoration(hintText: l.reminderHint),
+      ),
+      const SizedBox(height: MemoSpace.space6),
+      DaySectionHeader(label: l.fieldWhen),
+      Wrap(
+        spacing: MemoSpace.space2,
+        runSpacing: MemoSpace.space2,
+        children: [
+          OptionButton(
+            label: l.dateToday,
+            selected: today,
+            onTap: () => cubit.setDueAt(onDay(now)),
+          ),
+          OptionButton(
+            label: l.dateTomorrow,
+            selected: tmrw,
+            onTap: () => cubit.setDueAt(onDay(tomorrow)),
+          ),
+          OptionButton(
+            label: today || tmrw
+                ? l.editPickDate
+                : formatDate(context, state.dueAt),
+            selected: !today && !tmrw,
+            onTap: pickDay,
+          ),
+        ],
+      ),
+      const SizedBox(height: MemoSpace.space2),
+      Wrap(
+        spacing: MemoSpace.space2,
+        runSpacing: MemoSpace.space2,
+        children: [
+          OptionButton(
+            label: formatTime(context, state.dueAt),
+            selected: true,
+            onTap: pickClock,
+          ),
+          OptionButton(label: l.editChangeTime, onTap: pickClock),
+        ],
+      ),
+      if (state.pastBlocked(now))
+        Padding(
+          padding: const EdgeInsets.only(top: MemoSpace.space2),
+          child: Text(
+            l.timePassed,
+            style: MemoType.body.copyWith(color: c.destructive),
+          ),
+        ),
+      if (flags.repeatReminders) ...[
+        const SizedBox(height: MemoSpace.space6),
+        DaySectionHeader(label: l.fieldRepeat),
+        _RepeatPicker(state: state),
+      ],
+      const SizedBox(height: MemoSpace.space6),
+      OutlinedButton(
+        onPressed: () => cubit.showAdvanced(true),
+        child: Text(l.editMoreOptions, textAlign: TextAlign.center),
+      ),
+    ];
+  }
+
+  List<Widget> _advanced(
+    BuildContext context,
+    MemoColors c,
+    FeatureFlags flags,
+    EditCubit cubit,
+    EditState state,
+  ) {
+    final l = context.l10n;
+    return [
+      _label(c, l.editNote),
+      TextField(
+        controller: _note,
+        maxLines: null,
+        textCapitalization: TextCapitalization.sentences,
+        onChanged: cubit.setNote,
+        style: MemoType.body.copyWith(color: c.ink),
+        decoration: InputDecoration(hintText: l.editNoteHint),
+      ),
+      const SizedBox(height: MemoSpace.space6),
+      SectionCard(
+        children: [
+          if (flags.tags)
+            KeyValueRow(
+              label: l.fieldTag,
+              onTap: () => showMemoSheet<void>(
+                context,
+                builder: (_) => BlocProvider.value(
+                  value: cubit,
+                  child: BlocBuilder<EditCubit, EditState>(
+                    builder: (context, s) => SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SheetHeading(l.fieldTag),
+                          _TagPicker(
+                            knownTags: widget.knownTags,
+                            selected: s.tag,
+                            onChanged: cubit.setTag,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              child: PillValue(state.tag ?? l.commonNone),
+            ),
+          if (flags.preAlarm)
+            KeyValueRow(
+              label: l.editRemindEarlier,
+              onTap: () async {
+                final m = await showMinutesSheet(
+                  context,
+                  title: l.editRemindEarlier,
+                  body: l.editPreAlarmBody,
+                  presets: const [5, 15, 30, 60],
+                  current: state.preAlarmMin,
+                  label: (m) => preAlarmLabel(l, m),
+                );
+                if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
+              },
+              child: PillValue(
+                state.preAlarmMin == null
+                    ? l.commonOff
+                    : preAlarmLabel(l, state.preAlarmMin!),
+              ),
+            ),
+          if (flags.nag)
+            KeyValueRow(
+              label: l.editNagTitle,
+              onTap: () async {
+                final m = await showMinutesSheet(
+                  context,
+                  title: l.editNagTitle,
+                  body: l.editNagBody,
+                  presets: const [5, 10, 30],
+                  current: state.nagMin,
+                  label: (m) => nagLabel(l, m),
+                );
+                if (m != null) cubit.setNag(m == 0 ? null : m);
+              },
+              child: PillValue(
+                state.nagMin == null
+                    ? l.commonOff
+                    : l.nagSummary(state.nagMin!),
+              ),
+            ),
+        ],
+      ),
+      if (cubit.media != null && cubit.voice != null) ...[
+        const SizedBox(height: MemoSpace.space6),
+        DaySectionHeader(label: l.editSound),
+        _SoundCard(state: state),
+      ],
+      const SizedBox(height: MemoSpace.space4),
+      Text(l.editOptionalBody, style: MemoType.body.copyWith(color: c.ink70)),
+    ];
   }
 }
 
@@ -420,9 +560,7 @@ class _HoldToRecord extends StatelessWidget {
         onPointerUp: (_) => cubit.stopRecording(),
         onPointerCancel: (_) => cubit.stopRecording(),
         child: AnimatedContainer(
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : MemoMotion.fast,
+          duration: motion(context, MemoMotion.fast),
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
           decoration: BoxDecoration(

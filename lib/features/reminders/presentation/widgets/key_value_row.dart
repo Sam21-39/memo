@@ -9,9 +9,13 @@ class KeyValueRow extends StatelessWidget {
     required this.label,
     required this.child,
     this.onTap,
+    this.destructive = false,
   });
 
   final String label;
+
+  /// Label in the destructive colour, e.g. Delete.
+  final bool destructive;
   final Widget child;
   final VoidCallback? onTap;
 
@@ -23,14 +27,17 @@ class KeyValueRow extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 52),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MemoSpace.space4,
+            vertical: MemoSpace.space2,
+          ),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   label,
                   style: MemoType.bodyLarge.copyWith(
-                    color: c.ink,
+                    color: destructive ? c.destructive : c.ink,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -56,8 +63,11 @@ class PillValue extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
     return Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space3),
+      constraints: const BoxConstraints(minHeight: 30),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MemoSpace.space3,
+        vertical: MemoSpace.space1,
+      ),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: active ? c.ink : c.ink6,

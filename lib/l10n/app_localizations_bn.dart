@@ -60,9 +60,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get commonSnoozeTenMinutes => '10 মিনিট স্নুজ';
 
   @override
-  String get commonDeleteShort => 'মুছুন';
-
-  @override
   String get commonTryAgain => 'আবার চেষ্টা করুন';
 
   @override
@@ -244,7 +241,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get editPreAlarmBody => 'বাজার আগে একটি আগাম সতর্কতা।';
 
   @override
-  String get editNagTitle => 'সম্পন্ন না হওয়া পর্যন্ত বারবার';
+  String get editNagTitle => 'আমি সাড়া না দিলে';
 
   @override
   String get editNagBody =>
@@ -260,7 +257,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get editReleaseToStop => 'থামাতে ছেড়ে দিন';
 
   @override
-  String get editReadAloudWhenRings => 'বাজলে পড়ে শোনান';
+  String get editReadAloudWhenRings => 'শিরোনাম পড়ে শোনান';
 
   @override
   String get editNewTagChip => '+ নতুন';
@@ -322,16 +319,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get detailSnooze => 'পরে মনে করাও';
 
   @override
-  String get snoozeTenMinutes => '10 মিনিট';
-
-  @override
   String get alarmReminder => 'রিমাইন্ডার';
 
   @override
-  String get archiveSearchHint => 'সম্পন্ন খুঁজুন';
-
-  @override
-  String get archiveEmpty => 'এখনও কিছু সম্পন্ন হয়নি।';
+  String get archiveSearchHint => 'খুঁজুন';
 
   @override
   String get archiveNoMatch => 'কিছু মেলেনি।';
@@ -743,4 +734,82 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get repeatEveryDayLong => 'প্রতিদিন';
+
+  @override
+  String get homeNext => 'পরেরটা';
+
+  @override
+  String homeNextWhen(String time, String until) {
+    return '$time · $until';
+  }
+
+  @override
+  String untilDays(int count) {
+    return '$count দিন পরে';
+  }
+
+  @override
+  String untilHours(int count) {
+    return '$count ঘণ্টা পরে';
+  }
+
+  @override
+  String untilMinutes(int count) {
+    return '$count মিনিট পরে';
+  }
+
+  @override
+  String markDoneNamed(String title) {
+    return '$title সম্পন্ন করুন';
+  }
+
+  @override
+  String get swipeSnooze => 'স্নুজ\n10 মিনিট';
+
+  @override
+  String get archiveSearchLabel => 'সম্পন্ন রিমাইন্ডার খুঁজুন';
+
+  @override
+  String get archiveEmptyTitle => 'এখনও কিছু সম্পন্ন হয়নি';
+
+  @override
+  String get archiveEmptyBody =>
+      'যে রিমাইন্ডার সম্পন্ন করবেন, সেগুলো এখানে দেখা যাবে। সেগুলো আবার খুলতে পারবেন।';
+
+  @override
+  String get commonNone => 'কোনোটি নয়';
+
+  @override
+  String get editWhat => 'কী';
+
+  @override
+  String get editPickDate => 'তারিখ বাছুন';
+
+  @override
+  String get editChangeTime => 'সময় বদলান';
+
+  @override
+  String get editMoreOptions =>
+      'আরও বিকল্প: নোট, ট্যাগ, বারবার মনে করানো, শব্দ';
+
+  @override
+  String get editBackBasic => '‹ মূল';
+
+  @override
+  String get editMoreTitle => 'আরও বিকল্প';
+
+  @override
+  String get editNote => 'নোট';
+
+  @override
+  String get editRemindEarlier => 'আগে মনে করান';
+
+  @override
+  String nagSummary(int minutes) {
+    return 'প্রতি $minutes মিনিটে, 6 বার';
+  }
+
+  @override
+  String get editOptionalBody =>
+      'এগুলো ঐচ্ছিক। বেশির ভাগ রিমাইন্ডারে শুধু কী আর কখন দরকার।';
 }
