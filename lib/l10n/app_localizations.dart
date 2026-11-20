@@ -1399,6 +1399,24 @@ abstract class AppLocalizations {
   /// Notification or spoken text
   ///
   /// In en, this message translates to:
+  /// **'Alarms'**
+  String get notifAlarmChannel;
+
+  /// Notification or spoken text
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders ringing now'**
+  String get notifAlarmChannelBody;
+
+  /// Notification or spoken text
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get notifMissedChannel;
+
+  /// Notification or spoken text
+  ///
+  /// In en, this message translates to:
   /// **'Missed: {title}'**
   String missed(String title);
 

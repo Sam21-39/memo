@@ -147,7 +147,11 @@ class AlarmService : Service() {
     private fun missed(entry: JSONObject) {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
-            NotificationChannel(MISSED_CHANNEL, "Missed", NotificationManager.IMPORTANCE_DEFAULT).apply {
+            NotificationChannel(
+                MISSED_CHANNEL,
+                entry.optString("missedChannelName").ifEmpty { "Missed" },
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
                 setSound(null, null)
             },
         )
@@ -211,7 +215,7 @@ class AlarmService : Service() {
                 entry.optString("channelName").ifEmpty { "Alarms" },
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
-                description = "Reminders ringing now"
+                description = entry.optString("channelDescription").ifEmpty { "Reminders ringing now" }
                 setSound(null, null) // the service plays the sound itself
             },
         )
@@ -252,7 +256,7 @@ class AlarmService : Service() {
             .addAction(
                 Notification.Action.Builder(
                     null,
-                    entry.optString("snoozeLabel").ifEmpty { "Snooze 10m" },
+                    entry.optString("snoozeLabel").ifEmpty { "Snooze 10 minutes" },
                     action(ACTION_SNOOZE, base + 2),
                 ).build(),
             )

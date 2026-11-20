@@ -33,6 +33,7 @@ class AndroidAlarmScheduler implements AlarmScheduler {
   ) async {
     final speech = await _spoken.soundFor(r);
     used[r.id] = speech;
+    final l = l10n();
     return [
       for (final fire in firesFor(r, now: now))
         {
@@ -44,7 +45,12 @@ class AndroidAlarmScheduler implements AlarmScheduler {
           'reminderId': r.id,
           'title': r.title,
           'body': r.note ?? '',
-          'missedText': l10n().missed(r.title), // l10n: native
+          'missedText': l.missed(r.title), // l10n: native
+          'doneLabel': l.commonDone,
+          'snoozeLabel': l.commonSnoozeTenMinutes,
+          'channelName': l.notifAlarmChannel,
+          'channelDescription': l.notifAlarmChannelBody,
+          'missedChannelName': l.notifMissedChannel,
           'speech':
               speech ??
               (r.hasVoice && r.readAloud ? _media.voicePath(r.id) : null),

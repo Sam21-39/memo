@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Memō records the reminder you speak. It stays on this phone.";
+"NSSpeechRecognitionUsageDescription" = "Memō turns your voice note into its title, on this phone. Nothing is sent anywhere.";
+"NSAlarmKitUsageDescription" = "Memō rings your reminders as alarms, on the lock screen and through Focus.";

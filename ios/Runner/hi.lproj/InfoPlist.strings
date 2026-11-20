@@ -1,0 +1,4 @@
+/* Best-effort Hindi: needs native-speaker review. */
+"NSMicrophoneUsageDescription" = "Memō आपकी बोली हुई याद दिलाने वाली बात रिकॉर्ड करता है। वह इसी फ़ोन में रहती है।";
+"NSSpeechRecognitionUsageDescription" = "Memō आपके वॉइस नोट को इसी फ़ोन पर शीर्षक में बदलता है। कुछ भी कहीं नहीं भेजा जाता।";
+"NSAlarmKitUsageDescription" = "Memō आपके रिमाइंडर को अलार्म की तरह लॉक स्क्रीन पर और फ़ोकस में भी बजाता है।";

@@ -762,6 +762,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifSnooze => 'Snooze 10m';
 
   @override
+  String get notifAlarmChannel => 'Alarms';
+
+  @override
+  String get notifAlarmChannelBody => 'Reminders ringing now';
+
+  @override
+  String get notifMissedChannel => 'Missed';
+
+  @override
   String missed(String title) {
     return 'Missed: $title';
   }

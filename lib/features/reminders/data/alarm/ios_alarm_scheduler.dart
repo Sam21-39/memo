@@ -7,6 +7,7 @@ import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
 import '../spoken_reminder.dart';
+import '../../../../l10n/l10n.dart';
 import 'local_notification_scheduler.dart';
 import 'native_alarm.dart' show QueuedAction;
 import 'serial.dart';
@@ -93,6 +94,7 @@ class IosAlarmScheduler implements AlarmScheduler {
     final rendered = await _spoken.soundFor(r);
     used[r.id] = rendered;
     final sound = rendered ?? 'memo_ring.caf';
+    final l = l10n();
     return [
       for (final fire in only ?? firesFor(r, now: now))
         {
@@ -102,6 +104,8 @@ class IosAlarmScheduler implements AlarmScheduler {
           'kind': fire.kind.name,
           'reminderId': r.id,
           'title': r.title,
+          'doneLabel': l.commonDone, // l10n: native
+          'snoozeLabel': l.commonSnoozeTenMinutes,
           'sound': sound,
           'snoozeId': AlarmIds.snooze(r.id),
         },

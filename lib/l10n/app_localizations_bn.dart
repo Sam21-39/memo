@@ -759,6 +759,15 @@ class AppLocalizationsBn extends AppLocalizations {
   String get notifSnooze => 'স্নুজ 10 মি';
 
   @override
+  String get notifAlarmChannel => 'অ্যালার্ম';
+
+  @override
+  String get notifAlarmChannelBody => 'এখন বাজছে এমন রিমাইন্ডার';
+
+  @override
+  String get notifMissedChannel => 'মিস হয়েছে';
+
+  @override
   String missed(String title) {
     return 'মিস হয়েছে: $title';
   }

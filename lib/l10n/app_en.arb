@@ -1016,6 +1016,18 @@
   "@notifSnooze": {
     "description": "Notification or spoken text"
   },
+  "notifAlarmChannel": "Alarms",
+  "@notifAlarmChannel": {
+    "description": "Notification or spoken text"
+  },
+  "notifAlarmChannelBody": "Reminders ringing now",
+  "@notifAlarmChannelBody": {
+    "description": "Notification or spoken text"
+  },
+  "notifMissedChannel": "Missed",
+  "@notifMissedChannel": {
+    "description": "Notification or spoken text"
+  },
   "missed": "Missed: {title}",
   "@missed": {
     "description": "Notification or spoken text",
