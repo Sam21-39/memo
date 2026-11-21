@@ -1148,4 +1148,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String voiceNoticeNote(String language) {
     return 'No $language voice on this phone. It rings with your voice note.';
   }
+
+  @override
+  String get quickStartLabel => 'Quick start';
+
+  @override
+  String get templateMedicine => 'Take medicine';
+
+  @override
+  String get templateMedicineFill => 'Take medicine';
+
+  @override
+  String get templateBill => 'Pay a bill';
+
+  @override
+  String get templateBillFill => 'Pay bill';
+
+  @override
+  String get templateCall => 'Call someone';
+
+  @override
+  String get templateCallFill => 'Call';
+
+  @override
+  String get templateFollowUp => 'Follow up';
+
+  @override
+  String get templateFollowUpFill => 'Follow up';
+
+  @override
+  String get templateWeekly => 'Weekly routine';
+
+  @override
+  String templateWeeklyFill(String day) {
+    return 'Every $day';
+  }
 }

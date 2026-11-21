@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/chrome/memo_chrome.dart';
@@ -9,6 +12,7 @@ import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/motion.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
@@ -28,6 +32,16 @@ class CaptureBar extends StatefulWidget {
   const CaptureBar({super.key, required this.knownTags});
 
   final List<String> knownTags;
+
+  /// Label, gap, chip and gap: what the idle quick-start block adds above the
+  /// bar's hint line. Home clears it, scaled by the text scale.
+  static const quickStartExtent = 80.0;
+
+  /// Never below the fixed-size chip: text scale under 1.0 must not shrink it.
+  static double quickStartHeight(BuildContext context) => math.max(
+    quickStartExtent,
+    MediaQuery.textScalerOf(context).scale(quickStartExtent),
+  );
 
   @override
   State<CaptureBar> createState() => _CaptureBarState();
@@ -176,17 +190,25 @@ class _CaptureBarState extends State<CaptureBar> {
                     ),
                   ),
                   state.phase == CapturePhase.idle
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: MemoSpace.space2),
-                          child: Text(
-                            l.captureHintLine,
-                            textAlign: TextAlign.center,
-                            style: MemoType.body.copyWith(
-                              fontSize: 13,
-                              height: 18 / 13,
-                              color: c.ink70,
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _QuickStart(onPick: (fill) => _pick(cubit, fill)),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: MemoSpace.space2,
+                              ),
+                              child: Text(
+                                l.captureHintLine,
+                                textAlign: TextAlign.center,
+                                style: MemoType.body.copyWith(
+                                  fontSize: 13,
+                                  height: 18 / 13,
+                                  color: c.ink70,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         )
                       : const SizedBox.shrink(),
                 ],
@@ -196,6 +218,13 @@ class _CaptureBarState extends State<CaptureBar> {
         );
       },
     );
+  }
+
+  // The listener above copies the text into the field, cursor at the end.
+  void _pick(CaptureCubit cubit, String fill) {
+    final text = '${fill.trimRight()} ';
+    cubit.setText(text);
+    _focus.requestFocus();
   }
 
   Widget _field(BuildContext context, CaptureCubit cubit) {
@@ -253,6 +282,57 @@ class _Message extends StatelessWidget {
               onPressed: openAppSettings,
               child: Text(context.l10n.openSettings),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Five starters under the empty field; a tap prefills it and the normal
+/// parse, chips and confirmation take over.
+class _QuickStart extends StatelessWidget {
+  const _QuickStart({required this.onPick});
+
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final c = MemoColors.of(context);
+    final day = DateFormat.EEEE(
+      Localizations.localeOf(context).languageCode,
+    ).format(DateTime.now());
+    final items = [
+      (l.templateMedicine, l.templateMedicineFill),
+      (l.templateBill, l.templateBillFill),
+      (l.templateCall, l.templateCallFill),
+      (l.templateFollowUp, l.templateFollowUpFill),
+      (l.templateWeekly, l.templateWeeklyFill(day)),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: MemoSpace.space2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              sectionLabelText(context, l.quickStartLabel),
+              style: sectionLabelStyle(context).copyWith(color: c.ink70),
+            ),
+          ),
+          const SizedBox(height: MemoSpace.space2),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final (i, (label, fill)) in items.indexed) ...[
+                  if (i > 0) const SizedBox(width: MemoSpace.space2),
+                  _Chip(label: label, dashed: true, onTap: () => onPick(fill)),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );

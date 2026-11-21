@@ -2043,6 +2043,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No {language} voice on this phone. It rings with your voice note.'**
   String voiceNoticeNote(String language);
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Quick start'**
+  String get quickStartLabel;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Take medicine'**
+  String get templateMedicine;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Take medicine'**
+  String get templateMedicineFill;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Pay a bill'**
+  String get templateBill;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Pay bill'**
+  String get templateBillFill;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Call someone'**
+  String get templateCall;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get templateCallFill;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Follow up'**
+  String get templateFollowUp;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Follow up'**
+  String get templateFollowUpFill;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly routine'**
+  String get templateWeekly;
+
+  /// T1 Quick-start template chip
+  ///
+  /// In en, this message translates to:
+  /// **'Every {day}'**
+  String templateWeeklyFill(String day);
 }
 
 class _AppLocalizationsDelegate

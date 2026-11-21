@@ -1148,4 +1148,39 @@ class AppLocalizationsHi extends AppLocalizations {
   String voiceNoticeNote(String language) {
     return 'इस फ़ोन पर $language की आवाज़ नहीं है। यह आपके वॉइस नोट के साथ बजेगा।';
   }
+
+  @override
+  String get quickStartLabel => 'झटपट शुरू करें';
+
+  @override
+  String get templateMedicine => 'दवा लेना';
+
+  @override
+  String get templateMedicineFill => 'दवा लेनी है';
+
+  @override
+  String get templateBill => 'बिल भरना';
+
+  @override
+  String get templateBillFill => 'बिल भरना है';
+
+  @override
+  String get templateCall => 'किसी को फ़ोन करना';
+
+  @override
+  String get templateCallFill => 'फ़ोन करना है';
+
+  @override
+  String get templateFollowUp => 'फ़ॉलो-अप';
+
+  @override
+  String get templateFollowUpFill => 'फ़ॉलो-अप करना है';
+
+  @override
+  String get templateWeekly => 'हर हफ़्ते का काम';
+
+  @override
+  String templateWeeklyFill(String day) {
+    return 'हर $day';
+  }
 }

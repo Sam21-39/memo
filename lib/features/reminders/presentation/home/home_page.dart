@@ -209,6 +209,7 @@ Widget _toast(BuildContext context, HomeReady? ready) {
     bottom:
         MediaQuery.paddingOf(context).bottom +
         MemoSpace.barHeight * 2 +
+        CaptureBar.quickStartHeight(context) +
         MemoSpace.space3,
     child: AnimatedSwitcher(
       duration: motion(context, MemoMotion.base),
@@ -446,7 +447,9 @@ class _ReminderList extends StatelessWidget {
         MemoSpace.space6,
         MemoSpace.gutter,
         // Clears the capture bar and its fade.
-        MemoSpace.barHeight * 2 + MediaQuery.paddingOf(context).bottom,
+        MemoSpace.barHeight * 2 +
+            CaptureBar.quickStartHeight(context) +
+            MediaQuery.paddingOf(context).bottom,
       ),
       children: [
         if (grouped.overdue.isNotEmpty) ...[
@@ -612,7 +615,13 @@ class _EmptyState extends StatelessWidget {
     final c = MemoColors.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(40, 0, 40, MemoSpace.barHeight * 2),
+        padding: const EdgeInsets.fromLTRB(
+          40,
+          0,
+          40,
+          // ponytail: unscaled; the state is centred, so text scale only trims slack.
+          MemoSpace.barHeight * 2 + CaptureBar.quickStartExtent,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -643,7 +652,13 @@ class _FailureState extends StatelessWidget {
     final c = MemoColors.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(40, 0, 40, MemoSpace.barHeight * 2),
+        padding: const EdgeInsets.fromLTRB(
+          40,
+          0,
+          40,
+          // ponytail: unscaled; the state is centred, so text scale only trims slack.
+          MemoSpace.barHeight * 2 + CaptureBar.quickStartExtent,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

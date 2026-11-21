@@ -1145,4 +1145,39 @@ class AppLocalizationsBn extends AppLocalizations {
   String voiceNoticeNote(String language) {
     return 'এই ফোনে $language কণ্ঠ নেই। এটি আপনার ভয়েস নোট দিয়ে বাজবে।';
   }
+
+  @override
+  String get quickStartLabel => 'চটজলদি শুরু';
+
+  @override
+  String get templateMedicine => 'ওষুধ খাওয়া';
+
+  @override
+  String get templateMedicineFill => 'ওষুধ খেতে হবে';
+
+  @override
+  String get templateBill => 'বিল দেওয়া';
+
+  @override
+  String get templateBillFill => 'বিল দিতে হবে';
+
+  @override
+  String get templateCall => 'কাউকে ফোন করা';
+
+  @override
+  String get templateCallFill => 'ফোন করতে হবে';
+
+  @override
+  String get templateFollowUp => 'ফলো-আপ';
+
+  @override
+  String get templateFollowUpFill => 'ফলো-আপ করতে হবে';
+
+  @override
+  String get templateWeekly => 'সাপ্তাহিক কাজ';
+
+  @override
+  String templateWeeklyFill(String day) {
+    return 'প্রতি $day';
+  }
 }

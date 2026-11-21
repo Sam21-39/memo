@@ -188,6 +188,13 @@ void main() {
       }
     });
 
+    testWidgets('Home quick start: $tag', (tester) async {
+      await seed();
+      await _show(tester, size, scale, _home());
+      _fits(tester);
+      expect(find.text('Weekly routine'), findsOneWidget);
+    });
+
     testWidgets('Detail: $tag', (tester) async {
       await setUpDi([reminder('1', long.substring(0, 80), inDays(2, 9))]);
       await _show(
@@ -358,6 +365,34 @@ void main() {
           tester.getSize(find.byWidget(chip.widget)).height,
           greaterThanOrEqualTo(44),
         );
+      }
+    });
+  }
+
+  for (final lang in ['en', 'hi', 'bn']) {
+    testWidgets('Home quick start, 320x690 @2.0x chips >= 44 ($lang)', (
+      tester,
+    ) async {
+      await seed();
+      await _show(
+        tester,
+        const Size(320, 690),
+        2.0,
+        _home(),
+        locale: Locale(lang),
+      );
+      _fits(tester);
+      final texts = find.descendant(
+        of: find.byType(SingleChildScrollView).last,
+        matching: find.byType(Text),
+      );
+      expect(texts, findsNWidgets(5));
+      for (final e in texts.evaluate()) {
+        final chip = find.ancestor(
+          of: find.byWidget(e.widget),
+          matching: find.byType(GestureDetector),
+        );
+        expect(tester.getSize(chip.first).height, greaterThanOrEqualTo(44));
       }
     });
   }

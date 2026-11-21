@@ -324,5 +324,16 @@
   "voiceHowToIos": "सेटिंग खोलें, फिर एक्सेसिबिलिटी, स्पोकन कंटेंट, आवाज़ें। भाषा चुनें और एक आवाज़ डाउनलोड करें।",
   "voiceOpenSettings": "टेक्स्ट-टू-स्पीच सेटिंग खोलें",
   "voiceNotice": "इस फ़ोन पर {language} की आवाज़ नहीं है। यह घंटी के साथ बजेगा।",
-  "voiceNoticeNote": "इस फ़ोन पर {language} की आवाज़ नहीं है। यह आपके वॉइस नोट के साथ बजेगा।"
+  "voiceNoticeNote": "इस फ़ोन पर {language} की आवाज़ नहीं है। यह आपके वॉइस नोट के साथ बजेगा।",
+  "quickStartLabel": "झटपट शुरू करें",
+  "templateMedicine": "दवा लेना",
+  "templateMedicineFill": "दवा लेनी है",
+  "templateBill": "बिल भरना",
+  "templateBillFill": "बिल भरना है",
+  "templateCall": "किसी को फ़ोन करना",
+  "templateCallFill": "फ़ोन करना है",
+  "templateFollowUp": "फ़ॉलो-अप",
+  "templateFollowUpFill": "फ़ॉलो-अप करना है",
+  "templateWeekly": "हर हफ़्ते का काम",
+  "templateWeeklyFill": "हर {day}"
 }

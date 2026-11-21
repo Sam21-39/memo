@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/parser/reminder_parser.dart';
 
@@ -400,5 +402,54 @@ void main() {
     final h = parseReminder('milk #दवा', now: now);
     expect(h.tag, 'दवा');
     expect(parseReminder('milk #home-1', now: now).tag, 'home-1');
+  });
+
+  group('T1 quick-start prefills', () {
+    setUpAll(initializeDateFormatting);
+    // Weekly fill, task, time; then the four title fills with a time phrase.
+    const weekly = {
+      'en': ('Every', 'water plants 9am'),
+      'hi': ('हर', 'पौधों को पानी 9 बजे'),
+      'bn': ('প্রতি', 'গাছে জল ৯টায়'),
+    };
+    const titles = {
+      'en': (['Take medicine', 'Pay bill', 'Call', 'Follow up'], '8pm'),
+      'hi': (
+        ['दवा लेनी है', 'बिल भरना है', 'फ़ोन करना है', 'फ़ॉलो-अप करना है'],
+        'रात 9 बजे',
+      ),
+      'bn': (
+        ['ওষুধ খেতে হবে', 'বিল দিতে হবে', 'ফোন করতে হবে', 'ফলো-আপ করতে হবে'],
+        'রাত ৯টায়',
+      ),
+    };
+    for (final lang in weekly.keys) {
+      test('weekly fill parses on every weekday ($lang)', () {
+        final (every, task) = weekly[lang]!;
+        for (var wd = 1; wd <= 7; wd++) {
+          // 2026-11-16 is a Monday.
+          final name = DateFormat.EEEE(
+            lang,
+          ).format(DateTime(2026, 11, 15 + wd));
+          for (final parseAs in {'en', lang}) {
+            final p = parseReminder(
+              '$every $name $task',
+              now: now,
+              language: parseAs,
+            );
+            expect(p.repeat.type, RepeatType.weekly, reason: '$name/$parseAs');
+            expect(p.repeat.weekdays, {wd}, reason: '$name/$parseAs');
+          }
+        }
+      });
+      test('title fills keep their title ($lang)', () {
+        final (fills, time) = titles[lang]!;
+        for (final fill in fills) {
+          final p = parseReminder('$fill $time', now: now, language: lang);
+          expect(p.title, fill);
+          expect(p.ambiguity, isNull, reason: fill);
+        }
+      });
+    }
   });
 }

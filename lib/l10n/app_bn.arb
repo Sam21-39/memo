@@ -324,5 +324,16 @@
   "voiceHowToIos": "সেটিংস খুলুন, তারপর অ্যাক্সেসিবিলিটি, স্পোকেন কনটেন্ট, ভয়েস। ভাষা বেছে একটি কণ্ঠ ডাউনলোড করুন।",
   "voiceOpenSettings": "টেক্সট-টু-স্পিচ সেটিংস খুলুন",
   "voiceNotice": "এই ফোনে {language} কণ্ঠ নেই। এটি চাইম দিয়ে বাজবে।",
-  "voiceNoticeNote": "এই ফোনে {language} কণ্ঠ নেই। এটি আপনার ভয়েস নোট দিয়ে বাজবে।"
+  "voiceNoticeNote": "এই ফোনে {language} কণ্ঠ নেই। এটি আপনার ভয়েস নোট দিয়ে বাজবে।",
+  "quickStartLabel": "চটজলদি শুরু",
+  "templateMedicine": "ওষুধ খাওয়া",
+  "templateMedicineFill": "ওষুধ খেতে হবে",
+  "templateBill": "বিল দেওয়া",
+  "templateBillFill": "বিল দিতে হবে",
+  "templateCall": "কাউকে ফোন করা",
+  "templateCallFill": "ফোন করতে হবে",
+  "templateFollowUp": "ফলো-আপ",
+  "templateFollowUpFill": "ফলো-আপ করতে হবে",
+  "templateWeekly": "সাপ্তাহিক কাজ",
+  "templateWeeklyFill": "প্রতি {day}"
 }

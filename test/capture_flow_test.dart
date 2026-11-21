@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:memo/core/di.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
@@ -14,6 +15,7 @@ import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 import 'package:memo/features/reminders/presentation/home/capture_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_page.dart';
+import 'package:memo/features/reminders/presentation/home/reminder_confirmation.dart';
 
 import 'fakes.dart';
 
@@ -98,6 +100,65 @@ final _confirmTime = find.textContaining(
 final _mic = find.byIcon(Icons.mic_none_rounded);
 
 void main() {
+  testWidgets('quick start: chips, prefill, parse, gone once typed', (
+    tester,
+  ) async {
+    await setUpDi();
+    await _pump(tester);
+    expect(find.text('QUICK START'), findsOneWidget);
+    for (final t in [
+      'Take medicine',
+      'Pay a bill',
+      'Call someone',
+      'Follow up',
+      'Weekly routine',
+    ]) {
+      expect(find.text(t), findsOneWidget);
+    }
+
+    await tester.tap(find.text('Take medicine'));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, 'Take medicine ');
+    expect(field.controller!.selection.baseOffset, 14);
+    expect(field.focusNode!.hasFocus, isTrue);
+    expect(find.text('QUICK START'), findsNothing);
+    expect(find.text('Weekly routine'), findsNothing);
+    final cubit = tester.element(find.byType(TextField)).read<CaptureCubit>();
+    expect(cubit.state.phase, CapturePhase.typing);
+
+    await tester.enterText(find.byType(TextField), 'Take medicine 8pm');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('You wrote: “Take medicine 8pm”'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ReminderConfirmation),
+        matching: find.text('Take medicine'),
+      ),
+      findsOneWidget,
+    );
+    await cubit.discard();
+    await tester.pumpAndSettle();
+    expect(find.text('QUICK START'), findsOneWidget);
+  });
+
+  testWidgets('quick start: Weekly routine prefills today\'s weekday', (
+    tester,
+  ) async {
+    await setUpDi();
+    await _pump(tester);
+    await tester.ensureVisible(find.text('Weekly routine'));
+    await tester.tap(find.text('Weekly routine'));
+    await tester.pumpAndSettle();
+    final day = DateFormat.EEEE('en').format(DateTime.now());
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'Every $day ',
+    );
+  });
+
   testWidgets('an unsure time blocks Save until one is picked', (tester) async {
     final (repo, scheduler) = await setUpDi();
     // Noon today, fixed: "tomorrow" must not move with the wall clock.

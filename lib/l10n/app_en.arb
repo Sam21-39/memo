@@ -1592,5 +1592,54 @@
         "type": "String"
       }
     }
+  },
+  "quickStartLabel": "Quick start",
+  "@quickStartLabel": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateMedicine": "Take medicine",
+  "@templateMedicine": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateMedicineFill": "Take medicine",
+  "@templateMedicineFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateBill": "Pay a bill",
+  "@templateBill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateBillFill": "Pay bill",
+  "@templateBillFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateCall": "Call someone",
+  "@templateCall": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateCallFill": "Call",
+  "@templateCallFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateFollowUp": "Follow up",
+  "@templateFollowUp": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateFollowUpFill": "Follow up",
+  "@templateFollowUpFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateWeekly": "Weekly routine",
+  "@templateWeekly": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateWeeklyFill": "Every {day}",
+  "@templateWeeklyFill": {
+    "description": "T1 Quick-start template chip",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
   }
 }
