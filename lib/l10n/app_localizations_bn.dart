@@ -1180,4 +1180,33 @@ class AppLocalizationsBn extends AppLocalizations {
   String templateWeeklyFill(String day) {
     return 'প্রতি $day';
   }
+
+  @override
+  String get detailHistory => 'আগের রেকর্ড';
+
+  @override
+  String historyWeek(int done, int total) {
+    return 'এই সপ্তাহে $totalটির মধ্যে $doneটি হয়েছে';
+  }
+
+  @override
+  String historyDoneAt(String time) {
+    return '$time-এ হয়েছে';
+  }
+
+  @override
+  String historySnoozedDone(int minutes, String time) {
+    return '$minutes মিনিট পিছিয়ে, $time-এ হয়েছে';
+  }
+
+  @override
+  String historySnoozedLongDone(String time) {
+    return 'পিছিয়ে, $time-এ হয়েছে';
+  }
+
+  @override
+  String get historyNotDone => 'হয়েছে বলে চিহ্নিত নয়';
+
+  @override
+  String get historyOpen => 'বাকি';
 }

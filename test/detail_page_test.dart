@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/core/di.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
@@ -116,5 +117,61 @@ void main() {
     await setUpDi();
     await _pump(tester, 'gone');
     expect(find.text('This reminder no longer exists.'), findsOneWidget);
+  });
+
+  group('History', () {
+    // Monday 2026-11-09 is in the week of MinuteClock's `now` only if we pin
+    // it; use cycles relative to today so the tally is stable.
+    final today = DateTime.now();
+    final monday = DateTime(
+      today.year,
+      today.month,
+      today.day - (today.weekday - 1),
+      18,
+    );
+    Occurrence o(
+      DateTime d,
+      OccurrenceEvent e,
+      DateTime at, [
+      DateTime? until,
+    ]) => Occurrence(reminderId: 'd', dueAt: d, event: e, at: at, until: until);
+
+    testWidgets('a daily shows the week tally and its rows', (tester) async {
+      final (repo, _) = await setUpDi([
+        reminder(
+          'd',
+          'Pills',
+          monday.add(const Duration(days: 8)),
+          repeat: RepeatRule.daily,
+        ),
+      ]);
+      final snoozeAt = DateTime(monday.year, monday.month, monday.day, 18, 5);
+      repo.log.addAll([
+        o(
+          monday,
+          OccurrenceEvent.snoozed,
+          snoozeAt,
+          snoozeAt.add(const Duration(minutes: 10)),
+        ),
+        o(
+          monday,
+          OccurrenceEvent.done,
+          DateTime(monday.year, monday.month, monday.day, 18, 15),
+        ),
+        o(monday.add(const Duration(days: 1)), OccurrenceEvent.open, today),
+      ]);
+      await _pump(tester, 'd');
+      expect(find.text('HISTORY'), findsOneWidget);
+      expect(find.text('This week 1 of 2 done'), findsOneWidget);
+      expect(find.text('Snoozed 10 min, done 6:15 PM'), findsOneWidget);
+      expect(find.text('Not marked done'), findsOneWidget);
+      expect(find.text('Open'), findsOneWidget);
+    });
+
+    testWidgets('a one-off shows no History', (tester) async {
+      await setUpDi([reminder('1', 'Pills', due)]);
+      await _pump(tester, '1');
+      expect(find.text('HISTORY'), findsNothing);
+    });
   });
 }

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/core/di.dart';
 import 'package:memo/core/theme/memo_theme.dart';
 import 'package:memo/l10n/l10n.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -73,10 +74,13 @@ class _SlowRepository extends InMemoryRepository {
   Completer<void>? gate;
 
   @override
-  Future<void> save(Reminder reminder) async {
+  Future<void> save(
+    Reminder reminder, {
+    List<Occurrence> log = const [],
+  }) async {
     saves++;
     await gate?.future;
-    return super.save(reminder);
+    return super.save(reminder, log: log);
   }
 }
 

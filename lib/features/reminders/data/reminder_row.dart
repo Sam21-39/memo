@@ -1,3 +1,4 @@
+import '../domain/entities/occurrence.dart';
 import '../domain/entities/reminder.dart';
 import '../domain/entities/repeat_rule.dart';
 
@@ -55,3 +56,21 @@ Reminder reminderFromRow(Map<String, Object?> row) {
     snoozedUntil: _time(row['snoozed_until']),
   );
 }
+
+extension OccurrenceDbRow on Occurrence {
+  Map<String, Object?> toRow() => {
+    'reminder_id': reminderId,
+    'due_at': dueAt.millisecondsSinceEpoch,
+    'event': event.name,
+    'at': at.millisecondsSinceEpoch,
+    'until': until?.millisecondsSinceEpoch,
+  };
+}
+
+Occurrence occurrenceFromRow(Map<String, Object?> row) => Occurrence(
+  reminderId: row['reminder_id']! as String,
+  dueAt: _time(row['due_at'])!,
+  event: OccurrenceEvent.values.byName(row['event']! as String),
+  at: _time(row['at'])!,
+  until: _time(row['until']),
+);

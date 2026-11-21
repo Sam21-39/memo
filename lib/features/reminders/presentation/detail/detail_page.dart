@@ -9,12 +9,16 @@ import '../../../../core/ui/memo_dialog.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/minute_clock.dart';
 import '../../../../core/ui/minutes_sheet.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
+import '../../../settings/permission_status_row.dart';
+import '../../../settings/settings_cubit.dart';
 import '../../data/media_store.dart';
 import '../../data/voice_clip.dart';
 import '../widgets/voice_notice.dart';
+import '../../domain/entities/occurrence.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/usecases/complete_reminder.dart';
 import '../repeat_label.dart';
@@ -43,7 +47,10 @@ class DetailPage extends StatelessWidget {
           child: switch (state) {
             DetailLoading() => const SizedBox.shrink(),
             DetailMissing() => const _Missing(),
-            DetailReady(:final reminder) => _Body(reminder: reminder),
+            DetailReady(:final reminder, :final history) => _Body(
+              reminder: reminder,
+              history: history,
+            ),
           },
         ),
       ),
@@ -75,9 +82,10 @@ class _Missing extends StatelessWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.reminder});
+  const _Body({required this.reminder, required this.history});
 
   final Reminder reminder;
+  final List<Occurrence> history;
 
   Future<void> _delete(BuildContext context) async {
     final cubit = context.read<DetailCubit>();
@@ -94,6 +102,34 @@ class _Body extends StatelessWidget {
       HapticFeedback.mediumImpact();
       navigator.pop();
     }
+  }
+
+  List<Widget> _history(BuildContext context, DateTime now) {
+    final rows = historyRows(history);
+    if (!reminder.repeat.repeats || rows.isEmpty) return const [];
+    final c = MemoColors.of(context);
+    final tally = weekTally(rows, now);
+    return [
+      const SizedBox(height: MemoSpace.space6),
+      Semantics(
+        header: true,
+        child: Text(
+          sectionLabelText(context, context.l10n.detailHistory),
+          style: sectionLabelStyle(context).copyWith(color: c.ink70),
+        ),
+      ),
+      if (tally.total > 0) ...[
+        const SizedBox(height: MemoSpace.space1),
+        Text(
+          context.l10n.historyWeek(tally.done, tally.total),
+          style: MemoType.body.copyWith(fontSize: 13, color: c.ink70),
+        ),
+      ],
+      const SizedBox(height: MemoSpace.space2),
+      SectionCard(
+        children: [for (final row in rows) _HistoryRow(row: row, now: now)],
+      ),
+    ];
   }
 
   @override
@@ -248,6 +284,7 @@ class _Body extends StatelessWidget {
                     ),
                   ],
                 ),
+                ..._history(context, now),
               ],
             ),
           ),
@@ -348,4 +385,58 @@ class _Body extends StatelessWidget {
 Future<List<String>> _knownTags() async {
   final all = await sl<ReminderRepository>().getAll();
   return {for (final r in all) ?r.tag}.toList()..sort();
+}
+
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({required this.row, required this.now});
+
+  final OccurrenceRow row;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final c = MemoColors.of(context);
+    final doneAt = row.doneAt;
+    final minutes = row.snoozedMinutes;
+    final String sentence;
+    if (doneAt == null) {
+      sentence = l.historyNotDone;
+    } else {
+      final time = isSameDay(doneAt, row.dueAt)
+          ? formatTime(context, doneAt)
+          : formatWhen(context, doneAt, now);
+      sentence = minutes == null
+          ? l.historyDoneAt(time)
+          : minutes >= 1 && minutes <= 90
+          ? l.historySnoozedDone(minutes, time)
+          : l.historySnoozedLongDone(time);
+    }
+    final date = formatDate(context, row.dueAt);
+    final pill = row.done ? l.commonDone : l.historyOpen;
+    return Semantics(
+      container: true,
+      label: [date, sentence, pill].join(', '),
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: MemoSpace.space4,
+          vertical: MemoSpace.space3,
+        ),
+        child: Wrap(
+          spacing: MemoSpace.space3,
+          runSpacing: MemoSpace.space1,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(date, style: MemoType.labelMedium.copyWith(color: c.ink)),
+            Text(sentence, style: MemoType.body.copyWith(color: c.ink70)),
+            StatusPill(
+              row.done ? HealthStatus.allowed : HealthStatus.fix,
+              text: pill,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

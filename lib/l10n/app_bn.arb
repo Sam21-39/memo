@@ -335,5 +335,12 @@
   "templateFollowUp": "ফলো-আপ",
   "templateFollowUpFill": "ফলো-আপ করতে হবে",
   "templateWeekly": "সাপ্তাহিক কাজ",
-  "templateWeeklyFill": "প্রতি {day}"
+  "templateWeeklyFill": "প্রতি {day}",
+  "detailHistory": "আগের রেকর্ড",
+  "historyWeek": "এই সপ্তাহে {total}টির মধ্যে {done}টি হয়েছে",
+  "historyDoneAt": "{time}-এ হয়েছে",
+  "historySnoozedDone": "{minutes} মিনিট পিছিয়ে, {time}-এ হয়েছে",
+  "historySnoozedLongDone": "পিছিয়ে, {time}-এ হয়েছে",
+  "historyNotDone": "হয়েছে বলে চিহ্নিত নয়",
+  "historyOpen": "বাকি"
 }

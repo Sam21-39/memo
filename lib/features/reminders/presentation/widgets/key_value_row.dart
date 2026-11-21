@@ -42,7 +42,7 @@ class KeyValueRow extends StatelessWidget {
                   ),
                 ),
               ),
-              child,
+              child is Flexible ? child : Flexible(child: child),
             ],
           ),
         ),

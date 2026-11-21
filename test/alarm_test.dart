@@ -259,6 +259,18 @@ void main() {
       expect(repo.all.single.isDone, isFalse);
     });
 
+    test('the same Done tap applied twice counts once', () async {
+      final repo = InMemoryRepository([
+        reminder('p', 'Pills', due, repeat: RepeatRule.daily),
+      ]);
+      final apply = ApplyAlarmAction(repo, SaveReminder(repo, FakeScheduler()));
+      await apply('p', AlarmAction.done, due);
+      final rows = repo.log.length;
+      await apply('p', AlarmAction.done, due);
+      expect(repo.log.length, rows);
+      expect(repo.all.single.dueAt, DateTime(2026, 11, 5, 20));
+    });
+
     test('a reminder deleted meanwhile is ignored', () async {
       final repo = InMemoryRepository();
       await ApplyAlarmAction(repo, SaveReminder(repo, FakeScheduler()))(

@@ -1,7 +1,6 @@
+import '../entities/occurrence.dart';
 import '../repositories/reminder_repository.dart';
-import 'complete_reminder.dart';
 import 'save_reminder.dart';
-import 'snooze_reminder.dart';
 
 enum AlarmAction { done, snooze }
 
@@ -19,13 +18,14 @@ class ApplyAlarmAction {
   Future<void> call(String reminderId, AlarmAction action, DateTime at) async {
     final reminder = await _repository.getById(reminderId);
     if (reminder == null || reminder.isDone) return;
-    await _save(switch (action) {
-      AlarmAction.done => const CompleteReminder()(reminder, now: at),
-      AlarmAction.snooze => const SnoozeReminder()(
-        reminder,
-        now: at,
-        by: snoozeBy,
-      ),
-    });
+    // Same tap replayed (native queue + background isolate): already applied.
+    final replay = (await _repository.occurrences(
+      reminderId,
+    )).any((o) => o.at == at && o.event != OccurrenceEvent.open);
+    if (replay) return;
+    await switch (action) {
+      AlarmAction.done => _save.done(reminder, at),
+      AlarmAction.snooze => _save.snooze(reminder, at, by: snoozeBy),
+    };
   }
 }

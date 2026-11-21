@@ -335,5 +335,12 @@
   "templateFollowUp": "फ़ॉलो-अप",
   "templateFollowUpFill": "फ़ॉलो-अप करना है",
   "templateWeekly": "हर हफ़्ते का काम",
-  "templateWeeklyFill": "हर {day}"
+  "templateWeeklyFill": "हर {day}",
+  "detailHistory": "पिछला रिकॉर्ड",
+  "historyWeek": "इस हफ़्ते {total} में से {done} पूरे",
+  "historyDoneAt": "{time} पर हो गया",
+  "historySnoozedDone": "{minutes} मिनट टाला, {time} पर हो गया",
+  "historySnoozedLongDone": "टाला, {time} पर हो गया",
+  "historyNotDone": "पूरा नहीं किया गया",
+  "historyOpen": "बाकी"
 }

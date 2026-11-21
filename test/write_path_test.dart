@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/domain/alarm/alarm_scheduler.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
+import 'package:memo/features/reminders/domain/test_reminder.dart';
+import 'package:memo/features/reminders/domain/usecases/apply_alarm_action.dart';
 import 'package:memo/features/reminders/domain/usecases/complete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
@@ -10,6 +15,7 @@ import 'package:memo/features/reminders/domain/usecases/sync_alarms.dart';
 import 'fakes.dart';
 
 void main() {
+  historyTests();
   group('SaveReminder', () {
     test('writes, then schedules the same reminder', () async {
       final repo = InMemoryRepository();
@@ -180,6 +186,149 @@ void main() {
       );
       expect(s.dueAt, DateTime(2026, 11, 10, 20, 12));
       expect(s.snoozedUntil, isNull);
+    });
+  });
+}
+
+class _PruneFails extends InMemoryRepository {
+  _PruneFails(super.reminders);
+
+  @override
+  Future<void> pruneOccurrences(DateTime before) async =>
+      throw StateError('prune');
+}
+
+void historyTests() {
+  final due = DateTime(2026, 11, 9, 8);
+  final tap = DateTime(2026, 11, 9, 8, 5);
+  final daily = reminder('d', 'Pills', due, repeat: RepeatRule.daily);
+
+  group('history: Done and Snooze', () {
+    test('done on a daily writes one done row keyed by the old due', () async {
+      final repo = InMemoryRepository([daily]);
+      await SaveReminder(repo, FakeScheduler()).done(daily, tap);
+      expect(repo.log.single.event, OccurrenceEvent.done);
+      expect(repo.log.single.dueAt, due);
+      expect(repo.log.single.at, tap);
+      expect(repo.all.single.dueAt, DateTime(2026, 11, 10, 8));
+    });
+
+    test('a failed schedule does not duplicate the history', () async {
+      final repo = InMemoryRepository([daily]);
+      final scheduler = FakeScheduler()..fail = true;
+      await expectLater(
+        SaveReminder(repo, scheduler).done(daily, tap),
+        throwsA(isA<ScheduleFailure>()),
+      );
+      expect(repo.log, hasLength(1));
+      expect(repo.all.single.needsSchedule, isTrue);
+    });
+
+    test('one-off and memo-test write nothing', () async {
+      final once = reminder('o', 'x', due);
+      final test = reminder(testReminderId, 'x', due, repeat: RepeatRule.daily);
+      final repo = InMemoryRepository([once, test]);
+      final save = SaveReminder(repo, FakeScheduler());
+      await save.done(once, tap);
+      await save.done(test, tap);
+      await save.snooze(test, tap, by: const Duration(minutes: 10));
+      expect(repo.log, isEmpty);
+    });
+
+    test('snooze on a repeat records until', () async {
+      final repo = InMemoryRepository([daily]);
+      await SaveReminder(
+        repo,
+        FakeScheduler(),
+      ).snooze(daily, tap, by: const Duration(minutes: 10));
+      expect(repo.log.single.event, OccurrenceEvent.snoozed);
+      expect(repo.log.single.until, tap.add(const Duration(minutes: 10)));
+    });
+
+    test('ApplyAlarmAction stores the tap time of a day-old Done', () async {
+      final repo = InMemoryRepository([daily]);
+      await ApplyAlarmAction(repo, SaveReminder(repo, FakeScheduler()))(
+        'd',
+        AlarmAction.done,
+        tap,
+      );
+      expect(repo.log.single.dueAt, due);
+      expect(repo.log.single.at, tap);
+    });
+  });
+
+  test('Done and Snooze only go through the SaveReminder funnel', () {
+    const allowed = [
+      'save_reminder.dart',
+      'detail_page.dart',
+      'snooze_sheet.dart',
+    ];
+    final offenders = [
+      for (final f in Directory('lib').listSync(recursive: true))
+        if (f is File &&
+            f.path.endsWith('.dart') &&
+            !allowed.any(f.path.endsWith) &&
+            RegExp(
+              r'(CompleteReminder|SnoozeReminder)\(\)\(',
+            ).hasMatch(f.readAsStringSync()))
+          f.path,
+    ];
+    expect(offenders, isEmpty);
+  });
+
+  group('history: SyncAlarms', () {
+    final now = DateTime(2026, 11, 10, 9);
+
+    test('three cycles behind writes open rows once', () async {
+      final behind = daily.copyWith(dueAt: DateTime(2026, 11, 7, 8));
+      final repo = InMemoryRepository([behind]);
+      final sync = SyncAlarms(repo, FakeScheduler());
+      await sync(now: now);
+      expect(repo.log.map((o) => o.event), everyElement(OccurrenceEvent.open));
+      expect(repo.log.map((o) => o.dueAt), [
+        DateTime(2026, 11, 7, 8),
+        DateTime(2026, 11, 8, 8),
+        DateTime(2026, 11, 9, 8),
+        DateTime(2026, 11, 10, 8),
+      ]);
+      await sync(now: now);
+      expect(repo.log, hasLength(4));
+    });
+
+    test('one cycle behind writes none', () async {
+      final repo = InMemoryRepository([
+        daily.copyWith(dueAt: DateTime(2026, 11, 10, 8)),
+      ]);
+      await SyncAlarms(repo, FakeScheduler())(now: now);
+      expect(repo.log, isEmpty);
+    });
+
+    test('rows older than 90 days are pruned', () async {
+      final repo = InMemoryRepository([
+        daily.copyWith(dueAt: DateTime(2026, 11, 11, 8)),
+      ]);
+      repo.log.addAll([
+        Occurrence(
+          reminderId: 'd',
+          dueAt: now.subtract(const Duration(days: 91)),
+          event: OccurrenceEvent.done,
+          at: now,
+        ),
+        Occurrence(
+          reminderId: 'd',
+          dueAt: now.subtract(const Duration(days: 89)),
+          event: OccurrenceEvent.done,
+          at: now,
+        ),
+      ]);
+      await SyncAlarms(repo, FakeScheduler())(now: now);
+      expect(repo.log, hasLength(1));
+    });
+
+    test('a throwing prune still reaches syncAll', () async {
+      final scheduler = FakeScheduler();
+      await SyncAlarms(_PruneFails([daily]), scheduler)(now: now);
+      expect(scheduler.synced, isNotNull);
     });
   });
 }

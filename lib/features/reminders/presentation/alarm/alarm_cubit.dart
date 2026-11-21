@@ -2,9 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
-import '../../domain/usecases/complete_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
-import '../../domain/usecases/snooze_reminder.dart';
 
 enum AlarmOutcome { ringing, snoozed, done, missing }
 
@@ -108,7 +106,7 @@ class AlarmCubit extends Cubit<AlarmState> {
   bool _finishing = false;
 
   Future<void> _finish(
-    Reminder Function(Reminder r, DateTime now) change,
+    Future<void> Function(Reminder r, DateTime now) write,
     AlarmOutcome outcome,
   ) async {
     final reminder = state.reminder;
@@ -121,7 +119,7 @@ class AlarmCubit extends Cubit<AlarmState> {
     try {
       await stopRinging();
       await stop();
-      await _save(change(reminder, DateTime.now()));
+      await write(reminder, DateTime.now());
       if (!isClosed) emit(state.copyWith(outcome: outcome, playing: false));
     } catch (_) {
       _finishing = false; // failed save: let the user retry
@@ -129,13 +127,10 @@ class AlarmCubit extends Cubit<AlarmState> {
     }
   }
 
-  Future<void> done() => _finish(
-    (r, now) => const CompleteReminder()(r, now: now),
-    AlarmOutcome.done,
-  );
+  Future<void> done() => _finish(_save.done, AlarmOutcome.done);
 
   Future<void> snooze(DateTime until) => _finish(
-    (r, now) => const SnoozeReminder()(r, now: now, until: until),
+    (r, now) => _save.snooze(r, now, until: until),
     AlarmOutcome.snoozed,
   );
 }

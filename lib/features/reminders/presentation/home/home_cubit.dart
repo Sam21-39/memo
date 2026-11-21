@@ -5,10 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
-import '../../domain/usecases/complete_reminder.dart';
 import '../../domain/usecases/delete_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
-import '../../domain/usecases/snooze_reminder.dart';
 import 'home_state.dart';
 import '../../../../l10n/l10n.dart';
 
@@ -67,9 +65,7 @@ class HomeCubit extends Cubit<HomeState> {
   /// False when the write failed (the row must come back).
   Future<bool> complete(Reminder reminder) async {
     await commitPendingDelete();
-    final ok = await _write(
-      () => _save(const CompleteReminder()(reminder, now: DateTime.now())),
-    );
+    final ok = await _write(() => _save.done(reminder, DateTime.now()));
     if (!ok || reminder.repeat.repeats) return ok;
     final current = state;
     if (current is! HomeReady) return ok;
@@ -114,9 +110,8 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<bool> snooze(Reminder reminder, {Duration? by}) => _write(
-    () => _save(const SnoozeReminder()(reminder, now: DateTime.now(), by: by)),
-  );
+  Future<bool> snooze(Reminder reminder, {Duration? by}) =>
+      _write(() => _save.snooze(reminder, DateTime.now(), by: by));
 
   /// Hides the row now; the delete runs when the Undo window ends.
   Future<void> delete(Reminder reminder) async {

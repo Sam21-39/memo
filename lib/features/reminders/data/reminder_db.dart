@@ -72,6 +72,20 @@ class ReminderDb {
     ],
     // v3 — snoozed_until: a repeat's snooze no longer moves its series.
     ['ALTER TABLE reminders ADD COLUMN snoozed_until INTEGER'],
+    // v4 — per-occurrence history for repeats. No foreign key: the pragma is
+    // off, and delete() removes both in one transaction.
+    [
+      '''
+      CREATE TABLE occurrences (
+        reminder_id TEXT NOT NULL,
+        due_at INTEGER NOT NULL,
+        event TEXT NOT NULL,
+        at INTEGER NOT NULL,
+        until INTEGER
+      )
+      ''',
+      'CREATE INDEX occurrences_by_reminder ON occurrences (reminder_id, due_at)',
+    ],
   ];
 
   static int get version => migrations.length;

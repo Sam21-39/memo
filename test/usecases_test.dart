@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/data/rewall_repeats.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/usecases/complete_reminder.dart';
@@ -323,9 +324,12 @@ class _FlakyRepository extends InMemoryRepository {
   int _saves = 0;
 
   @override
-  Future<void> save(Reminder reminder) async {
+  Future<void> save(
+    Reminder reminder, {
+    List<Occurrence> log = const [],
+  }) async {
     if (++_saves == 2) throw StateError('db');
-    await super.save(reminder);
+    await super.save(reminder, log: log);
   }
 }
 

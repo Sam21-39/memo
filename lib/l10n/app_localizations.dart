@@ -2109,6 +2109,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every {day}'**
   String templateWeeklyFill(String day);
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get detailHistory;
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'This week {done} of {total} done'**
+  String historyWeek(int done, int total);
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'Done at {time}'**
+  String historyDoneAt(String time);
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'Snoozed {minutes} min, done {time}'**
+  String historySnoozedDone(int minutes, String time);
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'Snoozed, done {time}'**
+  String historySnoozedLongDone(String time);
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'Not marked done'**
+  String get historyNotDone;
+
+  /// H1 per-occurrence history
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get historyOpen;
 }
 
 class _AppLocalizationsDelegate

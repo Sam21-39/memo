@@ -1641,5 +1641,59 @@
         "type": "String"
       }
     }
+  },
+  "detailHistory": "History",
+  "@detailHistory": {
+    "description": "H1 per-occurrence history"
+  },
+  "historyWeek": "This week {done} of {total} done",
+  "@historyWeek": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "historyDoneAt": "Done at {time}",
+  "@historyDoneAt": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historySnoozedDone": "Snoozed {minutes} min, done {time}",
+  "@historySnoozedDone": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historySnoozedLongDone": "Snoozed, done {time}",
+  "@historySnoozedLongDone": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historyNotDone": "Not marked done",
+  "@historyNotDone": {
+    "description": "H1 per-occurrence history"
+  },
+  "historyOpen": "Open",
+  "@historyOpen": {
+    "description": "H1 per-occurrence history"
   }
 }

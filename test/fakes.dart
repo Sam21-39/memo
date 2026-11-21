@@ -7,6 +7,7 @@ import 'package:memo/core/feature_flags/feature_flags.dart';
 import 'package:memo/core/theme/memo_theme.dart';
 import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/domain/alarm/alarm_scheduler.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -31,6 +32,7 @@ class InMemoryRepository implements ReminderRepository {
   final _changes = StreamController<void>.broadcast();
   bool failSave = false;
   bool failDelete = false;
+  final log = <Occurrence>[];
 
   List<Reminder> get all => List.unmodifiable(_reminders);
 
@@ -46,16 +48,32 @@ class InMemoryRepository implements ReminderRepository {
       _reminders.where((r) => r.id == id).firstOrNull;
 
   @override
-  Future<void> save(Reminder reminder) async {
+  Future<void> save(
+    Reminder reminder, {
+    List<Occurrence> log = const [],
+  }) async {
     if (failSave) throw StateError('db');
     _reminders = [..._reminders.where((r) => r.id != reminder.id), reminder];
+    this.log.addAll(log);
     _changes.add(null);
   }
+
+  @override
+  Future<List<Occurrence>> occurrences(String reminderId) async =>
+      log.where((o) => o.reminderId == reminderId).toList()..sort((a, b) {
+        final d = b.dueAt.compareTo(a.dueAt);
+        return d != 0 ? d : a.at.compareTo(b.at);
+      });
+
+  @override
+  Future<void> pruneOccurrences(DateTime before) async =>
+      log.removeWhere((o) => o.dueAt.isBefore(before));
 
   @override
   Future<void> delete(String id) async {
     if (failDelete) throw StateError('db');
     _reminders = _reminders.where((r) => r.id != id).toList();
+    log.removeWhere((o) => o.reminderId == id);
     _changes.add(null);
   }
 }

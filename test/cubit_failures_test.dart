@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
+import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
 import 'package:memo/features/reminders/presentation/archive/archive_cubit.dart';
@@ -14,6 +16,13 @@ import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_state.dart';
 
 import 'fakes.dart';
+
+class _NoHistory extends InMemoryRepository {
+  _NoHistory(super.reminders);
+  @override
+  Future<List<Occurrence>> occurrences(String reminderId) =>
+      throw StateError('db');
+}
 
 void main() {
   late InMemoryRepository repo;
@@ -151,6 +160,34 @@ void main() {
     expect(gated.deleted, ['a']);
   });
 
+  test('history survives Undo and goes when the delete commits', () async {
+    final due = DateTime(2026, 11, 9, 8);
+    repo = InMemoryRepository([
+      reminder('a', 'A', due, repeat: RepeatRule.daily),
+    ]);
+    repo.log.add(
+      Occurrence(
+        reminderId: 'a',
+        dueAt: due,
+        event: OccurrenceEvent.done,
+        at: due,
+      ),
+    );
+    final cubit = HomeCubit(
+      repo,
+      SaveReminder(repo, scheduler),
+      DeleteReminder(repo, scheduler, (_) async {}),
+    );
+    await cubit.load();
+    await cubit.delete(repo.all.single);
+    cubit.undoDelete();
+    expect(repo.log, hasLength(1));
+    await cubit.delete(repo.all.single);
+    await cubit.commitPendingDelete();
+    expect(repo.log, isEmpty);
+    await cubit.close();
+  });
+
   test(
     'a pending delete commits when the app goes to the background',
     () async {
@@ -168,6 +205,20 @@ void main() {
       await cubit.close();
     },
   );
+  test('Detail still shows the reminder when history cannot be read', () async {
+    final r = _NoHistory([
+      reminder('1', 'Pills', when, repeat: RepeatRule.daily),
+    ]);
+    final cubit = DetailCubit(
+      '1',
+      r,
+      SaveReminder(r, FakeScheduler()),
+      DeleteReminder(r, FakeScheduler(), (_) async {}),
+    );
+    await cubit.load();
+    expect((cubit.state as DetailReady).history, isEmpty);
+    await cubit.close();
+  });
 }
 
 /// Records deletes; [gate] holds the next one until completed.

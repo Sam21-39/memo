@@ -14,6 +14,7 @@ import 'package:memo/features/settings/settings_cubit.dart';
 import 'package:memo/features/settings/settings_page.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
 import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
@@ -122,8 +123,8 @@ void _fits(WidgetTester tester) {
 
 void main() {
   final now = DateTime.now();
-  DateTime inDays(int d, int h) =>
-      DateTime(now.year, now.month, now.day + d, h);
+  DateTime inDays(int d, int h, [int m = 0]) =>
+      DateTime(now.year, now.month, now.day + d, h, m);
   final long =
       'Collect the signed forms from the ward office and post them ' * 2;
 
@@ -134,6 +135,66 @@ void main() {
     reminder('4', 'Dentist', inDays(3, 9), note: 'Bring the X-ray'),
     reminder('5', 'Call mum', inDays(4, 18)),
   ]);
+
+  // Detail with history, incl. the harshest 320x690 @ 2.0x (hi for 320).
+  void detailCase(Size size, double scale, String tag) {
+    testWidgets('Detail: $tag', (tester) async {
+      final (repo, _) = await setUpDi([
+        reminder(
+          '1',
+          long.substring(0, 80),
+          inDays(2, 9),
+          repeat: RepeatRule.daily,
+        ),
+      ]);
+      repo.log.addAll([
+        for (var i = 1; i <= 3; i++)
+          Occurrence(
+            reminderId: '1',
+            dueAt: inDays(-i, 9),
+            event: i == 2 ? OccurrenceEvent.open : OccurrenceEvent.done,
+            at: inDays(-i, 9, 20),
+          ),
+        Occurrence(
+          reminderId: '1',
+          dueAt: inDays(-1, 9),
+          event: OccurrenceEvent.snoozed,
+          at: inDays(-1, 9, 5),
+          until: inDays(-1, 9, 15),
+        ),
+      ]);
+      await _show(
+        tester,
+        size,
+        scale,
+        BlocProvider(
+          create: (_) => DetailCubit(
+            '1',
+            sl<ReminderRepository>(),
+            sl<SaveReminder>(),
+            sl<DeleteReminder>(),
+          )..load(),
+          child: const DetailPage(),
+        ),
+        locale: size.width == 320 ? const Locale('hi') : null,
+      );
+      // Lazy list: bring History on-screen so it is laid out and checked.
+      final history = find.textContaining(
+        size.width == 320 ? 'पिछला रिकॉर्ड' : 'HISTORY',
+        skipOffstage: false,
+      );
+      await tester.scrollUntilVisible(
+        history,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(history, findsOneWidget);
+      _fits(tester);
+    });
+  }
+
+  detailCase(const Size(320, 690), 2.0, '320x690 @ 2.0x');
 
   for (final (size, scale) in _cases) {
     final tag = '${size.width.toInt()}x${size.height.toInt()} @ ${scale}x';
@@ -195,24 +256,7 @@ void main() {
       expect(find.text('Weekly routine'), findsOneWidget);
     });
 
-    testWidgets('Detail: $tag', (tester) async {
-      await setUpDi([reminder('1', long.substring(0, 80), inDays(2, 9))]);
-      await _show(
-        tester,
-        size,
-        scale,
-        BlocProvider(
-          create: (_) => DetailCubit(
-            '1',
-            sl<ReminderRepository>(),
-            sl<SaveReminder>(),
-            sl<DeleteReminder>(),
-          )..load(),
-          child: const DetailPage(),
-        ),
-      );
-      _fits(tester);
-    });
+    detailCase(size, scale, tag);
 
     testWidgets('Alarm: $tag', (tester) async {
       final repo = InMemoryRepository([
