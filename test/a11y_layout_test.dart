@@ -10,6 +10,7 @@ import 'package:memo/core/theme/memo_theme.dart';
 import 'package:memo/core/ui/option_button.dart';
 import 'package:memo/features/reminders/data/alarm/native_alarm.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/settings/settings_cubit.dart';
 import 'package:memo/features/settings/settings_page.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
@@ -29,6 +30,7 @@ import 'package:memo/features/reminders/presentation/edit/edit_cubit.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
 import 'package:memo/features/reminders/presentation/home/capture_cubit.dart';
 import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
+import 'package:memo/features/reminders/presentation/home/reminder_confirmation.dart';
 import 'package:memo/features/reminders/presentation/home/home_page.dart';
 import 'package:memo/features/reminders/presentation/widgets/check_control.dart';
 import 'package:memo/features/tags/presentation/widgets/tag_chip.dart';
@@ -92,7 +94,7 @@ Future<void> _show(
   await tester.pumpAndSettle();
 }
 
-Widget _home() => MultiBlocProvider(
+Widget _home([ShareInbox? shares]) => MultiBlocProvider(
   providers: [
     BlocProvider(
       create: (_) => HomeCubit(
@@ -108,6 +110,7 @@ Widget _home() => MultiBlocProvider(
         voice: _Voice(),
         stt: _EmptyStt(),
         knownTags: () => const ['Health'],
+        shares: shares,
         clock: () => DateTime(2026, 11, 4, 12),
       ),
     ),
@@ -196,6 +199,24 @@ void main() {
 
   detailCase(const Size(320, 690), 2.0, '320x690 @ 2.0x');
 
+  // A long Bengali share with no clear time: quote, unsure block, footnote.
+  void sharedCase(Size size, double scale, String tag) {
+    testWidgets('Shared confirmation (bn): $tag', (tester) async {
+      await seed();
+      await _show(
+        tester,
+        size,
+        scale,
+        _home(FakeShares(['আমাকে মনে করিয়ে দাও ' * 12])),
+        locale: const Locale('bn'),
+      );
+      expect(find.byType(ReminderConfirmation), findsOneWidget);
+      _fits(tester);
+    });
+  }
+
+  sharedCase(const Size(320, 690), 2.0, '320x690 @ 2.0x');
+
   for (final (size, scale) in _cases) {
     final tag = '${size.width.toInt()}x${size.height.toInt()} @ ${scale}x';
 
@@ -257,6 +278,7 @@ void main() {
     });
 
     detailCase(size, scale, tag);
+    sharedCase(size, scale, tag);
 
     testWidgets('Alarm: $tag', (tester) async {
       final repo = InMemoryRepository([

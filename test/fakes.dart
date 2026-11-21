@@ -6,6 +6,7 @@ import 'package:memo/core/di.dart';
 import 'package:memo/core/feature_flags/feature_flags.dart';
 import 'package:memo/core/theme/memo_theme.dart';
 import 'package:memo/l10n/l10n.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/domain/alarm/alarm_scheduler.dart';
 import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
@@ -148,3 +149,22 @@ Widget themed(Widget child) => MaterialApp(
   supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );
+
+/// Queued shares in memory; [acked] records what was removed.
+class FakeShares implements ShareInbox {
+  FakeShares(List<String> texts)
+    : queue = [
+        for (var i = 0; i < texts.length; i++) SharedText('s$i', texts[i]),
+      ];
+  final List<SharedText> queue;
+  final acked = <String>[];
+
+  @override
+  Future<SharedText?> next() async => queue.isEmpty ? null : queue.first;
+
+  @override
+  Future<void> ack(String id) async {
+    acked.add(id);
+    queue.removeWhere((e) => e.id == id);
+  }
+}

@@ -19,6 +19,7 @@ import 'features/reminders/data/alarm/native_alarm.dart';
 import 'features/reminders/data/media_store.dart';
 import 'features/reminders/data/rewall_repeats.dart';
 import 'features/reminders/data/speech_to_text.dart';
+import 'features/reminders/data/share_inbox.dart';
 import 'features/reminders/data/spoken_reminder.dart';
 import 'features/reminders/data/voice_clip.dart';
 import 'features/reminders/domain/repositories/reminder_repository.dart';
@@ -76,6 +77,7 @@ GoRouter buildRouter(AppPrefs prefs) {
                 media: sl<MediaStore>(),
                 voice: sl<VoiceClip>(),
                 stt: const SpeechToText(),
+                shares: sl<ShareInbox>(),
                 knownTags: () {
                   final home = context.read<HomeCubit>().state;
                   return home is HomeReady ? home.tagsInUse : const [];

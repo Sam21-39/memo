@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/media_store.dart';
+import '../../data/share_inbox.dart';
 import '../../data/speech_to_text.dart';
 import '../../data/voice_clip.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
@@ -40,6 +41,7 @@ class CaptureState {
     this.notice,
     this.error,
     this.spoken = false,
+    this.shared = false,
     this.latched = false,
     this.level = 0,
     this.failure,
@@ -68,6 +70,9 @@ class CaptureState {
 
   /// [text] came from speech, not the keyboard.
   final bool spoken;
+
+  /// [text] was shared from another app.
+  final bool shared;
 
   /// Recording goes on after the finger lifted (tap mode).
   final bool latched;
@@ -117,6 +122,7 @@ class CaptureState {
     String? error,
     bool clearError = false,
     bool? spoken,
+    bool? shared,
     bool? latched,
     double? level,
     VoiceFailure? failure,
@@ -136,6 +142,7 @@ class CaptureState {
     notice: clearNotice ? null : (notice ?? this.notice),
     error: clearError ? null : (error ?? this.error),
     spoken: spoken ?? this.spoken,
+    shared: shared ?? this.shared,
     latched: latched ?? this.latched,
     level: level ?? this.level,
     failure: clearFailure ? null : (failure ?? this.failure),
@@ -160,6 +167,7 @@ class CaptureCubit extends Cubit<CaptureState> {
     this.inputLocale = _en,
     this.interfaceLanguage = _en,
     this.readAloudDefault = _yes,
+    this.shares,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now,
        super(CaptureState(readAloud: readAloudDefault()));
@@ -168,6 +176,7 @@ class CaptureCubit extends Cubit<CaptureState> {
   final MediaStore? media;
   final VoiceClip? voice;
   final SpeechToText? stt;
+  final ShareInbox? shares;
 
   /// Read on every parse, so a tag added a moment ago matches "for work".
   final List<String> Function() knownTags;
@@ -226,11 +235,27 @@ class CaptureCubit extends Cubit<CaptureState> {
         parsed: _parse(text),
         readAloud: state.phase == CapturePhase.idle ? readAloudDefault() : null,
         spoken: false,
+        shared: false,
         clearError: true,
         clearNotice: true,
         clearFailure: true,
       ),
     );
+  }
+
+  /// A text shared from another app goes straight to the confirmation, like a
+  /// transcript. Only from idle: never over something the user is doing.
+  Future<bool> pullShare() async {
+    if (shares == null || state.phase != CapturePhase.idle) return false;
+    final next = await shares!.next();
+    if (next == null || isClosed || state.phase != CapturePhase.idle) {
+      return false;
+    }
+    setText(next.text);
+    emit(state.copyWith(phase: CapturePhase.confirming, shared: true));
+    // After the emit: a crash in between shows the share again, never loses it.
+    await shares!.ack(next.id);
+    return true;
   }
 
   void setDueAt(DateTime at) =>

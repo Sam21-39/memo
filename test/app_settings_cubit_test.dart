@@ -13,6 +13,7 @@ import 'package:memo/core/di.dart';
 import 'package:memo/features/reminders/data/alarm/local_notification_scheduler.dart';
 import 'package:memo/features/reminders/data/alarm/native_alarm.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/data/spoken_reminder.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
 import 'package:memo/l10n/l10n.dart';
@@ -51,6 +52,7 @@ Future<void> _pumpApp(WidgetTester tester, String pref, String route) async {
     ..registerSingleton(SpokenReminder(gender: () => 'female'))
     ..registerSingleton<LocalNotificationScheduler>(_Notifications())
     ..registerSingleton(const NativeAlarm())
+    ..registerSingleton<ShareInbox>(FakeShares([]))
     ..registerSingleton(MediaStore(Directory.systemTemp.createTempSync('app')))
     ..registerSingleton<VoiceClip>(_Voice());
   await tester.pumpWidget(const MemoApp());

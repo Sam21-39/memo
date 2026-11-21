@@ -62,6 +62,12 @@ class NativeAlarm {
   }
 
   /// The reminder ringing right now, if any.
+  /// Android: JSON of texts shared to Memō and not yet shown.
+  Future<String> pendingShares() async =>
+      await _call<String>('pendingShares') ?? '[]';
+
+  Future<void> ackShare(String id) => _call<void>('ackShare', {'id': id});
+
   Future<String?> ringing() => _call<String>('ringing');
 
   Future<void> stopRinging([String? reminderId]) =>

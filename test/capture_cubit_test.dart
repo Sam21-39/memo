@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
@@ -104,6 +105,7 @@ void main() {
     SpeechToText? stt,
     String inputLocale = 'en',
     String interfaceLanguage = 'en',
+    ShareInbox? shares,
   }) => CaptureCubit(
     SaveReminder(repo, scheduler),
     media: media,
@@ -112,6 +114,7 @@ void main() {
     knownTags: () => tags,
     inputLocale: () => inputLocale,
     interfaceLanguage: () => interfaceLanguage,
+    shares: shares,
     clock: () => now,
   );
 
@@ -128,6 +131,53 @@ void main() {
     repo = InMemoryRepository();
     scheduler = FakeScheduler();
     media = MediaStore(Directory.systemTemp.createTempSync('capture'));
+  });
+
+  group('shared text', () {
+    test('from idle: confirming, shared, text set, acked once', () async {
+      final shares = FakeShares(['Dentist Friday 3pm']);
+      final cubit = build(shares: shares);
+      expect(await cubit.pullShare(), isTrue);
+      expect(cubit.state.phase, CapturePhase.confirming);
+      expect(cubit.state.shared, isTrue);
+      expect(cubit.state.text, 'Dentist Friday 3pm');
+      expect(shares.acked, ['s0']);
+      // Clear time: Save is on, yet nothing is stored until save().
+      expect(cubit.state.canSave, isTrue);
+      expect(repo.all, isEmpty);
+      await cubit.save();
+      expect(repo.all, hasLength(1));
+      expect(cubit.state.shared, isFalse);
+      expect(cubit.state.phase, CapturePhase.idle);
+    });
+
+    test('while typing: waits, nothing acked', () async {
+      final shares = FakeShares(['Call the bank']);
+      final cubit = build(shares: shares)..setText('half a thought');
+      expect(await cubit.pullShare(), isFalse);
+      expect(shares.acked, isEmpty);
+      expect(cubit.state.shared, isFalse);
+    });
+
+    test('no inbox, or an empty one: false', () async {
+      expect(await build().pullShare(), isFalse);
+      expect(await build(shares: FakeShares([])).pullShare(), isFalse);
+    });
+
+    test('no clear time: unsure blocks Save until a time is chosen', () async {
+      final cubit = build(shares: FakeShares(['Call the bank']));
+      await cubit.pullShare();
+      expect(cubit.state.canSave, isFalse);
+      cubit.chooseTime(DateTime(2026, 11, 5, 9));
+      expect(cubit.state.canSave, isTrue);
+    });
+
+    test('editing the text clears shared', () async {
+      final cubit = build(shares: FakeShares(['Dentist Friday 3pm']));
+      await cubit.pullShare();
+      cubit.setText('Dentist Friday 4pm');
+      expect(cubit.state.shared, isFalse);
+    });
   });
 
   test('typing parses into chips as you go', () {

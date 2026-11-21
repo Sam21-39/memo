@@ -342,5 +342,7 @@
   "historySnoozedDone": "{minutes} মিনিট পিছিয়ে, {time}-এ হয়েছে",
   "historySnoozedLongDone": "পিছিয়ে, {time}-এ হয়েছে",
   "historyNotDone": "হয়েছে বলে চিহ্নিত নয়",
-  "historyOpen": "বাকি"
+  "historyOpen": "বাকি",
+  "shareTitle": "Memō-তে পাঠানো হয়েছে",
+  "shareFootnote": "শুধু আপনি যা পাঠান। Memō কখনও আপনার মেল পড়ে না।"
 }

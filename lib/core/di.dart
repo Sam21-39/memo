@@ -9,6 +9,7 @@ import '../features/reminders/data/alarm/android_alarm_scheduler.dart';
 import '../features/reminders/data/alarm/ios_alarm_scheduler.dart';
 import '../features/reminders/data/alarm/local_notification_scheduler.dart';
 import '../features/reminders/data/alarm/native_alarm.dart';
+import '../features/reminders/data/share_inbox.dart';
 import '../features/reminders/data/media_store.dart';
 import '../features/reminders/data/reminder_db.dart';
 import '../features/reminders/data/reminder_repository_impl.dart';
@@ -40,7 +41,8 @@ Future<void> configureDependencies() async {
   const native = NativeAlarm();
   sl
     ..registerSingleton<FeatureFlags>(flags)
-    ..registerSingleton<NativeAlarm>(native);
+    ..registerSingleton<NativeAlarm>(native)
+    ..registerSingleton(const ShareInbox(native));
 
   final prefs = await AppPrefs.open();
   sl.registerSingleton<AppPrefs>(prefs);

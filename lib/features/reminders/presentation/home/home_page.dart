@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
     onResume: () {
       context.read<HomeCubit>().load();
       context.read<CaptureCubit>().recheckMic();
+      _pullShare();
     },
     onHide: () {
       context.read<HomeCubit>().commitPendingDelete();
@@ -60,10 +61,40 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _lifecycle;
+    // Cold start: Home is only built once onboarding is done.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _router = GoRouter.maybeOf(context)
+        ?..routerDelegate.addListener(_onRoute);
+      _pullShare();
+    });
   }
+
+  /// Puts the next shared text on the confirmation card and brings Home
+  /// forward. Waits (nothing pulled, so nothing acked) while an alarm, a
+  /// reminder page (may hold an unsaved edit) or the archive (search text)
+  /// is on top; the router
+  /// listener retries once Home is back.
+  Future<void> _pullShare() async {
+    final router = GoRouter.maybeOf(context);
+    final top =
+        router?.routerDelegate.currentConfiguration.last.matchedLocation;
+    if (top != null &&
+        (top.startsWith('/alarm') ||
+            top.startsWith('/reminder/') ||
+            top.startsWith('/done'))) {
+      return;
+    }
+    if (!await context.read<CaptureCubit>().pullShare() || !mounted) return;
+    if (top != null && top != '/') router!.go('/');
+  }
+
+  GoRouter? _router;
+  void _onRoute() => _pullShare();
 
   @override
   void dispose() {
+    _router?.routerDelegate.removeListener(_onRoute);
     _lifecycle.dispose();
     super.dispose();
   }
@@ -71,9 +102,20 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final flags = sl<FeatureFlags>();
-    return BlocListener<CaptureCubit, CaptureState>(
-      listenWhen: (a, b) => b.saved != null && a.saved != b.saved,
-      listener: (context, s) => context.read<HomeCubit>().showSaved(s.saved!),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CaptureCubit, CaptureState>(
+          listenWhen: (a, b) => b.saved != null && a.saved != b.saved,
+          listener: (context, s) =>
+              context.read<HomeCubit>().showSaved(s.saved!),
+        ),
+        // The next queued share, one at a time.
+        BlocListener<CaptureCubit, CaptureState>(
+          listenWhen: (a, b) =>
+              a.phase != CapturePhase.idle && b.phase == CapturePhase.idle,
+          listener: (context, _) => _pullShare(),
+        ),
+      ],
       child: BlocConsumer<HomeCubit, HomeState>(
         listenWhen: (a, b) => b is HomeReady && b.error != null,
         listener: (context, state) {

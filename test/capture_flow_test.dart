@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:memo/core/di.dart';
+import 'package:memo/core/theme/memo_theme.dart';
+import 'package:memo/l10n/l10n.dart';
 import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -45,7 +50,11 @@ class _EmptyStt implements SpeechToText {
   Future<String> transcribeFile(String path, String tag) async => '';
 }
 
-Future<void> _pump(WidgetTester tester, {DateTime Function()? clock}) async {
+Future<void> _pump(
+  WidgetTester tester, {
+  DateTime Function()? clock,
+  FakeShares? shares,
+}) async {
   final media = MediaStore(Directory.systemTemp.createTempSync('flow'));
   await tester.pumpWidget(
     themed(
@@ -65,6 +74,7 @@ Future<void> _pump(WidgetTester tester, {DateTime Function()? clock}) async {
               voice: _Voice(),
               stt: _EmptyStt(),
               knownTags: () => const [],
+              shares: shares,
               clock: clock,
             ),
           ),
@@ -100,6 +110,131 @@ final _confirmTime = find.textContaining(
 final _mic = find.byIcon(Icons.mic_none_rounded);
 
 void main() {
+  testWidgets('shared text opens the confirmation; Save is the only way in', (
+    tester,
+  ) async {
+    final (repo, _) = await setUpDi();
+    final shares = FakeShares(['Dentist Friday 3pm', 'Call the bank']);
+    await _pump(tester, shares: shares);
+    expect(find.text('SHARED TO MEMŌ'), findsOneWidget);
+    expect(find.text('Dentist Friday 3pm'), findsOneWidget);
+    expect(
+      find.text('Only what you share. Memō never reads your mail.'),
+      findsOneWidget,
+    );
+    expect(shares.acked, ['s0']);
+    expect(repo.all, isEmpty);
+    expect(_enabled(tester, 'Save reminder'), isTrue);
+
+    await tester.tap(find.text('Save reminder'));
+    await tester.pumpAndSettle();
+    expect(repo.all, hasLength(1));
+    // The next one follows, with no clear time: Save stays off.
+    expect(find.text('Call the bank'), findsWidgets);
+    expect(_enabled(tester, 'Save reminder'), isFalse);
+    expect(_confirmTime, findsWidgets);
+    expect(repo.all, hasLength(1));
+  });
+
+  testWidgets('a share waits behind an open edit sheet, then shows on Home', (
+    tester,
+  ) async {
+    await setUpDi();
+    final shares = FakeShares([]);
+    final media = MediaStore(Directory.systemTemp.createTempSync('flow'));
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const HomePage()),
+        GoRoute(
+          path: '/reminder/:id',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                builder: (_) => const Text('EDIT SHEET'),
+              ),
+              child: const Text('edit'),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => HomeCubit(
+              sl<ReminderRepository>(),
+              sl<SaveReminder>(),
+              sl<DeleteReminder>(),
+            )..load(),
+          ),
+          BlocProvider(
+            create: (_) => CaptureCubit(
+              sl<SaveReminder>(),
+              media: media,
+              voice: _Voice(),
+              stt: _EmptyStt(),
+              knownTags: () => const [],
+              shares: shares,
+            ),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          theme: MemoTheme.light.copyWith(platform: TargetPlatform.android),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    unawaited(router.push('/reminder/1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('edit'));
+    await tester.pumpAndSettle();
+    expect(find.text('EDIT SHEET'), findsOneWidget);
+
+    // Share arrives, app resumes: nothing is pulled while the page is open.
+    shares.queue.add(const SharedText('x', 'Pay rent Friday 9am'));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('EDIT SHEET'), findsOneWidget);
+    expect(shares.acked, isEmpty);
+
+    // Back to Home: the share shows, then is acked.
+    Navigator.of(tester.element(find.text('EDIT SHEET'))).pop();
+    await tester.pumpAndSettle();
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('SHARED TO MEMŌ'), findsOneWidget);
+    expect(find.text('Pay rent Friday 9am'), findsOneWidget);
+    expect(shares.acked, ['x']);
+  });
+
+  testWidgets('a share waits while the bar is in use', (tester) async {
+    await setUpDi();
+    final shares = FakeShares([]);
+    await _pump(tester, shares: shares);
+    await tester.enterText(find.byType(TextField), 'half a thought');
+    await tester.pumpAndSettle();
+    shares.queue.add(const SharedText('late', 'Pay rent Friday 9am'));
+    final cubit = tester.element(find.byType(TextField)).read<CaptureCubit>();
+    expect(await cubit.pullShare(), isFalse);
+    expect(find.text('SHARED TO MEMŌ'), findsNothing);
+    await cubit.discard();
+    await tester.pumpAndSettle();
+    expect(find.text('SHARED TO MEMŌ'), findsOneWidget);
+    expect(shares.acked, ['late']);
+  });
+
   testWidgets('quick start: chips, prefill, parse, gone once typed', (
     tester,
   ) async {

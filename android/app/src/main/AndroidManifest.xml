@@ -46,6 +46,21 @@
                 <data android:scheme="memo"/>
             </intent-filter>
         </activity>
+        <!-- Share target. A trampoline, not MainActivity: a share opens inside the
+             sharing app's task and would start a second Flutter engine there. -->
+        <activity
+            android:name=".ShareActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
         <!-- Native alarms: Dart hands over the plan, these ring it. -->
         <receiver android:name=".AlarmReceiver" android:exported="false"/>
         <receiver android:name=".BootReceiver" android:exported="false">

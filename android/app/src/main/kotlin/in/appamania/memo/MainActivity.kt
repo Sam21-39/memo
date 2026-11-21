@@ -20,7 +20,9 @@ class MainActivity : FlutterActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        showOverLockScreen(intent)
+        // A share (launcher intent, no data) must not touch the lock-screen
+        // state of a ringing alarm.
+        if (intent.data != null) showOverLockScreen(intent)
     }
 
     /** Only the alarm route may appear over the lock screen. */
@@ -62,6 +64,11 @@ class MainActivity : FlutterActivity() {
                     store.save(fires)
                     fires.forEach { AlarmArm.arm(this, it) }
                     store.zone = java.time.ZoneId.systemDefault().id
+                    result.success(null)
+                }
+                "pendingShares" -> result.success(ShareStore(this).pending())
+                "ackShare" -> {
+                    ShareStore(this).ack(call.argument<String>("id")!!)
                     result.success(null)
                 }
                 "drainActions" -> result.success(store.drainActions())

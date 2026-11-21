@@ -1695,5 +1695,13 @@
   "historyOpen": "Open",
   "@historyOpen": {
     "description": "H1 per-occurrence history"
+  },
+  "shareTitle": "Shared to Memō",
+  "@shareTitle": {
+    "description": "S1 share target"
+  },
+  "shareFootnote": "Only what you share. Memō never reads your mail.",
+  "@shareFootnote": {
+    "description": "S1 share target"
   }
 }

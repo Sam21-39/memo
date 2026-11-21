@@ -51,102 +51,164 @@ class ReminderConfirmation extends StatelessWidget {
         border: Border.all(color: c.hairline),
         borderRadius: BorderRadius.circular(MemoRadius.sheet),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!voiceOnly) ...[
-            // Verbatim: never re-cased or trimmed of what the user said.
-            Text(
-              state.spoken
-                  ? l.confirmYouSaid(state.text)
-                  : l.confirmYouWrote(state.text),
-              style: MemoType.body.copyWith(height: 22 / 15, color: c.ink70),
-            ),
-            const SizedBox(height: MemoSpace.space2),
-          ],
-          Semantics(
-            header: true,
-            child: Text(
-              voiceOnly
-                  ? l.voiceNoteTitle(
-                      MediaStore.clipLength(cubit.media?.draftVoicePath ?? ''),
-                    )
-                  : state.title,
-              style: MemoType.title.copyWith(height: 28 / 22, color: c.ink),
-            ),
-          ),
-          const SizedBox(height: MemoSpace.space4),
-          if (state.unsure case final unsure?)
-            UnsureTimeBlock(state: state, unsure: unsure, now: now)
-          else
-            SectionCard(
-              children: [
-                KeyValueRow(
-                  label: l.fieldWhen,
-                  onTap: () async {
-                    final at = await showWhenSheet(context, due);
-                    if (at != null) cubit.chooseTime(at);
-                  },
-                  child: Text(formatWhen(context, due, now), style: mono15),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight:
+              MediaQuery.sizeOf(context).height -
+              MediaQuery.paddingOf(context).top -
+              MemoSpace.space6,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!voiceOnly && state.shared) ...[
+                Semantics(
+                  header: true,
+                  child: Text(
+                    sectionLabelText(context, l.shareTitle),
+                    style: sectionLabelStyle(context),
+                  ),
+                ),
+                const SizedBox(height: MemoSpace.space2),
+                Container(
+                  padding: const EdgeInsets.only(left: MemoSpace.space3),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: c.hairline, width: 2),
+                    ),
+                  ),
+                  // Untrusted: rendered as plain text only.
+                  child: Text(
+                    state.text,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: MemoType.body.copyWith(
+                      height: 22 / 15,
+                      color: c.ink70,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: MemoSpace.space2),
+              ] else if (!voiceOnly) ...[
+                // Verbatim: never re-cased or trimmed of what the user said.
+                Text(
+                  state.spoken
+                      ? l.confirmYouSaid(state.text)
+                      : l.confirmYouWrote(state.text),
+                  style: MemoType.body.copyWith(
+                    height: 22 / 15,
+                    color: c.ink70,
+                  ),
+                ),
+                const SizedBox(height: MemoSpace.space2),
+              ],
+              Semantics(
+                header: true,
+                child: Text(
+                  voiceOnly
+                      ? l.voiceNoteTitle(
+                          MediaStore.clipLength(
+                            cubit.media?.draftVoicePath ?? '',
+                          ),
+                        )
+                      : state.title,
+                  maxLines: state.shared ? 3 : null,
+                  overflow: state.shared ? TextOverflow.ellipsis : null,
+                  style: MemoType.title.copyWith(height: 28 / 22, color: c.ink),
+                ),
+              ),
+              const SizedBox(height: MemoSpace.space4),
+              if (state.unsure case final unsure?)
+                UnsureTimeBlock(state: state, unsure: unsure, now: now)
+              else
+                SectionCard(
+                  children: [
+                    KeyValueRow(
+                      label: l.fieldWhen,
+                      onTap: () async {
+                        final at = await showWhenSheet(context, due);
+                        if (at != null) cubit.chooseTime(at);
+                      },
+                      child: Text(formatWhen(context, due, now), style: mono15),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: MemoSpace.space3),
+              SectionCard(
+                children: [
+                  KeyValueRow(
+                    label: l.fieldRepeat,
+                    onTap: () async {
+                      final r = await showRepeatSheet(
+                        context,
+                        state.repeat,
+                        due,
+                      );
+                      if (r != null) cubit.setRepeat(r);
+                    },
+                    child: Text(
+                      repeatLabel(context, state.repeat, none: l.repeatNone),
+                      style: mono15,
+                    ),
+                  ),
+                  if (tag != null)
+                    KeyValueRow(
+                      label: l.fieldTag,
+                      onTap: () async {
+                        final t = await showTagSheet(context, tag, knownTags);
+                        if (t != null) cubit.setTag(t.isEmpty ? null : t);
+                      },
+                      child: Text(tag, style: mono15),
+                    ),
+                ],
+              ),
+              if (!voiceOnly)
+                VoiceNotice(
+                  title: state.title,
+                  readAloud: state.readAloud,
+                  hasVoice: state.hasClip,
+                ),
+              if (state.error != null) ...[
+                const SizedBox(height: MemoSpace.space3),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    state.error!,
+                    style: MemoType.body.copyWith(color: c.accentText),
+                  ),
                 ),
               ],
-            ),
-          const SizedBox(height: MemoSpace.space3),
-          SectionCard(
-            children: [
-              KeyValueRow(
-                label: l.fieldRepeat,
-                onTap: () async {
-                  final r = await showRepeatSheet(context, state.repeat, due);
-                  if (r != null) cubit.setRepeat(r);
-                },
-                child: Text(
-                  repeatLabel(context, state.repeat, none: l.repeatNone),
-                  style: mono15,
-                ),
+              const SizedBox(height: MemoSpace.space4),
+              ElevatedButton(
+                onPressed: state.canSave ? cubit.save : null,
+                child: Text(l.confirmSave),
               ),
-              if (tag != null)
-                KeyValueRow(
-                  label: l.fieldTag,
-                  onTap: () async {
-                    final t = await showTagSheet(context, tag, knownTags);
-                    if (t != null) cubit.setTag(t.isEmpty ? null : t);
-                  },
-                  child: Text(tag, style: mono15),
+              const SizedBox(height: MemoSpace.space2),
+              OutlinedButton(
+                onPressed:
+                    state.phase == CapturePhase.confirming &&
+                        state.unsure == null
+                    ? () => openEditDetails(context, cubit, knownTags)
+                    : null,
+                child: Text(l.confirmEdit),
+              ),
+              if (state.shared) ...[
+                const SizedBox(height: MemoSpace.space3),
+                Text(
+                  l.shareFootnote,
+                  textAlign: TextAlign.center,
+                  style: MemoType.body.copyWith(
+                    fontSize: 13,
+                    height: 18 / 13,
+                    color: c.ink70,
+                  ),
                 ),
+              ],
             ],
           ),
-          if (!voiceOnly)
-            VoiceNotice(
-              title: state.title,
-              readAloud: state.readAloud,
-              hasVoice: state.hasClip,
-            ),
-          if (state.error != null) ...[
-            const SizedBox(height: MemoSpace.space3),
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                state.error!,
-                style: MemoType.body.copyWith(color: c.accentText),
-              ),
-            ),
-          ],
-          const SizedBox(height: MemoSpace.space4),
-          ElevatedButton(
-            onPressed: state.canSave ? cubit.save : null,
-            child: Text(l.confirmSave),
-          ),
-          const SizedBox(height: MemoSpace.space2),
-          OutlinedButton(
-            onPressed:
-                state.phase == CapturePhase.confirming && state.unsure == null
-                ? () => openEditDetails(context, cubit, knownTags)
-                : null,
-            child: Text(l.confirmEdit),
-          ),
-        ],
+        ),
       ),
     );
   }

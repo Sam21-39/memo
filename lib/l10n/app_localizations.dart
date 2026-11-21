@@ -2151,6 +2151,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get historyOpen;
+
+  /// S1 share target
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to Memō'**
+  String get shareTitle;
+
+  /// S1 share target
+  ///
+  /// In en, this message translates to:
+  /// **'Only what you share. Memō never reads your mail.'**
+  String get shareFootnote;
 }
 
 class _AppLocalizationsDelegate

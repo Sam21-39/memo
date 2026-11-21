@@ -1209,4 +1209,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get historyOpen => 'বাকি';
+
+  @override
+  String get shareTitle => 'Memō-তে পাঠানো হয়েছে';
+
+  @override
+  String get shareFootnote =>
+      'শুধু আপনি যা পাঠান। Memō কখনও আপনার মেল পড়ে না।';
 }

@@ -1212,4 +1212,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyOpen => 'Open';
+
+  @override
+  String get shareTitle => 'Shared to Memō';
+
+  @override
+  String get shareFootnote =>
+      'Only what you share. Memō never reads your mail.';
 }
