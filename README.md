@@ -2,7 +2,7 @@
 
 A reminder app that lives on your phone. Type it or say it, and the phone rings like an alarm at that time, reading the reminder aloud. No account, no cloud, works with no signal, rings even when the app is closed.
 
-Version 0.2.0 (build 4) · iOS 17+ and Android 8+ · Flutter 3.47.8 · bundle and package id `in.appamania.memo`
+Version 0.3.0 (build 5) · iOS 17+ and Android 8+ · Flutter 3.47.8 · bundle and package id `in.appamania.memo`
 
 ## What it is
 
@@ -19,6 +19,8 @@ Hindi and Bengali text in the app is a draft: it has not yet been reviewed by na
 - Type into the bar at the bottom: "Pills at 8 tonight every day #health" becomes chips for the time (20:00), repeat (Daily) and tag. Press Continue to reach the confirmation step.
 - Tap the mic, speak, tap again to stop (hold also works; 30 s cap, Cancel while recording). The recording is transcribed on the phone and becomes the title and chips. If nothing is recognised it saves as "Voice note · 0:08". A denied microphone shows an Open Settings action.
 - Confirmation step: a card shows what will be saved. When the parser cannot tell (for example "at 8" with no AM or PM, or a bare "kal"), the card shows a "Confirm time" block with options and Save stays disabled until one is chosen. Saving shows one toast.
+- Quick start: on an empty bar, five chips (Take medicine, Pay a bill, Call someone, Follow up, Weekly routine) prefill the text; the normal parser and confirmation run unchanged.
+- Share to Memō (Android and iOS): share text from any app. On Android, Memō opens its confirmation card. On iOS the share extension only queues the text; open Memō to see the card (needs the one-time Xcode setup, not yet done). Nothing is saved until you tap Save.
 - Tap any chip to fix it, or "More options" for the full form.
 
 **Reminders**
@@ -37,6 +39,7 @@ Hindi and Bengali text in the app is a draft: it has not yet been reviewed by na
 
 **Upcoming list**
 
+- Repeats keep a history on their Detail page: "This week N of M done" and the last 90 days. An occurrence nobody answered reads "Not marked done".
 - Grouped by day: Today, Tomorrow, then dates. Overdue reminders sit at the top in a tinted card with "2h late".
 - Tap the circle or swipe right to mark done; one-offs get a 5-second Undo. Swipe left for Snooze and Delete, long-press for a menu.
 - Completing a repeat moves it to its next time. Snoozing a repeat moves only that one time, never its schedule.
@@ -178,7 +181,7 @@ Radii: chip 8, card 14, sheet 20, pill 999.
 
 Short, plain, concrete. "Remind me to…", "Nothing scheduled", "Bins, pills, that call." No exclamation marks, no emoji.
 
-## Testing notes for TestFlight (0.2.0 build 4)
+## Testing notes for TestFlight (0.3.0 build 5)
 
 This is the first build under the new bundle id `in.appamania.memo`, so it installs as a new app next to any old one.
 
@@ -190,17 +193,19 @@ This is the first build under the new bundle id `in.appamania.memo`, so it insta
 - Settings → Alarm reliability: every row should be Allowed or give a Fix; send a test alarm.
 - Leave a reminder unanswered: it should ring again every 10 minutes, up to 6 times.
 
-The full device checklist is `docs/plans/memo-v2/qa-matrix.md`.
+- Quick start chips under the empty bar, history on a repeat's Detail, and Share to Memō (select text in another app, Share, Memō; nothing is saved until you tap Save).
+
+The full device checklists are `docs/plans/memo-v3/qa-matrix.md` and `docs/plans/memo-v2/qa-matrix.md`.
 
 ## Not in this build
 
-Photo capture, home-screen widgets, Siri and Assistant, cloud sync, shared reminders, escalation profiles, per-occurrence history, templates, backup and restore, a "snooze choices" setting, per-reminder language, location triggers, monthly repeats, languages other than English, Hindi and Bengali.
+Photo capture, home-screen widgets, Siri and Assistant, cloud sync, shared reminders, escalation profiles, user-defined templates, history for one-offs, backup and restore, a "snooze choices" setting, per-reminder language, location triggers, monthly repeats, languages other than English, Hindi and Bengali.
 
 ---
 
 # Product, business logic and market strategy
 
-This part of the README is for the owner, contributors and anyone judging the product. Facts about the code are taken from the repository as of 0.2.0+4 on `dev`. Anything about the market, pricing or growth is a **proposal**: the repo holds no user or market data, so no figure below is measured.
+This part of the README is for the owner, contributors and anyone judging the product. Facts about the code are taken from the repository as of 0.3.0+5 on `dev`. Anything about the market, pricing or growth is a **proposal**: the repo holds no user or market data, so no figure below is measured.
 
 ## 1. Product in one paragraph
 
@@ -256,7 +261,7 @@ Memō is an offline, private reminder app whose alarm behaves like the Clock app
 
 **Fire plan.** `firesFor(reminder)` is pure. For each occurrence it emits the main fire, an optional pre-alarm, up to 6 nags, and on iOS-notification mode a +1 min burst. Weekly rules emit one main per weekday because the OS matches one weekday per alarm. A snoozed repeat adds a one-off snooze fire and its own nags. Ids come from `AlarmIds` (stable FNV-style hash, XOR offsets) so cancel always finds what schedule registered.
 
-**Completion.** One-off: `doneAt = now`. Repeat: `dueAt = rule.nextAfterNow(dueAt, now)`, nags reset, snooze cleared. No per-occurrence history (documented ceiling).
+**Completion.** One-off: `doneAt = now`. Repeat: `dueAt = rule.nextAfterNow(dueAt, now)`, nags reset, snooze cleared. Per-occurrence history is recorded separately (schema v4).
 
 **Snooze.** One-off moves `dueAt`. Repeat sets `snoozedUntil`, leaving the series time untouched.
 
@@ -270,9 +275,9 @@ Memō is an offline, private reminder app whose alarm behaves like the Clock app
 
 Flutter, one Cubit per screen, `go_router`, `get_it`. Domain (entities, use cases, fire plan, parser) has no SQLite or platform imports. Data owns schema and channels `memo/alarm`, `memo/alarmkit`, `memo/stt`, `memo/tts`. Design tokens are generated from `design/tokens.json` and CI fails on drift or on any colour literal outside `tokens.dart`. CI also runs the repeat arithmetic tests under two time zones.
 
-## 5. Quality status (0.2.0+4)
+## 5. Quality status (0.3.0+5)
 
-`flutter analyze` is clean and `flutter test` passes in CI. Swift is not built in the development environment, and the device QA matrix in `docs/plans/memo-v2/qa-matrix.md` is still to be filled in on real phones. Hindi and Bengali copy awaits native-speaker review.
+`flutter analyze` is clean and `flutter test` passes in CI. Swift is not built in the development environment, and the device QA matrix in `docs/plans/memo-v3/qa-matrix.md` (and v2's) is still to be filled in on real phones. Hindi and Bengali copy awaits native-speaker review.
 
 ## 6. Localization (built in 0.2.0; table lists what each layer needed)
 

@@ -453,12 +453,9 @@ Before S1: answer PRD Q1 (ShareActivity) or accept the default.
 For S2, in Xcode (`ios/Runner.xcworkspace`), after the S2 commit:
 1. File → New → Target → Share Extension. Product name `ShareExtension`, language Swift, bundle id `in.appamania.memo.ShareExtension`, embed in
    Runner. Do not activate the new scheme when asked.
-2. Delete what Xcode generated inside the new group (`ShareViewController.swift`, `MainInterface.storyboard`, `Info.plist`) and add the repo's
-   `ios/ShareExtension/` files to the `ShareExtension` target instead: the Swift file, `Info.plist`, the entitlements file, and the three
-   `.lproj/Localizable.strings` (add hi and bn as localisations of the target).
+2. The wizard may overwrite `ios/ShareExtension/ShareViewController.swift` and `Info.plist`. Right after creating the target run `git checkout -- ios/ShareExtension` to restore the repo files, delete only `MainInterface.storyboard` (Move to Trash) and make sure it is out of the target. If Xcode made `ShareExtension` a synchronized folder, add `Info.plist` and the entitlements file as membership exceptions so they are not copied as resources. Then add the repo files to the target: the Swift file, `Info.plist`, entitlements, the three `.lproj/Localizable.strings` (add hi and bn as localisations).
 3. Target `ShareExtension` → Build Settings: `INFOPLIST_FILE = ShareExtension/Info.plist`, `CODE_SIGN_ENTITLEMENTS =
-   ShareExtension/ShareExtension.entitlements`, iOS Deployment Target 17.0, `MARKETING_VERSION = 0.3.0`, `CURRENT_PROJECT_VERSION = 5` (must equal
-   the app's on every release; Flutter does not set them for this target).
+   ShareExtension/ShareExtension.entitlements`, iOS Deployment Target 17.0, `MARKETING_VERSION = $(FLUTTER_BUILD_NAME)`, `CURRENT_PROJECT_VERSION = $(FLUTTER_BUILD_NUMBER)`, and set the target's Debug/Release base configuration to `Flutter/Debug.xcconfig` / `Flutter/Release.xcconfig` (as Runner does) so those variables resolve. Versions must equal the app's on every release or App Store Connect rejects it (ITMS-90473); never hardcode them.
 4. Signing & Capabilities → `+ Capability` → App Groups → `group.in.appamania.memo`, on **both** targets, Runner and ShareExtension. For Runner
    this adds the group to `ios/Runner/Runner.entitlements`; commit that change. Register the group and both app ids in the developer portal if
    automatic signing does not.
