@@ -2163,6 +2163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only what you share. Memō never reads your mail.'**
   String get shareFootnote;
+
+  /// C1: throws away the reminder being created (text, voice clip, parsed result)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get captureDiscard;
 }
 
 class _AppLocalizationsDelegate

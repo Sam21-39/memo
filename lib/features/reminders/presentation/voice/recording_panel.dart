@@ -231,7 +231,12 @@ class RecordingPanel extends StatelessWidget {
                       style: MemoType.labelMedium.copyWith(color: c.ink),
                     ),
                   ),
-                  PillValue(l.recKept),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: PillValue(l.recKept),
+                    ),
+                  ),
                   const SizedBox(width: MemoSpace.space2),
                 ],
               ),
@@ -250,7 +255,14 @@ class RecordingPanel extends StatelessWidget {
         child: Text(l.recSaveAsNote),
       ),
       const SizedBox(height: MemoSpace.space1),
-      TextButton(onPressed: cubit.tryAgain, child: Text(l.commonTryAgain)),
+      Wrap(
+        alignment: WrapAlignment.center,
+        spacing: MemoSpace.space2,
+        children: [
+          TextButton(onPressed: cubit.tryAgain, child: Text(l.commonTryAgain)),
+          TextButton(onPressed: cubit.discard, child: Text(l.captureDiscard)),
+        ],
+      ),
     ];
   }
 }

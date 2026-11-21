@@ -6,6 +6,7 @@ import 'package:memo/features/reminders/data/media_store.dart';
 import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/data/speech_to_text.dart';
 import 'package:memo/features/reminders/data/voice_clip.dart';
+import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/parser/reminder_parser.dart';
 import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
@@ -90,6 +91,16 @@ class _Voice implements VoiceClip {
   Future<void> play(String path) async {}
   @override
   Future<void> stopPlaying() async {}
+}
+
+class _SlowScheduler extends FakeScheduler {
+  _SlowScheduler(this.gate);
+  final Completer<void> gate;
+  @override
+  Future<void> schedule(Reminder reminder) async {
+    await gate.future;
+    return super.schedule(reminder);
+  }
 }
 
 void main() {
@@ -456,6 +467,74 @@ void main() {
       expect(cubit.state.phase, CapturePhase.confirming);
     },
   );
+
+  group('discard', () {
+    test(
+      'discard from typing with a clip deletes the draft and returns to idle',
+      () async {
+        final cubit = build();
+        await hold(cubit);
+        cubit.typeInstead();
+        expect(media.hasDraft, isTrue);
+        await cubit.discard();
+        expect(media.hasDraft, isFalse);
+        expect(cubit.state.phase, CapturePhase.idle);
+        expect(cubit.state.hasClip, isFalse);
+      },
+    );
+
+    test('discard on a shared confirmation returns to idle; the share is acked '
+        'once and not offered again', () async {
+      final shares = FakeShares(['Dentist Friday 3pm']);
+      final cubit = build(shares: shares);
+      expect(await cubit.pullShare(), isTrue);
+      await cubit.discard();
+      expect(cubit.state.phase, CapturePhase.idle);
+      expect(cubit.state.shared, isFalse);
+      expect(await cubit.pullShare(), isFalse);
+      expect(shares.acked, ['s0']);
+    });
+
+    test(
+      'discard from voiceFailed deletes the clip and does not record',
+      () async {
+        final cubit = build();
+        await hold(cubit);
+        expect(cubit.state.phase, CapturePhase.voiceFailed);
+        voice.path = null;
+        await cubit.discard();
+        expect(media.hasDraft, isFalse);
+        expect(cubit.state.phase, CapturePhase.idle);
+        expect(voice.path, isNull);
+      },
+    );
+
+    test('discard while saving does nothing', () async {
+      final gate = Completer<void>();
+      final cubit = CaptureCubit(
+        SaveReminder(repo, _SlowScheduler(gate)),
+        media: media,
+        voice: voice,
+        stt: _Stt(''),
+        knownTags: () => const [],
+        clock: () => now,
+      );
+      await hold(cubit);
+      cubit.typeInstead();
+      cubit.setText('Bins at 7pm');
+      cubit.review();
+      final saving = cubit.save();
+      await pumpEventQueue();
+      expect(cubit.state.phase, CapturePhase.saving);
+      await cubit.discard();
+      expect(cubit.state.phase, CapturePhase.saving);
+      gate.complete();
+      await saving;
+      expect(repo.all.single.hasVoice, isTrue);
+      expect(File(media.voicePath(repo.all.single.id)).existsSync(), isTrue);
+      expect(repo.all, hasLength(1));
+    });
+  });
 
   test('a recheck that throws stays denied', () async {
     voice.allowed = false;

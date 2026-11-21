@@ -50,7 +50,7 @@ class _EmptyStt implements SpeechToText {
   Future<String> transcribeFile(String path, String tag) async => '';
 }
 
-Future<void> _pump(
+Future<MediaStore> _pump(
   WidgetTester tester, {
   DateTime Function()? clock,
   FakeShares? shares,
@@ -84,6 +84,7 @@ Future<void> _pump(
     ),
   );
   await tester.pumpAndSettle();
+  return media;
 }
 
 /// Real file I/O backs the stop: wait in short real hops, bounded, until the
@@ -367,16 +368,81 @@ void main() {
     await setUpDi();
     await _pump(tester);
     final before = tester.element(_mic);
+    final rect = tester.getRect(_mic);
+    void same() {
+      expect(identical(tester.element(_mic), before), isTrue);
+      expect(tester.getRect(_mic).left, rect.left);
+      expect(tester.getRect(_mic).size, rect.size);
+    }
+
     await tester.enterText(find.byType(TextField), 'Bins');
     await tester.pumpAndSettle();
-    expect(identical(tester.element(_mic), before), isTrue);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    same();
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+    same();
     await tester.tap(_mic);
     await tester.pump();
     await tester.pump();
     expect(find.text('Recording'), findsOneWidget);
-    expect(identical(tester.element(_mic), before), isTrue);
+    same();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('typing: the clear button appears with the first character '
+      'and discards', (tester) async {
+    await setUpDi();
+    await _pump(tester);
+    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    await tester.enterText(find.byType(TextField), 'abc');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '',
+    );
+    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    expect(find.text('QUICK START'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).focusNode!.hasFocus,
+      isFalse,
+    );
+  });
+
+  testWidgets('confirmation: Discard returns to idle', (tester) async {
+    await setUpDi();
+    await _pump(tester);
+    for (final text in ['Call mum tomorrow at 8pm', 'Call mum']) {
+      await tester.enterText(find.byType(TextField), text);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      if (text == 'Call mum') {
+        expect(_confirmTime, findsWidgets);
+        expect(_enabled(tester, 'Save reminder'), isFalse);
+      }
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard'), findsNothing);
+      expect(find.text('QUICK START'), findsOneWidget);
+    }
+  });
+
+  testWidgets('shared card: Discard drops it and the next share shows', (
+    tester,
+  ) async {
+    await setUpDi();
+    final shares = FakeShares(['Dentist Friday 3pm', 'Call the bank']);
+    await _pump(tester, shares: shares);
+    expect(find.text('Dentist Friday 3pm'), findsOneWidget);
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dentist Friday 3pm'), findsNothing);
+    expect(find.text('Call the bank'), findsWidgets);
+    expect(shares.acked, ['s0', 's1']);
   });
 
   testWidgets('hold still works: the panel opens over the mic, release stops', (
@@ -401,7 +467,7 @@ void main() {
     expect(find.text('Type it instead'), findsOneWidget);
   });
 
-  testWidgets('an empty transcript offers the three ways out', (tester) async {
+  testWidgets('an empty transcript offers the four ways out', (tester) async {
     await setUpDi();
     await _pump(tester);
     await tester.tap(_mic);
@@ -418,12 +484,41 @@ void main() {
     expect(find.text('Type it instead'), findsOneWidget);
     expect(find.text('Save as voice note, pick a time'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
+    expect(find.text('Discard'), findsOneWidget);
 
     await tester.tap(find.text('Save as voice note, pick a time'));
     await tester.pumpAndSettle();
     expect(_confirmTime, findsOneWidget);
     expect(find.text('Voice note · 0:00'), findsOneWidget);
     expect(_enabled(tester, 'Save reminder'), isFalse);
+  });
+
+  testWidgets('an empty transcript: Discard clears the panel and the draft', (
+    tester,
+  ) async {
+    await setUpDi();
+    final media = await _pump(tester);
+    await tester.tap(_mic);
+    await tester.pump();
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 1100)),
+    );
+    await tester.tap(find.text('Stop'));
+    await _untilNotRecording(tester);
+    await tester.pumpAndSettle();
+    expect(media.hasDraft, isTrue);
+    await tester.tap(find.text('Discard'));
+    for (var i = 0; i < 50 && media.hasDraft; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Couldn’t turn that into text'), findsNothing);
+    expect(media.hasDraft, isFalse);
+    expect(find.text('QUICK START'), findsOneWidget);
+    expect(find.text('Recording'), findsNothing);
   });
 
   testWidgets('the mic exposes a tap action to screen readers', (tester) async {

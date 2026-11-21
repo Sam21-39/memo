@@ -194,6 +194,13 @@ class ReminderConfirmation extends StatelessWidget {
                     : null,
                 child: Text(l.confirmEdit),
               ),
+              const SizedBox(height: MemoSpace.space1),
+              TextButton(
+                onPressed: state.phase == CapturePhase.confirming
+                    ? cubit.discard
+                    : null,
+                child: Text(l.captureDiscard),
+              ),
               if (state.shared) ...[
                 const SizedBox(height: MemoSpace.space3),
                 Text(

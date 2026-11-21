@@ -465,3 +465,75 @@ For S2, in Xcode (`ios/Runner.xcworkspace`), after the S2 commit:
 7. Build, run on a device, select text in Notes → Share → Memō. Commit the `project.pbxproj` and entitlements changes.
 
 Native-speaker review of the new hi/bn strings (T1.1, H1.8, S1.6, S2.3) before any store build, as for v2.
+
+---------------------------------------------------------------------------------------------------
+## C1 — Cancel / Clear while creating a reminder
+
+PRD: `prd.md` § C1. Section 0 rules apply, the mic invariant above all. Baseline 830 tests. One commit on `dev`:
+`feat: C1 discard a draft from the capture bar, confirmation and voice panel`.
+
+Files: `presentation/home/capture_cubit.dart`, `presentation/home/capture_bar.dart`, `presentation/home/reminder_confirmation.dart`,
+`presentation/voice/recording_panel.dart`, three ARB files plus generated l10n, `test/capture_cubit_test.dart`, `test/capture_flow_test.dart`,
+`test/a11y_layout_test.dart`. Not touched: `home_page.dart`, `hold_recorder.dart`, `_Mic`, `_micKey`, the bar's `Row` children.
+
+### C1.1 ARB key
+
+| Key | en | hi (draft) | bn (draft) |
+|---|---|---|---|
+| `captureDiscard` | Discard | हटा दें | বাদ দিন |
+
+`@captureDiscard` description: "C1: throws away the reminder being created (text, voice clip, parsed result)". Then `fvm flutter gen-l10n`.
+
+### C1.2 `capture_cubit.dart`
+First line of `discard()`: `if (state.phase == CapturePhase.saving) return;`, with a one-line comment (Save is moving the clip). Nothing else.
+All existing callers (`tryAgain`, `openEditDetails`, the scrim) run outside `saving`.
+
+### C1.3 `capture_bar.dart`
+- `_field(context, cubit)` gains a `bool clear` parameter; the call site passes `typing` (already computed in the builder).
+- In its `InputDecoration`: `suffixIcon: clear ? MemoIconButton(icon: Icons.close_rounded, label: context.l10n.captureDiscard, onPressed:
+  cubit.discard) : null`. `MemoIconButton` is already imported (`memo_nav_bar.dart`) and gives the 44 px minimum, tooltip and semantics label.
+- Nothing else. The listener already empties the controller and unfocuses when the state resets to idle. Do not add a child to the `Row`, do not
+  wrap `_Mic`, do not set the controller or focus by hand.
+
+### C1.4 `reminder_confirmation.dart`
+After the Edit details `OutlinedButton`, before the share footnote: `SizedBox(height: MemoSpace.space1)` and
+`TextButton(onPressed: state.phase == CapturePhase.confirming ? cubit.discard : null, child: Text(l.captureDiscard))`.
+Enabled while the unsure-time block shows; disabled only while saving. Same for typed, spoken, voice-only and shared cards.
+
+### C1.5 `recording_panel.dart`, `_failed`
+Replace the last `TextButton` (Try again) with
+`Wrap(alignment: WrapAlignment.center, spacing: MemoSpace.space2, children: [<the same Try again button>, TextButton(onPressed: cubit.discard,
+child: Text(l.captureDiscard))])`. `_recording` and `_transcribing` are unchanged.
+Deviation: the kept-clip row's `Flexible(PillValue)` becomes `Expanded(child: Align(alignment: Alignment.centerRight, child: PillValue(...)))`
+so the pill stays right-aligned at 1.0x and still fits bn 320x690 @2.0x.
+
+### C1.6 Tests
+`test/capture_cubit_test.dart`
+1. `discard from typing with a clip deletes the draft and returns to idle`.
+2. `discard on a shared confirmation returns to idle; the share is acked once and not offered again` (`FakeShares`, `pullShare`, `discard`,
+   `pullShare`).
+3. `discard from voiceFailed deletes the clip and does not record`.
+4. `discard while saving does nothing` (a `SaveReminder` that parks on a `Completer`; the draft file and phase are unchanged until it completes).
+
+`test/capture_flow_test.dart`
+5. `typing: the clear button appears with the first character and discards`: no `Icons.close_rounded` in idle; type "abc"; tap it; controller
+   text empty, phase idle, "Quick start" back, field not focused.
+6. Extend `the mic keeps its element from typing through recording`: same `Element`, same `getRect(...).left` and size across idle → typing
+   (clear button visible) → clear tapped → recording.
+7. `confirmation: Discard returns to idle`, once for a stated time and once with `_confirmTime` showing (Save disabled, Discard enabled).
+8. `shared card: Discard drops it and the next share shows` (`FakeShares` with two texts).
+9. Extend `an empty transcript offers the three ways out` to four; a second test taps Discard: panel gone, `media.hasDraft` false, phase idle.
+
+`test/a11y_layout_test.dart`
+10. In the existing `capture bar typing and ambiguous confirmation (bn)` case: the clear button and the card's Discard are each ≥ 44 × 44.
+11. The same case once more at `Size(320, 690)` @2.0x: `_fits`.
+12. New `Voice failed panel: 320x690 @ 2.0x`, per locale en/hi/bn, using that file's `_Voice` and `_EmptyStt`: `_fits`, Discard ≥ 44 high.
+
+### C1.7 Verify
+Shared verify (§0); test count ≥ 830. Device, light and dark, en and one of hi/bn:
+- Type, tap "×": field empties, keyboard closes, chips return. TalkBack / VoiceOver reads "Discard, button".
+- Hold the mic right after tapping "×": recording starts and the release stops it.
+- Record, cancel the transcription, Discard on "Recording kept": back to the empty bar; the mic does not start.
+- Share a text to Memō, Discard: card gone; opening Memō again does not show it.
+- Text size 200 % on the smallest device: the card and the voice panel show Discard without clipping.
+- Reduce motion on: no new movement.

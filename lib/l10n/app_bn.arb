@@ -344,5 +344,6 @@
   "historyNotDone": "হয়েছে বলে চিহ্নিত নয়",
   "historyOpen": "বাকি",
   "shareTitle": "Memō-তে পাঠানো হয়েছে",
-  "shareFootnote": "শুধু আপনি যা পাঠান। Memō কখনও আপনার মেল পড়ে না।"
+  "shareFootnote": "শুধু আপনি যা পাঠান। Memō কখনও আপনার মেল পড়ে না।",
+  "captureDiscard": "বাদ দিন"
 }

@@ -1703,5 +1703,9 @@
   "shareFootnote": "Only what you share. Memō never reads your mail.",
   "@shareFootnote": {
     "description": "S1 share target"
+  },
+  "captureDiscard": "Discard",
+  "@captureDiscard": {
+    "description": "C1: throws away the reminder being created (text, voice clip, parsed result)"
   }
 }

@@ -198,3 +198,85 @@ Every phase: shared verify in guidelines §0 green, test count ≥ previous (bas
 7. Week starts Monday. Default: yes.
 8. Shared text cap 200 code points for the parsed text and title. Default: 200; the rest is dropped, not moved to the note.
 9. Prefill wording, e.g. "Call " rather than "Call someone ", "Pay bill ", "Every Friday ". Default: as listed in guidelines T1.2.
+
+---------------------------------------------------------------------------------------------------
+## C1 — Cancel / Clear while creating a reminder
+
+Owner request, verbatim: "Need to add a cancel button or clear button for discarding edits or recording during creating new Reminders".
+Baseline: `dev` at 31533b0 (0.3.0+5), 830 tests. Steps: `guidelines.md` § C1. Sources read: `capture_cubit.dart`, `capture_bar.dart`,
+`reminder_confirmation.dart`, `voice/recording_panel.dart`, `voice/hold_recorder.dart`, `home_page.dart`, `memo_nav_bar.dart`, `memo_theme.dart`,
+`test/capture_flow_test.dart`, `test/a11y_layout_test.dart`, `test/fakes.dart`.
+
+### C1.1 Problem — audit of every capture phase
+
+| Phase | Ways to throw the draft away today | Gap |
+|---|---|---|
+| idle | Nothing to throw away | — |
+| typing | Backspace to empty; scrim tap discards only when text is empty and there is no clip | No visible control. With a clip attached (after "Type it instead", or a take recorded over typed words) the clip cannot be removed at all short of re-recording or killing the app |
+| recording | Cancel (`cancelRecording`) | — |
+| transcribing | Cancel (`cancelTranscription`): stops, keeps the clip, lands on the "Recording kept" panel | None here; the exit is the panel it lands on |
+| voiceFailed | Type it instead, Save as voice note, Try again (discards, then records again). Scrim tap does nothing | No way out that does not keep the clip or switch the microphone on |
+| confirming | Save, Edit details; scrim tap steps back to typing (not discoverable, and it leaves a shared or spoken text sitting in the field) | No Discard. While the time is unsure both Save and Edit details are disabled, so the card's only exits are picking a time or the scrim |
+| saving | Transient | No control wanted; a discard here would race `commitVoice` |
+
+### C1.2 Scope
+- typing: a trailing "×" inside the text field.
+- confirming (typed, spoken, voice-only, shared): a "Discard" text button under Edit details.
+- voiceFailed: a "Discard" text button beside Try again.
+- One guard in `CaptureCubit.discard()` so it is a no-op while saving.
+- One new ARB key in en/hi/bn. Tests. No release bump.
+
+All three controls call the existing `CaptureCubit.discard()`: stop any take, delete the draft clip, reset to idle.
+
+### C1.3 Non-goals
+- Undo, or a confirm dialog, for a discarded clip (C1.4, decision 4; Q1).
+- Changes to recording or transcribing: both already have Cancel.
+- Changing what the scrim tap does. Handling the Android back button (there is no `PopScope` on Home today; Q3).
+- A second "clear text only, keep the clip" control. A new cubit method, state field, toast or animation.
+
+### C1.4 Decisions (problem → options → pick)
+
+1. **Typing control.** (a) `InputDecoration.suffixIcon` on the existing `TextField`; (b) a new child in the bar's `Row` before the mic; (c) a
+   Cancel button beside Continue. Pick (a): it lives inside the field's `Expanded`, so the `Row`'s children, the mic's slot and the mic's position
+   are untouched; it is the platform's own clear-button pattern; Flutter gives the suffix a 48 px minimum box. (b) adds a sibling that appears and
+   disappears next to the mic, the shape of the earlier bug. (c) costs a row at 2.0x text.
+2. **When "×" shows.** Whenever `phase == typing` (which already means "text or clip present"). Never in idle: nothing to clear.
+3. **Label.** (a) reuse `commonCancel`; (b) one new key "Discard". Pick (b): Cancel already means "drop this take" while recording and "stop, keep
+   the clip" while transcribing; a third meaning on the same flow is a trap. One key serves the two buttons and the "×" tooltip / semantics label.
+4. **A recorded clip: confirm, Undo, or neither.** (a) confirm dialog when `hasClip`; (b) Undo toast (needs a second draft file, a restore path
+   and toast plumbing through `HomeCubit`); (c) neither. Pick (c): the two existing clip-destroying actions (Cancel while recording, Try again)
+   ask nothing, a clip is capped at `VoiceClip.maxLength`, and every C1 control is labelled Discard. Typed and shared text need no confirm.
+5. **Focus after discard.** (a) keep the keyboard up; (b) let it close. Pick (b): zero code. The bar's listener already unfocuses on any phase
+   other than typing, which is also what happens today when the field is backspaced to empty.
+6. **Shared text.** `pullShare` acks the share after it is on screen, so Discard cannot bring it back. Discard returns to idle, and Home's existing
+   listener (`phase → idle`) pulls the next queued share. No new code.
+7. **voiceFailed layout.** (a) a fourth stacked button; (b) Try again and Discard in one centred `Wrap`. Pick (b): no extra height at normal text
+   size; wraps to two lines at 2.0x / 320 px.
+8. **Saving.** The card's Discard is enabled only in `confirming`; `discard()` also returns early in `saving`. The guard is one line and protects
+   a clip that `commitVoice` is moving.
+
+### C1.5 Acceptance checks
+- Typing "abc": an "×" is in the field; tap → field empty, bar idle, quick-start chips back, keyboard closed.
+- Typing with a clip attached: "×" removes text and clip; the draft file is gone.
+- Confirmation (typed, spoken, voice-only, and with the unsure-time block showing): Discard → idle, nothing saved, draft file gone.
+- Shared card: Discard → idle, the share does not come back; a second queued share shows next.
+- "Couldn't turn that into text" and "Recording kept" panels: Discard → idle, draft file gone, microphone not started.
+- While saving, Discard is disabled.
+- The mic is the same `Element`, same left edge and size, from idle through typing, "×" tap, and recording.
+- "×" and both Discard buttons are at least 44 × 44, carry the label "Discard", and nothing overflows at 390×844 @2.0x, 320×690 @1.0x,
+  320×690 @2.0x in en, hi, bn. No new animation.
+- Shared verify green; test count ≥ 830.
+
+### C1.6 Risks
+- A mis-tap on "×" (it sits next to the mic) loses the draft with no way back; with a clip that is up to `VoiceClip.maxLength` of speech (Q1).
+- The suffix takes 48 px from the field: about 180 px of text width at 320 px. Single-line fields scroll, so nothing clips.
+- The voiceFailed panel does not scroll. Its a11y case at 320×690 @2.0x is new; if the wrapped row overflows, cap and scroll the panel the way
+  `ReminderConfirmation` does. Do not add that unless the test fails.
+- hi/bn "Discard" are machine drafts (`@@x-review: pending`).
+
+### C1.7 Open questions (default applied if unanswered)
+1. Discarding a draft that holds a voice clip asks nothing. Default: no confirm, no Undo (decision 4). Alternative: a confirm only when `hasClip`.
+2. Keyboard closes after "×". Default: yes (decision 5). Alternative: clear and keep typing (one `requestFocus` after `discard()`).
+3. Android back while typing or confirming still leaves the app with the draft kept. Default: unchanged in C1.
+4. Label "Discard" / "हटा दें" / "বাদ দিন", also read out for the "×". Default: as listed.
+5. No version bump; C1 ships with the next release. Default: yes.

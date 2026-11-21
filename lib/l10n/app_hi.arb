@@ -344,5 +344,6 @@
   "historyNotDone": "पूरा नहीं किया गया",
   "historyOpen": "बाकी",
   "shareTitle": "Memō में भेजा गया",
-  "shareFootnote": "सिर्फ़ वही जो आप भेजते हैं। Memō आपकी मेल कभी नहीं पढ़ता।"
+  "shareFootnote": "सिर्फ़ वही जो आप भेजते हैं। Memō आपकी मेल कभी नहीं पढ़ता।",
+  "captureDiscard": "हटा दें"
 }

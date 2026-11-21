@@ -149,7 +149,7 @@ class _CaptureBarState extends State<CaptureBar> {
                                   child: Visibility(
                                     maintainState: true,
                                     visible: fieldVisible,
-                                    child: _field(context, cubit),
+                                    child: _field(context, cubit, typing),
                                   ),
                                 ),
                                 if (sl<FeatureFlags>().imageCapture &&
@@ -227,7 +227,7 @@ class _CaptureBarState extends State<CaptureBar> {
     _focus.requestFocus();
   }
 
-  Widget _field(BuildContext context, CaptureCubit cubit) {
+  Widget _field(BuildContext context, CaptureCubit cubit, bool clear) {
     final c = MemoColors.of(context);
     return TextField(
       controller: _text,
@@ -245,6 +245,13 @@ class _CaptureBarState extends State<CaptureBar> {
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
         contentPadding: const EdgeInsets.only(left: MemoSpace.space4),
+        suffixIcon: clear
+            ? MemoIconButton(
+                icon: Icons.close_rounded,
+                label: context.l10n.captureDiscard,
+                onPressed: cubit.discard,
+              )
+            : null,
       ),
     );
   }

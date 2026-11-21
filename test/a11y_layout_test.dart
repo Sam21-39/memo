@@ -25,6 +25,7 @@ import 'package:memo/features/reminders/presentation/alarm/alarm_page.dart';
 import 'package:memo/features/reminders/presentation/archive/archive_cubit.dart';
 import 'package:memo/features/reminders/presentation/archive/archive_page.dart';
 import 'package:memo/features/reminders/presentation/detail/detail_cubit.dart';
+import 'package:memo/core/ui/memo_nav_bar.dart';
 import 'package:memo/features/reminders/presentation/detail/detail_page.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_cubit.dart';
 import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
@@ -260,6 +261,14 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Call mum tomorrow at 8');
       await tester.pumpAndSettle();
       _fits(tester);
+      final clearBox = tester.getSize(
+        find.ancestor(
+          of: find.byIcon(Icons.close_rounded),
+          matching: find.byType(MemoIconButton),
+        ),
+      );
+      expect(clearBox.width, greaterThanOrEqualTo(44));
+      expect(clearBox.height, greaterThanOrEqualTo(44));
       await tester.tap(find.byType(ElevatedButton).last);
       await tester.pumpAndSettle();
       _fits(tester);
@@ -268,6 +277,11 @@ void main() {
         expect(s.height, greaterThanOrEqualTo(44));
         expect(s.width, greaterThanOrEqualTo(44));
       }
+      final discard = tester.getSize(
+        find.widgetWithText(TextButton, 'বাদ দিন'),
+      );
+      expect(discard.height, greaterThanOrEqualTo(44));
+      expect(discard.width, greaterThanOrEqualTo(44));
     });
 
     testWidgets('Home quick start: $tag', (tester) async {
@@ -432,6 +446,59 @@ void main() {
           greaterThanOrEqualTo(44),
         );
       }
+    });
+  }
+
+  testWidgets('capture bar typing and confirmation (bn): 320x690 @ 2.0x', (
+    tester,
+  ) async {
+    await seed();
+    await _show(
+      tester,
+      const Size(320, 690),
+      2.0,
+      _home(),
+      locale: const Locale('bn'),
+    );
+    await tester.enterText(find.byType(TextField), 'Call mum tomorrow at 8');
+    await tester.pumpAndSettle();
+    _fits(tester);
+    await tester.tap(find.byType(ElevatedButton).last);
+    await tester.pumpAndSettle();
+    _fits(tester);
+  });
+
+  for (final (lang, discard) in [
+    ('en', 'Discard'),
+    ('hi', 'हटा दें'),
+    ('bn', 'বাদ দিন'),
+  ]) {
+    testWidgets('Voice failed panel: 320x690 @ 2.0x ($lang)', (tester) async {
+      await seed();
+      await _show(
+        tester,
+        const Size(320, 690),
+        2.0,
+        _home(),
+        locale: Locale(lang),
+      );
+      final cubit = BlocProvider.of<CaptureCubit>(
+        tester.element(find.byType(HomePage)),
+      );
+      await tester.runAsync(() async {
+        await cubit.startRecording();
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
+        await cubit.stopRecording();
+        for (var i = 0; i < 50; i++) {
+          if (cubit.state.phase == CapturePhase.voiceFailed) break;
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+      });
+      await tester.pumpAndSettle();
+      expect(cubit.state.phase, CapturePhase.voiceFailed);
+      _fits(tester);
+      final size = tester.getSize(find.widgetWithText(TextButton, discard));
+      expect(size.height, greaterThanOrEqualTo(44));
     });
   }
 

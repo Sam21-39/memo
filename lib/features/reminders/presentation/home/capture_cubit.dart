@@ -444,8 +444,16 @@ class CaptureCubit extends Cubit<CaptureState> {
   }
 
   Future<void> discard() async {
+    // Save is moving the clip; re-checked after each await.
+    bool busy() =>
+        isClosed ||
+        state.phase == CapturePhase.saving ||
+        state.phase == CapturePhase.recording;
+    if (state.phase == CapturePhase.saving) return;
     await _hold?.cancel();
+    if (busy()) return;
     if (state.hasClip) await media?.discardDraft();
+    if (busy()) return;
     emit(CaptureState(readAloud: readAloudDefault()));
   }
 

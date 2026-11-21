@@ -1219,4 +1219,7 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get shareFootnote =>
       'सिर्फ़ वही जो आप भेजते हैं। Memō आपकी मेल कभी नहीं पढ़ता।';
+
+  @override
+  String get captureDiscard => 'हटा दें';
 }

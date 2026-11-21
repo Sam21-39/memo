@@ -1216,4 +1216,7 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get shareFootnote =>
       'শুধু আপনি যা পাঠান। Memō কখনও আপনার মেল পড়ে না।';
+
+  @override
+  String get captureDiscard => 'বাদ দিন';
 }
