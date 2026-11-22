@@ -10,7 +10,7 @@ import '../../domain/entities/repeat_rule.dart';
 import '../../domain/usecases/create_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
 import '../voice/hold_recorder.dart';
-import '../home/home_cubit.dart' show scheduleFailedMessage;
+import '../../../../l10n/l10n.dart';
 
 enum EditStatus { editing, saving, saved }
 
@@ -32,7 +32,9 @@ class EditState {
     this.removeClip = false,
     this.readAloud = true,
     this.recording = false,
+    this.latched = false,
     this.recorded = Duration.zero,
+    this.advanced = false,
   });
 
   final String title;
@@ -48,7 +50,7 @@ class EditState {
   final EditStatus status;
   final String? error;
 
-  /// A neutral hint, e.g. "Hold the mic to record".
+  /// A neutral hint, e.g. "Tap the mic, speak, then tap Stop."
   final String? notice;
 
   /// A clip will exist after save: the reminder's own, or a new recording.
@@ -61,17 +63,27 @@ class EditState {
   final bool removeClip;
   final bool readAloud;
   final bool recording;
+
+  /// Recording goes on after the finger lifted (tap mode).
+  final bool latched;
   final Duration recorded;
+
+  /// The "More options" view of the sheet is showing.
+  final bool advanced;
 
   /// A clip alone is enough: it saves as "Voice note · 0:08" and still rings.
   bool get canSave =>
       (title.trim().isNotEmpty || hasClip) &&
       !recording &&
-      status == EditStatus.editing;
+      status == EditStatus.editing &&
+      !pastBlocked(DateTime.now());
 
   /// A repeat rolls forward, so only a one-off can sit in the past — and it
-  /// would never ring.
+  /// would never ring. An unchanged old one-off may still be saved.
   bool isPastOneOff(DateTime now) => !repeat.repeats && dueAt.isBefore(now);
+
+  bool pastBlocked(DateTime now) =>
+      isPastOneOff(now) && (existing == null || dueAt != existing!.dueAt);
 
   EditState copyWith({
     String? title,
@@ -94,7 +106,9 @@ class EditState {
     bool? removeClip,
     bool? readAloud,
     bool? recording,
+    bool? latched,
     Duration? recorded,
+    bool? advanced,
   }) => EditState(
     title: title ?? this.title,
     note: note ?? this.note,
@@ -112,7 +126,9 @@ class EditState {
     removeClip: removeClip ?? this.removeClip,
     readAloud: readAloud ?? this.readAloud,
     recording: recording ?? this.recording,
+    latched: latched ?? this.latched,
     recorded: recorded ?? this.recorded,
+    advanced: advanced ?? this.advanced,
   );
 }
 
@@ -127,15 +143,19 @@ class EditCubit extends Cubit<EditState> {
     DateTime? now,
     this.media,
     this.voice,
-  }) : super(
+  }) : _inheritedDraft = draftClip,
+       super(
          existing == null
              ? EditState(
-                 title: '',
-                 note: '',
-                 dueAt: _nextHour(now ?? DateTime.now()),
-                 repeat: RepeatRule.none,
-                 nagMin: defaultNagMin,
-                 readAloud: readAloudDefault,
+                 title: draft?.title ?? '',
+                 note: draft?.note ?? '',
+                 dueAt: draft?.dueAt ?? _nextHour(now ?? DateTime.now()),
+                 repeat: draft?.repeat ?? RepeatRule.none,
+                 tag: draft?.tag,
+                 nagMin: draft == null ? defaultNagMin : draft.nagMin,
+                 readAloud: draft?.readAloud ?? readAloudDefault,
+                 hasClip: draftClip,
+                 draftClip: draftClip,
                )
              : EditState(
                  title: existing.title,
@@ -160,6 +180,9 @@ class EditCubit extends Cubit<EditState> {
   final VoiceClip? voice;
   bool _saved = false;
 
+  /// The clip came from the capture bar; its draft is that bar's to clean up.
+  final bool _inheritedDraft;
+
   /// Where the clip shown in the sheet lives right now.
   String? get clipPath {
     final m = media;
@@ -173,11 +196,13 @@ class EditCubit extends Cubit<EditState> {
       : HoldRecorder(
           voice!,
           media!.draftVoicePath,
-          onTick: (elapsed) {
+          tempPath: media!.draftTempPath,
+          onTick: (elapsed, _) {
             if (!isClosed) {
               emit(
                 state.copyWith(
                   recording: true,
+                  latched: _hold?.latched ?? false,
                   recorded: elapsed,
                   clearError: true,
                   clearNotice: true,
@@ -190,6 +215,7 @@ class EditCubit extends Cubit<EditState> {
             emit(switch (result) {
               HoldKept(:final length) => state.copyWith(
                 recording: false,
+                latched: false,
                 hasClip: true,
                 draftClip: true,
                 removeClip: false,
@@ -197,15 +223,35 @@ class EditCubit extends Cubit<EditState> {
               ),
               HoldDropped(:final notice, :final denied) =>
                 denied
-                    ? state.copyWith(recording: false, error: notice)
-                    : state.copyWith(recording: false, notice: notice),
+                    ? state.copyWith(
+                        recording: false,
+                        latched: false,
+                        error: notice,
+                      )
+                    : state.copyWith(
+                        recording: false,
+                        latched: false,
+                        notice: notice,
+                      ),
             });
           },
         );
 
   Future<void> startRecording() async => _hold?.press();
 
-  Future<void> stopRecording() async => _hold?.release();
+  Future<void> stopRecording() async {
+    await _hold?.release();
+    // A quick release latches: show it now, not on the next tick.
+    final latched = _hold?.latched ?? false;
+    if (!isClosed && state.recording && state.latched != latched) {
+      emit(state.copyWith(latched: latched));
+    }
+  }
+
+  Future<void> toggleRecording() async => _hold?.toggle();
+
+  /// Backgrounded: a latched take must not run on behind the lock screen.
+  Future<void> cancelRecording() async => _hold?.cancel();
 
   Future<void> deleteClip() async {
     await media?.discardDraft();
@@ -218,12 +264,18 @@ class EditCubit extends Cubit<EditState> {
     );
   }
 
+  void showAdvanced(bool value) {
+    // The mic lives on Basic: a take must not run on, unseen, with Save off.
+    if (state.recording) _hold?.cancel();
+    emit(state.copyWith(advanced: value));
+  }
+
   void setReadAloud(bool value) => emit(state.copyWith(readAloud: value));
 
   @override
   Future<void> close() async {
     await _hold?.dispose();
-    if (!_saved) await media?.discardDraft();
+    if (!_saved && !_inheritedDraft) await media?.discardDraft();
     return super.close();
   }
 
@@ -265,7 +317,7 @@ class EditCubit extends Cubit<EditState> {
     final existing = state.existing;
     final title = state.title.trim().isNotEmpty
         ? state.title
-        : 'Voice note · ${MediaStore.clipLength(clipPath ?? '')}';
+        : l10n().voiceNoteTitle(MediaStore.clipLength(clipPath ?? ''));
     var reminder =
         existing?.copyWith(
           title: title.trim(),
@@ -293,25 +345,42 @@ class EditCubit extends Cubit<EditState> {
           tag: state.tag,
           nagMin: state.nagMin,
         ).copyWith(preAlarmMin: state.preAlarmMin);
-    // Media first, so the scheduler sees the clip it should ring.
-    final m = media;
-    if (m != null && state.draftClip) {
-      await m.commitVoice(reminder.id);
-      reminder = reminder.copyWith(hasVoice: true);
-    } else if (m != null && state.removeClip) {
-      await m.deleteVoice(reminder.id);
-      reminder = reminder.copyWith(hasVoice: false);
-    }
-    reminder = reminder.copyWith(readAloud: state.readAloud);
-    _saved = true;
+    var committed = false;
     try {
+      // Media first, so the scheduler sees the clip it should ring.
+      final m = media;
+      if (m != null && state.draftClip) {
+        committed = await m.commitVoice(reminder.id);
+        reminder = reminder.copyWith(hasVoice: committed);
+      } else if (m != null && state.removeClip) {
+        // The file goes only after the row is saved.
+        reminder = reminder.copyWith(hasVoice: false);
+      }
+      reminder = reminder.copyWith(readAloud: state.readAloud);
+      _saved = true;
       await _save(reminder);
+      await media?.dropBackup(reminder.id);
+      if (state.removeClip && !state.draftClip) {
+        await media?.deleteVoice(reminder.id);
+      }
       emit(state.copyWith(status: EditStatus.saved));
     } on ScheduleFailure {
       // The row is saved and flagged for retry; say so, then close.
+      await media?.dropBackup(reminder.id);
+      if (state.removeClip && !state.draftClip) {
+        await media?.deleteVoice(reminder.id);
+      }
       emit(
-        state.copyWith(status: EditStatus.saved, error: scheduleFailedMessage),
+        state.copyWith(status: EditStatus.saved, error: l10n().scheduleFailed),
       );
+    } catch (_) {
+      if (committed) await media!.uncommitVoice(reminder.id);
+      _saved = false;
+      if (!isClosed) {
+        emit(
+          state.copyWith(status: EditStatus.editing, error: l10n().saveFailed),
+        );
+      }
     }
   }
 }

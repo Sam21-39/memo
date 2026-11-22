@@ -8,13 +8,15 @@ class MemoToast extends StatelessWidget {
   const MemoToast({
     super.key,
     required this.message,
-    required this.action,
-    required this.onAction,
+    this.action,
+    this.onAction,
   });
 
   final String message;
-  final String action;
-  final VoidCallback onAction;
+
+  /// Both null: a plain notice with no button.
+  final String? action;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +24,10 @@ class MemoToast extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Container(
-        height: MemoSpace.hitMin,
-        padding: const EdgeInsets.only(
+        constraints: const BoxConstraints(minHeight: MemoSpace.hitMin),
+        padding: EdgeInsets.only(
           left: MemoSpace.space4,
-          right: MemoSpace.space1,
+          right: action == null ? MemoSpace.space4 : MemoSpace.space1,
         ),
         decoration: BoxDecoration(
           color: c.ink,
@@ -36,7 +38,7 @@ class MemoToast extends StatelessWidget {
             Expanded(
               child: Text(
                 message,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: MemoType.body.copyWith(
                   color: c.onInk,
@@ -44,13 +46,14 @@ class MemoToast extends StatelessWidget {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: onAction,
-              style: TextButton.styleFrom(
-                foregroundColor: MemoColors.dark.accent,
+            if (action != null)
+              TextButton(
+                onPressed: onAction,
+                style: TextButton.styleFrom(
+                  foregroundColor: MemoColors.dark.accent,
+                ),
+                child: Text(action!),
               ),
-              child: Text(action),
-            ),
           ],
         ),
       ),

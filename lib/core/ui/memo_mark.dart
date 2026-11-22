@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../theme/tokens.dart';
 
 /// The logo: a ring in ink with the dot at two o'clock in accent. Drawn, not
@@ -13,7 +14,7 @@ class MemoMark extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = MemoColors.of(context);
     return Semantics(
-      label: 'Memō',
+      label: appName,
       image: true,
       child: CustomPaint(
         size: Size.square(size),
@@ -64,7 +65,7 @@ class EmptyRing extends StatelessWidget {
       ),
       child: Text(
         '00',
-        style: MemoType.labelMedium.copyWith(fontSize: 20, color: c.ink45),
+        style: MemoType.labelMedium.copyWith(fontSize: 20, color: c.ink70),
       ),
     );
   }

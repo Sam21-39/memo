@@ -9,6 +9,8 @@ import '../../domain/alarm/alarm_ids.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/alarm/fire_plan.dart';
 import '../../domain/entities/reminder.dart';
+import '../../../../l10n/l10n.dart';
+import 'serial.dart';
 
 /// What the user tapped on a delivered notification.
 enum NotificationAction { open, done, snooze }
@@ -46,6 +48,7 @@ class LocalNotificationScheduler implements AlarmScheduler {
     bool? burst,
     this.snoozeEnabled = true,
     this.soundFor,
+    this.onScheduled,
   }) : _capPending = capPending ?? Platform.isIOS,
        _burst = burst ?? Platform.isIOS;
 
@@ -58,9 +61,16 @@ class LocalNotificationScheduler implements AlarmScheduler {
   /// or null for the system default.
   final Future<String?> Function(Reminder reminder)? soundFor;
 
+  /// Called once per reminder after its notifications were registered, with
+  /// the sound used: the moment older renders are safe to delete.
+  final Future<void> Function(Reminder reminder, String? sound)? onScheduled;
+
   /// iOS only — see [syncAll]. Injectable so it can be tested off a device.
   final bool _capPending;
   final bool _burst;
+
+  /// Whole calls run one at a time: sound renders, registration and prune.
+  final _serial = Serial();
 
   /// Set before [initialize] so a cold start from a notification is not lost.
   void Function(NotificationTap tap)? onTap;
@@ -87,9 +97,16 @@ class LocalNotificationScheduler implements AlarmScheduler {
             DarwinNotificationCategory(
               _iosCategoryId,
               actions: [
-                DarwinNotificationAction.plain(_doneActionId, 'Done'),
+                // l10n: native
+                DarwinNotificationAction.plain(
+                  _doneActionId,
+                  l10n().commonDone,
+                ),
                 if (snoozeEnabled)
-                  DarwinNotificationAction.plain(_snoozeActionId, 'Snooze 10m'),
+                  DarwinNotificationAction.plain(
+                    _snoozeActionId,
+                    l10n().notifSnooze,
+                  ),
               ],
             ),
           ],
@@ -131,20 +148,21 @@ class LocalNotificationScheduler implements AlarmScheduler {
 
   /// Replaces any previously scheduled alarms for this reminder.
   @override
-  Future<void> schedule(Reminder reminder) async {
-    await cancel(reminder.id);
+  Future<void> schedule(Reminder reminder) => _serial.run(() async {
+    await _cancel(reminder.id);
     final sound = await soundFor?.call(reminder);
     for (final fire in firesFor(reminder, now: DateTime.now(), burst: _burst)) {
       await _zoned(fire, reminder, sound);
     }
-  }
+    await onScheduled?.call(reminder, sound);
+  });
 
   /// Re-registers every live alarm. iOS keeps only the 64 soonest pending
   /// notifications, silently drops the rest and never restores a dropped one
   /// when earlier alarms fire — so collect every fire across all reminders,
   /// sort by time, register the soonest 64.
   @override
-  Future<void> syncAll(List<Reminder> live) async {
+  Future<void> syncAll(List<Reminder> live) => _serial.run(() async {
     await _plugin.cancelAll();
     final now = DateTime.now();
     final byId = {for (final r in live) r.id: r};
@@ -160,10 +178,16 @@ class LocalNotificationScheduler implements AlarmScheduler {
           : sounds[r.id] = await soundFor?.call(r);
       await _zoned(fire, r, sound);
     }
-  }
+    for (final e in sounds.entries) {
+      await onScheduled?.call(byId[e.key]!, e.value);
+    }
+  });
 
   @override
-  Future<void> cancel(String reminderId) async {
+  Future<void> cancel(String reminderId) =>
+      _serial.run(() => _cancel(reminderId));
+
+  Future<void> _cancel(String reminderId) async {
     for (final id in AlarmIds.all(reminderId)) {
       await _plugin.cancel(id: id);
     }
@@ -195,21 +219,22 @@ class LocalNotificationScheduler implements AlarmScheduler {
   NotificationDetails _details(String? sound) => NotificationDetails(
     android: AndroidNotificationDetails(
       _channelId,
-      'Reminders',
-      channelDescription: 'Scheduled reminder alarms',
+      // l10n: native
+      l10n().notifChannelName,
+      channelDescription: l10n().notifChannelDescription,
       importance: Importance.max,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       actions: [
-        const AndroidNotificationAction(
+        AndroidNotificationAction(
           _doneActionId,
-          'Done',
+          l10n().commonDone, // l10n: native
           showsUserInterface: true,
         ),
         if (snoozeEnabled)
-          const AndroidNotificationAction(
+          AndroidNotificationAction(
             _snoozeActionId,
-            'Snooze 10m',
+            l10n().notifSnooze, // l10n: native
             showsUserInterface: true,
           ),
       ],

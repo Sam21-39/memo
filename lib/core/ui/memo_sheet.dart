@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../chrome/memo_chrome.dart';
 import '../theme/tokens.dart';
+import 'motion.dart';
 
 /// Bottom sheet on chrome: glass on iOS, solid elsewhere. Grabber, then the
 /// caller's content. The list behind recedes under a dim.
@@ -17,6 +18,11 @@ Future<T?> showMemoSheet<T>(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: MemoColors.scrim,
+    sheetAnimationStyle: AnimationStyle(
+      duration: motion(context, MemoMotion.slow),
+      reverseDuration: motion(context, MemoMotion.base),
+      curve: MemoMotion.curve,
+    ),
     elevation: 0,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -26,6 +32,7 @@ Future<T?> showMemoSheet<T>(
         ),
         child: MemoChrome(
           shape: ChromeShape.sheet,
+          solid: true,
           child: SafeArea(
             top: false,
             child: Padding(

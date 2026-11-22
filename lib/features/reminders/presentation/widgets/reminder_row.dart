@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
 import 'check_control.dart';
+import '../../../../l10n/l10n.dart';
 
 /// One reminder: check, title, optional mono sub-line (tag dot + name, or a
 /// note), repeat glyph and mono time on the right. No border of its own.
@@ -49,7 +50,11 @@ class ReminderRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              CheckControl(state: state, onTap: onCheckTap),
+              CheckControl(
+                state: state,
+                onTap: onCheckTap,
+                semanticLabel: context.l10n.markDoneNamed(title),
+              ),
               const SizedBox(width: MemoSpace.space1),
               Expanded(
                 child: Column(
@@ -58,12 +63,13 @@ class ReminderRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      maxLines: 2,
+                      maxLines: 3,
+                      softWrap: true,
                       overflow: TextOverflow.ellipsis,
                       style: MemoType.bodyLarge.copyWith(
-                        color: done ? c.ink45 : c.ink,
+                        color: done ? c.ink70 : c.ink,
                         decoration: done ? TextDecoration.lineThrough : null,
-                        decorationColor: c.ink45,
+                        decorationColor: c.ink70,
                       ),
                     ),
                     if (subtitle != null)
@@ -96,15 +102,23 @@ class ReminderRow extends StatelessWidget {
                 Icon(
                   Icons.repeat_rounded,
                   size: 14,
-                  color: c.ink45,
-                  semanticLabel: 'Repeats',
+                  color: c.ink70,
+                  semanticLabel: context.l10n.repeatsSemantic,
                 ),
               ],
               const SizedBox(width: MemoSpace.space2),
-              Text(
-                trailing,
-                style: MemoType.labelMedium.copyWith(
-                  color: overdue ? c.accent : c.ink70,
+              // Capped so a scaled "2 h late" wraps instead of starving the
+              // title.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.3,
+                ),
+                child: Text(
+                  trailing,
+                  textAlign: TextAlign.end,
+                  style: MemoType.labelMedium.copyWith(
+                    color: overdue ? c.accentText : c.ink70,
+                  ),
                 ),
               ),
             ],

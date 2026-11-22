@@ -31,6 +31,16 @@ class VoiceClip {
     if (await _recorder.isRecording()) await _recorder.stop();
   }
 
+  /// Input level 0..1 from the recorder's dBFS reading (-45..0); 0 on error.
+  Future<double> level() async {
+    try {
+      final db = (await _recorder.getAmplitude()).current;
+      return ((db + 45) / 45).clamp(0.0, 1.0);
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// Stops and deletes what was recorded.
   Future<void> cancel() => _recorder.cancel();
 

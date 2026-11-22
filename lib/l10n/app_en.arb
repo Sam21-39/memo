@@ -1,0 +1,1711 @@
+{
+  "@@locale": "en",
+  "commonDone": "Done",
+  "@commonDone": {
+    "description": "Shared button or label"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Shared button or label"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Shared button or label"
+  },
+  "commonAdd": "Add",
+  "@commonAdd": {
+    "description": "Shared button or label"
+  },
+  "commonSet": "Set",
+  "@commonSet": {
+    "description": "Shared button or label"
+  },
+  "commonEdit": "Edit",
+  "@commonEdit": {
+    "description": "Shared button or label"
+  },
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Shared button or label"
+  },
+  "commonUndo": "Undo",
+  "@commonUndo": {
+    "description": "Shared button or label"
+  },
+  "commonOn": "On",
+  "@commonOn": {
+    "description": "Shared button or label"
+  },
+  "commonOff": "Off",
+  "@commonOff": {
+    "description": "Shared button or label"
+  },
+  "commonContinue": "Continue",
+  "@commonContinue": {
+    "description": "Shared button or label"
+  },
+  "commonSkip": "Skip",
+  "@commonSkip": {
+    "description": "Shared button or label"
+  },
+  "commonBack": "‹ Back",
+  "@commonBack": {
+    "description": "Shared button or label"
+  },
+  "commonWorking": "Working",
+  "@commonWorking": {
+    "description": "Shared button or label"
+  },
+  "commonMarkDone": "Mark done",
+  "@commonMarkDone": {
+    "description": "Shared button or label"
+  },
+  "commonReopen": "Reopen",
+  "@commonReopen": {
+    "description": "Shared button or label"
+  },
+  "commonSnoozeTenMinutes": "Snooze 10 minutes",
+  "@commonSnoozeTenMinutes": {
+    "description": "Shared button or label"
+  },
+  "commonTryAgain": "Try again",
+  "@commonTryAgain": {
+    "description": "Shared button or label"
+  },
+  "fieldWhen": "When",
+  "@fieldWhen": {
+    "description": "Reminder field label or hint"
+  },
+  "fieldTime": "Time",
+  "@fieldTime": {
+    "description": "Reminder field label or hint"
+  },
+  "fieldDate": "Date",
+  "@fieldDate": {
+    "description": "Reminder field label or hint"
+  },
+  "fieldRepeat": "Repeat",
+  "@fieldRepeat": {
+    "description": "Reminder field label or hint"
+  },
+  "fieldTag": "Tag",
+  "@fieldTag": {
+    "description": "Reminder field label or hint"
+  },
+  "fieldPreAlarm": "Pre-alarm",
+  "@fieldPreAlarm": {
+    "description": "Reminder field label or hint"
+  },
+  "reminderHint": "Remind me to…",
+  "@reminderHint": {
+    "description": "Reminder field label or hint"
+  },
+  "reminderMissing": "This reminder no longer exists.",
+  "@reminderMissing": {
+    "description": "Reminder field label or hint"
+  },
+  "dateToday": "Today",
+  "@dateToday": {
+    "description": "Date and lateness wording"
+  },
+  "dateTomorrow": "Tomorrow",
+  "@dateTomorrow": {
+    "description": "Date and lateness wording"
+  },
+  "dateYesterday": "Yesterday",
+  "@dateYesterday": {
+    "description": "Date and lateness wording"
+  },
+  "lateDays": "{count} d late",
+  "@lateDays": {
+    "description": "Overdue row trailing phrase",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lateHours": "{count} h late",
+  "@lateHours": {
+    "description": "Overdue row trailing phrase",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lateMinutes": "{count, plural, =1{1 min late} other{{count} min late}}",
+  "@lateMinutes": {
+    "description": "Overdue row trailing phrase",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whenLate": "{when} · {late}",
+  "@whenLate": {
+    "description": "Date and lateness wording",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "late": {
+        "type": "String"
+      }
+    }
+  },
+  "whenDayTime": "{day} · {time}",
+  "@whenDayTime": {
+    "description": "Day and time joined, e.g. Today · 8:30 PM",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAll": "All",
+  "@homeAll": {
+    "description": "Home screen text"
+  },
+  "homeOverdue": "Overdue",
+  "@homeOverdue": {
+    "description": "Home screen text"
+  },
+  "homeSummaryNone": "Nothing scheduled",
+  "@homeSummaryNone": {
+    "description": "Home screen text"
+  },
+  "homeScheduled": "{count} scheduled",
+  "@homeScheduled": {
+    "description": "Home summary line when nothing is overdue",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeScheduledOverdue": "{scheduled} scheduled · {overdue} overdue",
+  "@homeScheduledOverdue": {
+    "description": "Home summary line with overdue count",
+    "placeholders": {
+      "scheduled": {
+        "type": "int"
+      },
+      "overdue": {
+        "type": "int"
+      }
+    }
+  },
+  "homeEmptyTitle": "Nothing scheduled",
+  "@homeEmptyTitle": {
+    "description": "Home screen text"
+  },
+  "homeEmptyBody": "Bins, pills, that call.\nType below, or tap the mic and speak.",
+  "@homeEmptyBody": {
+    "description": "Home screen text"
+  },
+  "homeLoadFailedTitle": "Couldn't load your reminders",
+  "@homeLoadFailedTitle": {
+    "description": "Home screen text"
+  },
+  "homeLoadFailedBody": "They are still saved on this device. Alarms already scheduled keep firing.",
+  "@homeLoadFailedBody": {
+    "description": "Home screen text"
+  },
+  "homeDeleted": "{title} deleted",
+  "@homeDeleted": {
+    "description": "Home screen text",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCompleted": "{title} done",
+  "@homeCompleted": {
+    "description": "Home screen text",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "captureAddPhoto": "Add a photo",
+  "@captureAddPhoto": {
+    "description": "Capture bar and capture sheets"
+  },
+  "captureElapsed": "● {elapsed}",
+  "@captureElapsed": {
+    "description": "Capture bar and capture sheets",
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      }
+    }
+  },
+  "captureRepeatWeekdays": "Weekdays",
+  "@captureRepeatWeekdays": {
+    "description": "Capture bar and capture sheets"
+  },
+  "repeatEveryDay": "Every {day}",
+  "@repeatEveryDay": {
+    "description": "Repeat chip for one weekday, e.g. Every Mon",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "captureTime": "Time: {when}",
+  "@captureTime": {
+    "description": "Capture bar and capture sheets",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "captureTimeGuess": "Time, a guess: {when}",
+  "@captureTimeGuess": {
+    "description": "Capture bar and capture sheets",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "clipNote": "{length} · your note",
+  "@clipNote": {
+    "description": "Capture bar and capture sheets",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "clipNotePlaying": "{length} · your note · playing",
+  "@clipNotePlaying": {
+    "description": "Alarm voice note line while playing",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "repeatSheetBody": "Done moves it to the next time instead of archiving.",
+  "@repeatSheetBody": {
+    "description": "Capture bar and capture sheets"
+  },
+  "tagSheetBody": "One per reminder. Colour comes from the name.",
+  "@tagSheetBody": {
+    "description": "Capture bar and capture sheets"
+  },
+  "tagNewHint": "New tag…",
+  "@tagNewHint": {
+    "description": "Capture bar and capture sheets"
+  },
+  "voiceNoteTitle": "Voice note · {length}",
+  "@voiceNoteTitle": {
+    "description": "Capture bar and capture sheets",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "holdMicOn": "Microphone on. Tap the mic to record.",
+  "@holdMicOn": {
+    "description": "Capture bar and capture sheets"
+  },
+  "holdMicDenied": "Microphone not allowed. Turn it on in Settings.",
+  "@holdMicDenied": {
+    "description": "Capture bar and capture sheets"
+  },
+  "holdHint": "Tap the mic, speak, then tap Stop.",
+  "@holdHint": {
+    "description": "Capture bar and capture sheets"
+  },
+  "editNew": "New reminder",
+  "@editNew": {
+    "description": "Edit reminder sheet"
+  },
+  "editExisting": "Edit reminder",
+  "@editExisting": {
+    "description": "Edit reminder sheet"
+  },
+  "editNoteHint": "Add a note",
+  "@editNoteHint": {
+    "description": "Edit reminder sheet"
+  },
+  "editPreAlarmBody": "An early heads-up before it rings.",
+  "@editPreAlarmBody": {
+    "description": "Edit reminder sheet"
+  },
+  "editNagTitle": "If I don’t respond",
+  "@editNagTitle": {
+    "description": "Edit reminder sheet"
+  },
+  "editNagBody": "Rings again up to 6 times, until you mark it done.",
+  "@editNagBody": {
+    "description": "Edit reminder sheet"
+  },
+  "editSound": "Sound",
+  "@editSound": {
+    "description": "Edit reminder sheet"
+  },
+  "editHoldToRecordNote": "Tap to record a voice note",
+  "@editHoldToRecordNote": {
+    "description": "Edit reminder sheet"
+  },
+  "editReleaseToStop": "Release to stop",
+  "@editReleaseToStop": {
+    "description": "Edit reminder sheet"
+  },
+  "editReadAloudWhenRings": "Read title aloud",
+  "@editReadAloudWhenRings": {
+    "description": "Edit reminder sheet"
+  },
+  "editNewTagChip": "+ New",
+  "@editNewTagChip": {
+    "description": "Edit reminder sheet"
+  },
+  "editNewTagTitle": "New tag",
+  "@editNewTagTitle": {
+    "description": "Edit reminder sheet"
+  },
+  "editTagHint": "Home, Work, Health…",
+  "@editTagHint": {
+    "description": "Edit reminder sheet"
+  },
+  "editRecordingMax": " / {max}",
+  "@editRecordingMax": {
+    "description": "Edit reminder sheet",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "voicePlay": "Play voice note",
+  "@voicePlay": {
+    "description": "Voice note control label"
+  },
+  "voiceStop": "Stop voice note",
+  "@voiceStop": {
+    "description": "Voice note control label"
+  },
+  "voiceDelete": "Delete voice note",
+  "@voiceDelete": {
+    "description": "Voice note control label"
+  },
+  "repeatNone": "None",
+  "@repeatNone": {
+    "description": "Repeat option label"
+  },
+  "repeatNever": "Never",
+  "@repeatNever": {
+    "description": "Repeat option label"
+  },
+  "repeatDaily": "Daily",
+  "@repeatDaily": {
+    "description": "Repeat option label"
+  },
+  "repeatWeekly": "Weekly",
+  "@repeatWeekly": {
+    "description": "Repeat option label"
+  },
+  "repeatCustom": "Custom",
+  "@repeatCustom": {
+    "description": "Repeat option label"
+  },
+  "repeatsSemantic": "Repeats",
+  "@repeatsSemantic": {
+    "description": "Repeat option label"
+  },
+  "detailDeleteTitle": "Delete this reminder?",
+  "@detailDeleteTitle": {
+    "description": "Reminder detail screen"
+  },
+  "detailDeleteBody": "It will stop ringing. This cannot be undone.",
+  "@detailDeleteBody": {
+    "description": "Reminder detail screen"
+  },
+  "detailNext": "Next",
+  "@detailNext": {
+    "description": "Reminder detail screen"
+  },
+  "detailNag": "Nag",
+  "@detailNag": {
+    "description": "Reminder detail screen"
+  },
+  "detailCreated": "Created",
+  "@detailCreated": {
+    "description": "Reminder detail screen"
+  },
+  "detailSnooze": "Snooze",
+  "@detailSnooze": {
+    "description": "Reminder detail screen"
+  },
+  "alarmReminder": "Reminder",
+  "@alarmReminder": {
+    "description": "Alarm screen"
+  },
+  "archiveSearchHint": "Search",
+  "@archiveSearchHint": {
+    "description": "Done archive screen"
+  },
+  "archiveNoMatch": "Nothing matches.",
+  "@archiveNoMatch": {
+    "description": "Done archive screen"
+  },
+  "archiveThisWeek": "{n} this week",
+  "@archiveThisWeek": {
+    "description": "Done archive screen",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "minutesCustomHint": "Custom minutes",
+  "@minutesCustomHint": {
+    "description": "Minutes picker sheet"
+  },
+  "everyMinutes": "{minutes, plural, =1{Every minute} other{Every {minutes} min}}",
+  "@everyMinutes": {
+    "description": "Nag interval label",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursBefore": "{h} h before",
+  "@hoursBefore": {
+    "description": "Pre-alarm label",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "minutesBefore": "{m} min before",
+  "@minutesBefore": {
+    "description": "Pre-alarm label",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings screen"
+  },
+  "settingsLanguageVoice": "Language and voice",
+  "@settingsLanguageVoice": {
+    "description": "Settings section heading"
+  },
+  "settingsAppLanguage": "App language",
+  "@settingsAppLanguage": {
+    "description": "Settings row and language page section"
+  },
+  "settingsDefaultNagBody": "New reminders ring again this often until done. Each one can change it.",
+  "@settingsDefaultNagBody": {
+    "description": "Settings screen"
+  },
+  "settingsVoice": "Voice",
+  "@settingsVoice": {
+    "description": "Settings screen"
+  },
+  "settingsFemale": "Female",
+  "@settingsFemale": {
+    "description": "Settings screen"
+  },
+  "settingsMale": "Male",
+  "@settingsMale": {
+    "description": "Settings screen"
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Settings screen"
+  },
+  "settingsSystem": "System",
+  "@settingsSystem": {
+    "description": "Settings screen"
+  },
+  "settingsFooter": "Memō {version} · Nothing leaves this phone.",
+  "@settingsFooter": {
+    "description": "Settings screen",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsReminders": "Reminders",
+  "@settingsReminders": {
+    "description": "Settings screen"
+  },
+  "settingsNoResponse": "If I don’t respond",
+  "@settingsNoResponse": {
+    "description": "Settings screen"
+  },
+  "settingsReadTitle": "Read title aloud",
+  "@settingsReadTitle": {
+    "description": "Settings screen"
+  },
+  "settingsReliability": "Alarm reliability",
+  "@settingsReliability": {
+    "description": "Settings screen"
+  },
+  "settingsHealth": "Alarm health",
+  "@settingsHealth": {
+    "description": "Settings screen"
+  },
+  "healthAllSet": "All set",
+  "@healthAllSet": {
+    "description": "Settings screen"
+  },
+  "healthToFix": "{count, plural, =1{1 thing to fix} other{{count} things to fix}}",
+  "@healthToFix": {
+    "description": "Settings screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTest": "Test alarm",
+  "@settingsTest": {
+    "description": "Settings screen"
+  },
+  "settingsTestValue": "Ring in 10 s",
+  "@settingsTestValue": {
+    "description": "Settings screen"
+  },
+  "testStarted": "Lock the phone. It rings in about 10 seconds.",
+  "@testStarted": {
+    "description": "Toast after starting a test alarm"
+  },
+  "testFailed": "Couldn’t set the test alarm. Try again.",
+  "@testFailed": {
+    "description": "Shown when the test alarm could not be scheduled"
+  },
+  "testAlarmTitle": "Test alarm",
+  "@testAlarmTitle": {
+    "description": "Title of the test reminder"
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Settings screen"
+  },
+  "settingsLight": "Light",
+  "@settingsLight": {
+    "description": "Settings screen"
+  },
+  "settingsDark": "Dark",
+  "@settingsDark": {
+    "description": "Settings screen"
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "Settings screen"
+  },
+  "settingsPrivacy": "Privacy",
+  "@settingsPrivacy": {
+    "description": "Settings screen"
+  },
+  "settingsPrivacyValue": "Nothing leaves this phone",
+  "@settingsPrivacyValue": {
+    "description": "Settings screen"
+  },
+  "privacyBody": "Your reminders are stored on this phone. Speech is turned into text on this phone. There is no account and no analytics.",
+  "@privacyBody": {
+    "description": "Privacy sheet"
+  },
+  "healthTitle": "Alarm health",
+  "@healthTitle": {
+    "description": "Alarm health screen"
+  },
+  "healthBodyOk": "This phone is set up to ring Memō reminders. No phone can promise every alarm, so test once.",
+  "@healthBodyOk": {
+    "description": "Alarm health screen"
+  },
+  "healthBodyFix": "{count, plural, =1{1 setting may stop reminders from ringing on time.} other{{count} settings may stop reminders from ringing on time.}}",
+  "@healthBodyFix": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthAllowed": "Allowed",
+  "@healthAllowed": {
+    "description": "Status pill"
+  },
+  "healthOk": "OK",
+  "@healthOk": {
+    "description": "Status pill"
+  },
+  "healthFix": "Fix",
+  "@healthFix": {
+    "description": "Status pill"
+  },
+  "healthOff": "Off",
+  "@healthOff": {
+    "description": "Status pill"
+  },
+  "healthFixFirst": "Fix: {title}",
+  "@healthFixFirst": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "healthTestButton": "Ring a test alarm in 10 seconds",
+  "@healthTestButton": {
+    "description": "Alarm health screen"
+  },
+  "healthLastTest": "Last test started: {when}.",
+  "@healthLastTest": {
+    "description": "Alarm health screen",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "healthFixStep": "Fix {n} of {total}",
+  "@healthFixStep": {
+    "description": "Alarm health fix screen",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDetected": "Detected: {maker}.",
+  "@healthDetected": {
+    "description": "Alarm health fix screen",
+    "placeholders": {
+      "maker": {
+        "type": "String"
+      }
+    }
+  },
+  "healthOpenBattery": "Open battery settings",
+  "@healthOpenBattery": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOpenSettings": "Open settings",
+  "@healthOpenSettings": {
+    "description": "Alarm health fix screen"
+  },
+  "healthCheckAgain": "I changed it, check again",
+  "@healthCheckAgain": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsOk": "Banners and sound",
+  "@healthNotificationsOk": {
+    "description": "Alarm health screen"
+  },
+  "healthNotificationsBad": "Off: reminders cannot ring",
+  "@healthNotificationsBad": {
+    "description": "Alarm health screen"
+  },
+  "healthNotificationsBody": "Without notifications a reminder can be saved but not heard.",
+  "@healthNotificationsBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep1": "Tap “Open settings” below.",
+  "@healthNotificationsStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep2": "Choose Notifications.",
+  "@healthNotificationsStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthNotificationsStep3": "Turn on notifications, then come back to Memō.",
+  "@healthNotificationsStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactOk": "Allowed",
+  "@healthExactOk": {
+    "description": "Alarm health screen"
+  },
+  "healthExactBad": "Off: alarms can ring late",
+  "@healthExactBad": {
+    "description": "Alarm health screen"
+  },
+  "healthExactBody": "Without exact alarms the phone may delay a reminder by many minutes.",
+  "@healthExactBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep1": "Tap “Open settings” below.",
+  "@healthExactStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep2": "Find Memō in the list.",
+  "@healthExactStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthExactStep3": "Turn on Allow, then come back to Memō.",
+  "@healthExactStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenOk": "Allowed",
+  "@healthFullScreenOk": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreenBad": "Off: alarm shows as a small banner",
+  "@healthFullScreenBad": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreenBody": "Without this, an alarm on a locked phone shows as a small banner.",
+  "@healthFullScreenBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep1": "Tap “Open settings” below.",
+  "@healthFullScreenStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep2": "Turn on full-screen notifications for Memō.",
+  "@healthFullScreenStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFullScreenStep3": "Come back to Memō.",
+  "@healthFullScreenStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayOk": "Allowed",
+  "@healthOverlayOk": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlayBad": "Off: only a banner while you use the phone",
+  "@healthOverlayBad": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlayBody": "Without this, an alarm while you use the phone is only a banner.",
+  "@healthOverlayBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep1": "Tap “Open settings” below.",
+  "@healthOverlayStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep2": "Choose Memō.",
+  "@healthOverlayStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthOverlayStep3": "Turn on display over other apps, then come back to Memō.",
+  "@healthOverlayStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBattery": "Battery",
+  "@healthBattery": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryOk": "Unrestricted",
+  "@healthBatteryOk": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryBad": "Not unrestricted: phone may stop Memō",
+  "@healthBatteryBad": {
+    "description": "Alarm health screen"
+  },
+  "healthBatteryBody": "Unless a phone lets an app run unrestricted, it can stop it, and its alarms may not ring.",
+  "@healthBatteryBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep1": "Tap “Open battery settings” below.",
+  "@healthBatteryStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep2": "Choose Battery.",
+  "@healthBatteryStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep3": "Choose Unrestricted.",
+  "@healthBatteryStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBatteryStep4": "Come back to Memō.",
+  "@healthBatteryStep4": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsOk": "Allowed for Memō",
+  "@healthAlarmsOk": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarmsBad": "Off: Memō falls back to notifications",
+  "@healthAlarmsBad": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarmsBody": "Without alarm permission Memō can only send notifications, which silent mode can hide.",
+  "@healthAlarmsBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep1": "Tap “Open settings” below.",
+  "@healthAlarmsStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep2": "Choose Alarms, or allow when the phone asks.",
+  "@healthAlarmsStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthAlarmsStep3": "Turn it on, then come back to Memō.",
+  "@healthAlarmsStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocus": "Focus and silent mode",
+  "@healthFocus": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusOk": "Alarms ring through",
+  "@healthFocusOk": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusInfo": "Focus can silence reminders",
+  "@healthFocusInfo": {
+    "description": "Alarm health screen, iOS before 26: informational"
+  },
+  "healthFocusBad": "Focus can silence reminders",
+  "@healthFocusBad": {
+    "description": "Alarm health screen"
+  },
+  "healthFocusBody": "Real alarms can ring through Focus and silent mode. Without alarm permission they cannot.",
+  "@healthFocusBody": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep1": "Tap “Open settings” below.",
+  "@healthFocusStep1": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep2": "Allow alarms for Memō.",
+  "@healthFocusStep2": {
+    "description": "Alarm health fix screen"
+  },
+  "healthFocusStep3": "Come back to Memō.",
+  "@healthFocusStep3": {
+    "description": "Alarm health fix screen"
+  },
+  "healthBackground": "Background refresh",
+  "@healthBackground": {
+    "description": "Alarm health screen"
+  },
+  "healthBackgroundOk": "Not needed",
+  "@healthBackgroundOk": {
+    "description": "Alarm health screen"
+  },
+  "onbStep3": "Step 3 of 3",
+  "@onbStep3": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryTitle": "Keep alarms alive",
+  "@onbBatteryTitle": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryBody": "Some phones stop background apps to save battery, which can make an alarm ring late or not at all. One setting lowers that risk.",
+  "@onbBatteryBody": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryStep1": "Allow in background: Battery · Memō · Unrestricted",
+  "@onbBatteryStep1": {
+    "description": "Onboarding screens"
+  },
+  "onbBatteryStep2": "Allow autostart: find Memō in your phone’s autostart list and turn it on.",
+  "@onbBatteryStep2": {
+    "description": "Onboarding screens"
+  },
+  "onbDidThis": "I did this",
+  "@onbDidThis": {
+    "description": "Onboarding screens"
+  },
+  "onbSkipRisk": "Skip, I will risk it",
+  "@onbSkipRisk": {
+    "description": "Onboarding screens"
+  },
+  "healthNotifications": "Notifications",
+  "@healthNotifications": {
+    "description": "Alarm health screen"
+  },
+  "healthExact": "Exact alarms",
+  "@healthExact": {
+    "description": "Alarm health screen"
+  },
+  "healthFullScreen": "Full-screen alarms",
+  "@healthFullScreen": {
+    "description": "Alarm health screen"
+  },
+  "healthOverlay": "Take over the screen",
+  "@healthOverlay": {
+    "description": "Alarm health screen"
+  },
+  "healthAlarms": "Alarms",
+  "@healthAlarms": {
+    "description": "Alarm health screen"
+  },
+  "languageTitle": "Language",
+  "@languageTitle": {
+    "description": "Language picker"
+  },
+  "languageSystem": "System default",
+  "@languageSystem": {
+    "description": "Language picker"
+  },
+  "languageHindi": "Hindi",
+  "@languageHindi": {
+    "description": "Language picker"
+  },
+  "languageBengali": "Bengali",
+  "@languageBengali": {
+    "description": "Language picker"
+  },
+  "welcomeTitle": "One line,\none time.",
+  "@welcomeTitle": {
+    "description": "Onboarding screens"
+  },
+  "welcomeBody1": "Type, say or snap the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.",
+  "@welcomeBody1": {
+    "description": "Onboarding screens"
+  },
+  "welcomeBody2": "Nothing leaves your phone. No account, no sync, no analytics.",
+  "@welcomeBody2": {
+    "description": "Onboarding screens"
+  },
+  "permTitle": "Let Memō ring",
+  "@permTitle": {
+    "description": "Onboarding screens"
+  },
+  "permBody1": "Alarms are notifications. The next screen is the phone asking you to allow them. Nothing else is asked for.",
+  "@permBody1": {
+    "description": "Onboarding screens"
+  },
+  "permBody2": "On Android you will also be asked to allow exact alarms so a 7:00 reminder rings at 7:00, not 7:40.",
+  "@permBody2": {
+    "description": "Onboarding screens"
+  },
+  "permAllow": "Allow notifications",
+  "@permAllow": {
+    "description": "Onboarding screens"
+  },
+  "permNotNow": "Not now",
+  "@permNotNow": {
+    "description": "Onboarding screens"
+  },
+  "notifChannelName": "Reminders",
+  "@notifChannelName": {
+    "description": "Notification or spoken text"
+  },
+  "notifChannelDescription": "Scheduled reminder alarms",
+  "@notifChannelDescription": {
+    "description": "Notification or spoken text"
+  },
+  "notifSnooze": "Snooze 10m",
+  "@notifSnooze": {
+    "description": "Notification or spoken text"
+  },
+  "notifAlarmChannel": "Alarms",
+  "@notifAlarmChannel": {
+    "description": "Notification or spoken text"
+  },
+  "notifAlarmChannelBody": "Reminders ringing now",
+  "@notifAlarmChannelBody": {
+    "description": "Notification or spoken text"
+  },
+  "notifMissedChannel": "Missed",
+  "@notifMissedChannel": {
+    "description": "Notification or spoken text"
+  },
+  "missed": "Missed: {title}",
+  "@missed": {
+    "description": "Notification or spoken text",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "spokenReminder": "Reminder. {title}.",
+  "@spokenReminder": {
+    "description": "Text read aloud when a reminder rings",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "spokenReminderNote": "Reminder. {title}. {note}.",
+  "@spokenReminderNote": {
+    "description": "Text read aloud when a reminder with a note rings",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "spokenPreview": "Reminder. Take your pills.",
+  "@spokenPreview": {
+    "description": "Notification or spoken text"
+  },
+  "scheduleFailed": "Saved, but the alarm could not be set. Memō retries when you next open it.",
+  "@scheduleFailed": {
+    "description": "Error message toast"
+  },
+  "saveFailed": "Couldn't save. Nothing changed, try again.",
+  "@saveFailed": {
+    "description": "Error message toast"
+  },
+  "deleteFailed": "Couldn't delete. Try again.",
+  "@deleteFailed": {
+    "description": "Error message toast"
+  },
+  "timePassed": "That time has passed. Pick a later time.",
+  "@timePassed": {
+    "description": "Error message toast"
+  },
+  "captureHintLine": "Type, or tap the mic and speak",
+  "@captureHintLine": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "repeatChip": "Repeat: {value}",
+  "@repeatChip": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "micRecord": "Record a reminder",
+  "@micRecord": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "micTapToStart": "Double tap to start recording",
+  "@micTapToStart": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "micTapToStop": "Tap to stop",
+  "@micTapToStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "openSettings": "Open Settings",
+  "@openSettings": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recRecording": "Recording",
+  "@recRecording": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTimer": "{elapsed} / {max}",
+  "@recTimer": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "recHint": "Say what and when. For example: “Pay the bill on Friday at 10”.",
+  "@recHint": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recStop": "Stop",
+  "@recStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recStopLabel": "Stop recording",
+  "@recStopLabel": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTipHold": "Tip: press and hold the mic to record, release to stop.",
+  "@recTipHold": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recReleaseToStop": "Release to stop, or tap Stop.",
+  "@recReleaseToStop": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recUnderstanding": "Understanding your recording",
+  "@recUnderstanding": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recOnThisPhone": "On this phone, in {language}. Nothing is sent anywhere.",
+  "@recOnThisPhone": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "recFailedTitle": "Couldn’t turn that into text",
+  "@recFailedTitle": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recFailedUnavailable": "{language} speech isn’t available offline on this phone. Your recording is kept.",
+  "@recFailedUnavailable": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "recFailedEmpty": "Nothing was recognised. Your recording is kept.",
+  "@recFailedEmpty": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKeptTitle": "Recording kept",
+  "@recKeptTitle": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKeptBody": "Choose what to do with it.",
+  "@recKeptBody": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recKept": "Kept",
+  "@recKept": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recTypeInstead": "Type it instead",
+  "@recTypeInstead": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "recSaveAsNote": "Save as voice note, pick a time",
+  "@recSaveAsNote": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmYouWrote": "You wrote: “{text}”",
+  "@confirmYouWrote": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmYouSaid": "You said: “{text}”",
+  "@confirmYouSaid": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmSave": "Save reminder",
+  "@confirmSave": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmEdit": "Edit details",
+  "@confirmEdit": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmTimeBadge": "Confirm time",
+  "@confirmTimeBadge": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmTimeQuestion": "Is this the right time?",
+  "@confirmTimeQuestion": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmReasonAmPm": "You said “{phrase}”. Pick morning or evening.",
+  "@confirmReasonAmPm": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmReasonNoTime": "No time was given. Pick one.",
+  "@confirmReasonNoTime": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "confirmReasonDayWord": "“{phrase}” can mean two days. Pick one.",
+  "@confirmReasonDayWord": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmReasonDayAndTime": "“{phrase}” is not clear. Pick the day and time.",
+  "@confirmReasonDayAndTime": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmOtherTime": "Other time…",
+  "@confirmOtherTime": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "savedToday": "Reminder set for today at {time}.",
+  "@savedToday": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "savedTomorrow": "Reminder set for tomorrow at {time}.",
+  "@savedTomorrow": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "savedOn": "Reminder set for {date} at {time}.",
+  "@savedOn": {
+    "description": "V2 capture, confirmation and voice",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeBody1NoPhoto": "Type or say the thing you keep forgetting. Memō rings at that time, even with the app closed and no signal.",
+  "@welcomeBody1NoPhoto": {
+    "description": "V2 capture, confirmation and voice"
+  },
+  "snoozeTitle": "Snooze until…",
+  "@snoozeTitle": {
+    "description": "Snooze sheet heading"
+  },
+  "snoozeBody": "It will ring again, same sound.",
+  "@snoozeBody": {
+    "description": "Snooze sheet body"
+  },
+  "snooze10": "Snooze 10 minutes",
+  "@snooze10": {
+    "description": "Snooze sheet option"
+  },
+  "snooze1h": "Snooze 1 hour",
+  "@snooze1h": {
+    "description": "Snooze sheet option"
+  },
+  "snoozeTomorrow": "Tomorrow, same time",
+  "@snoozeTomorrow": {
+    "description": "Snooze sheet option"
+  },
+  "snoozePick": "Pick a time",
+  "@snoozePick": {
+    "description": "Snooze sheet link to a date and time picker"
+  },
+  "snoozePastTime": "That time has passed. Pick a later one.",
+  "@snoozePastTime": {
+    "description": "Snooze sheet error when the picked time is not in the future"
+  },
+  "alarmReadingInEn": "Reading aloud in English",
+  "@alarmReadingInEn": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "alarmReadingInHi": "Reading aloud in Hindi",
+  "@alarmReadingInHi": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "alarmReadingInBn": "Reading aloud in Bengali",
+  "@alarmReadingInBn": {
+    "description": "Alarm screen, spoken-reminder status"
+  },
+  "detailRepeatNext": "{repeat} · next {when}",
+  "@detailRepeatNext": {
+    "description": "Detail header for a repeating reminder",
+    "placeholders": {
+      "repeat": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "detailDoneToday": "Mark done for today",
+  "@detailDoneToday": {
+    "description": "Detail button on a repeating reminder"
+  },
+  "detailMovesTo": "Marking done moves it to {when}.",
+  "@detailMovesTo": {
+    "description": "Detail note under Mark done for today",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "detailDelete": "Delete reminder",
+  "@detailDelete": {
+    "description": "Detail delete button"
+  },
+  "repeatEveryDayLong": "Every day",
+  "@repeatEveryDayLong": {
+    "description": "Daily repeat in the detail page and alarm screen"
+  },
+  "homeNext": "Next",
+  "@homeNext": {
+    "description": "Home screen text"
+  },
+  "homeNextWhen": "{time} · {until}",
+  "@homeNextWhen": {
+    "description": "Home next-reminder line: time then how far off",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "untilDays": "in {count} d",
+  "@untilDays": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "untilHours": "in {count} h",
+  "@untilHours": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "untilMinutes": "in {count} min",
+  "@untilMinutes": {
+    "description": "How far off the next reminder is",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "markDoneNamed": "Mark {title} done",
+  "@markDoneNamed": {
+    "description": "Screen reader label for a reminder's check",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "swipeSnooze": "Snooze\n10 min",
+  "@swipeSnooze": {
+    "description": "Swipe action label, two lines"
+  },
+  "archiveSearchLabel": "Search done reminders",
+  "@archiveSearchLabel": {
+    "description": "Done archive screen"
+  },
+  "archiveEmptyTitle": "Nothing done yet",
+  "@archiveEmptyTitle": {
+    "description": "Done archive screen"
+  },
+  "archiveEmptyBody": "Reminders you mark done show up here. You can reopen them.",
+  "@archiveEmptyBody": {
+    "description": "Done archive screen"
+  },
+  "commonNone": "None",
+  "@commonNone": {
+    "description": "Shared button or label"
+  },
+  "editWhat": "What",
+  "@editWhat": {
+    "description": "Edit reminder sheet"
+  },
+  "editPickDate": "Pick date",
+  "@editPickDate": {
+    "description": "Edit reminder sheet"
+  },
+  "editChangeTime": "Change time",
+  "@editChangeTime": {
+    "description": "Edit reminder sheet"
+  },
+  "editMoreOptions": "More options: note, tag, nag, sound",
+  "@editMoreOptions": {
+    "description": "Edit reminder sheet"
+  },
+  "editBackBasic": "‹ Basic",
+  "@editBackBasic": {
+    "description": "Edit reminder sheet"
+  },
+  "editMoreTitle": "More options",
+  "@editMoreTitle": {
+    "description": "Edit reminder sheet"
+  },
+  "editNote": "Note",
+  "@editNote": {
+    "description": "Edit reminder sheet"
+  },
+  "editRemindEarlier": "Remind me earlier",
+  "@editRemindEarlier": {
+    "description": "Edit reminder sheet"
+  },
+  "nagSummary": "Every {minutes} min, 6 times",
+  "@nagSummary": {
+    "description": "Edit reminder sheet: nag value",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "editOptionalBody": "These are optional. Most reminders only need what and when.",
+  "@editOptionalBody": {
+    "description": "Edit reminder sheet"
+  },
+  "settingsSpeaking": "Speaking language",
+  "@settingsSpeaking": {
+    "description": "V7 Settings row and language page section"
+  },
+  "settingsReadAloudVoice": "Read-aloud voice",
+  "@settingsReadAloudVoice": {
+    "description": "V7 Settings row"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "V7 Language name in a sentence"
+  },
+  "sttInstalled": "Offline on this phone",
+  "@sttInstalled": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttDownloadable": "Needs a download in phone settings",
+  "@sttDownloadable": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttUnavailable": "Not available on this phone",
+  "@sttUnavailable": {
+    "description": "V7 Speaking language availability"
+  },
+  "sttOneLanguage": "Memō listens in one language at a time. Automatic detection is not available yet.",
+  "@sttOneLanguage": {
+    "description": "V7 Speaking language footer"
+  },
+  "voiceTitle": "Read-aloud voice",
+  "@voiceTitle": {
+    "description": "V7 Read-aloud voice page title"
+  },
+  "voiceBody": "When a reminder rings, Memō can read its title aloud. It reads your words as written; it does not translate them.",
+  "@voiceBody": {
+    "description": "V7 Read-aloud voice page"
+  },
+  "voiceFollow": "Follow reminder language",
+  "@voiceFollow": {
+    "description": "V7 Read-aloud voice option"
+  },
+  "voiceFollowHint": "Hindi reminders in Hindi, English in English",
+  "@voiceFollowHint": {
+    "description": "V7 Read-aloud voice option hint"
+  },
+  "voiceFollowShort": "Follow reminder",
+  "@voiceFollowShort": {
+    "description": "V7 Settings row value"
+  },
+  "voiceMissing": "No offline {language} voice on this phone",
+  "@voiceMissing": {
+    "description": "V7 Read-aloud voice option hint when absent",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicePreview": "Preview: “Take medicine”",
+  "@voicePreview": {
+    "description": "V7 Read-aloud voice preview button"
+  },
+  "voicePreviewFailed": "No offline voice for that language, so nothing was played.",
+  "@voicePreviewFailed": {
+    "description": "V7 Read-aloud voice preview message"
+  },
+  "voiceNotInstalled": "Not installed",
+  "@voiceNotInstalled": {
+    "description": "V7 Read-aloud voice status"
+  },
+  "voiceGenderHint": "English voices",
+  "@voiceGenderHint": {
+    "description": "V7 Read-aloud voice gender hint"
+  },
+  "voiceHowTo": "How to install a voice",
+  "@voiceHowTo": {
+    "description": "V7 Read-aloud voice help link"
+  },
+  "voiceHowToAndroid": "Open your phone’s settings, then Text-to-speech output, then the settings of your engine and install the voice for the language. Choose an offline voice.",
+  "@voiceHowToAndroid": {
+    "description": "V7 Read-aloud voice help, Android"
+  },
+  "voiceHowToIos": "Open Settings, then Accessibility, Spoken Content, Voices. Pick the language and download a voice.",
+  "@voiceHowToIos": {
+    "description": "V7 Read-aloud voice help, iOS"
+  },
+  "voiceOpenSettings": "Open text-to-speech settings",
+  "@voiceOpenSettings": {
+    "description": "V7 Read-aloud voice help button"
+  },
+  "voiceNotice": "No {language} voice on this phone. It rings with the chime.",
+  "@voiceNotice": {
+    "description": "V7 Notice under a read-aloud reminder with no voice",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceNoticeNote": "No {language} voice on this phone. It rings with your voice note.",
+  "@voiceNoticeNote": {
+    "description": "V7 Notice under a read-aloud reminder with no voice, with a voice note",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "quickStartLabel": "Quick start",
+  "@quickStartLabel": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateMedicine": "Take medicine",
+  "@templateMedicine": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateMedicineFill": "Take medicine",
+  "@templateMedicineFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateBill": "Pay a bill",
+  "@templateBill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateBillFill": "Pay bill",
+  "@templateBillFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateCall": "Call someone",
+  "@templateCall": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateCallFill": "Call",
+  "@templateCallFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateFollowUp": "Follow up",
+  "@templateFollowUp": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateFollowUpFill": "Follow up",
+  "@templateFollowUpFill": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateWeekly": "Weekly routine",
+  "@templateWeekly": {
+    "description": "T1 Quick-start template chip"
+  },
+  "templateWeeklyFill": "Every {day}",
+  "@templateWeeklyFill": {
+    "description": "T1 Quick-start template chip",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "detailHistory": "History",
+  "@detailHistory": {
+    "description": "H1 per-occurrence history"
+  },
+  "historyWeek": "This week {done} of {total} done",
+  "@historyWeek": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "historyDoneAt": "Done at {time}",
+  "@historyDoneAt": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historySnoozedDone": "Snoozed {minutes} min, done {time}",
+  "@historySnoozedDone": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historySnoozedLongDone": "Snoozed, done {time}",
+  "@historySnoozedLongDone": {
+    "description": "H1 per-occurrence history",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "historyNotDone": "Not marked done",
+  "@historyNotDone": {
+    "description": "H1 per-occurrence history"
+  },
+  "historyOpen": "Open",
+  "@historyOpen": {
+    "description": "H1 per-occurrence history"
+  },
+  "shareTitle": "Shared to Memō",
+  "@shareTitle": {
+    "description": "S1 share target"
+  },
+  "shareFootnote": "Only what you share. Memō never reads your mail.",
+  "@shareFootnote": {
+    "description": "S1 share target"
+  },
+  "captureDiscard": "Discard",
+  "@captureDiscard": {
+    "description": "C1: throws away the reminder being created (text, voice clip, parsed result)"
+  }
+}

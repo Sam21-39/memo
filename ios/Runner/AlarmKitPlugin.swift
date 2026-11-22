@@ -68,6 +68,8 @@ struct MemoFire: Codable {
   var title: String
   var sound: String?
   var snoozeId: Int
+  var doneLabel: String?
+  var snoozeLabel: String?
 }
 
 @available(iOS 26.0, *)
@@ -76,6 +78,8 @@ enum MemoAlarms {
   /// reminderId -> [fireId: isOneOff]
   static let mapKey = "memo.alarmkit.map"
   static let queueKey = "memo.alarmkit.actions"
+  static let doneKey = "memo.alarmkit.done"
+  static let snoozeKey = "memo.alarmkit.snooze"
 
   static func status() -> String {
     switch AlarmManager.shared.authorizationState {
@@ -136,10 +140,16 @@ enum MemoAlarms {
     default:
       .fixed(at)
     }
+    // Labels come from Dart in the interface language; a re-armed snooze
+    // carries none and reads the ones stored at the last schedule.
+    if let label = fire.doneLabel { defaults.set(label, forKey: doneKey) }
+    if let label = fire.snoozeLabel { defaults.set(label, forKey: snoozeKey) }
+    let done = fire.doneLabel ?? defaults.string(forKey: doneKey) ?? "Done"
+    let snooze = fire.snoozeLabel ?? defaults.string(forKey: snoozeKey) ?? "Snooze 10 minutes"
     let alert = AlarmPresentation.Alert(
-      title: LocalizedStringResource(stringLiteral: fire.title),
-      stopButton: AlarmButton(text: "Done", textColor: .white, systemImageName: "checkmark"),
-      secondaryButton: AlarmButton(text: "Snooze 10m", textColor: .white, systemImageName: "zzz"),
+      title: LocalizedStringResource(String.LocalizationValue(fire.title), table: "Verbatim"),
+      stopButton: AlarmButton(text: LocalizedStringResource(String.LocalizationValue(done), table: "Verbatim"), textColor: .white, systemImageName: "checkmark"),
+      secondaryButton: AlarmButton(text: LocalizedStringResource(String.LocalizationValue(snooze), table: "Verbatim"), textColor: .white, systemImageName: "zzz"),
       secondaryButtonBehavior: .custom)
     let attributes = AlarmAttributes(
       presentation: AlarmPresentation(alert: alert),

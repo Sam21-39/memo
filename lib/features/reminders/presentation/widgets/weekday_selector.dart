@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/tokens.dart';
-
-const _labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+import '../../../../core/utils/date_format.dart';
 
 /// Seven tiles, Mon = 1 .. Sun = 7 ([DateTime.weekday]); selected inverts.
 class WeekdaySelector extends StatelessWidget {
@@ -33,17 +32,22 @@ class WeekdaySelector extends StatelessWidget {
                       : {...selected, day},
                 ),
                 child: Container(
-                  height: 36,
+                  constraints: const BoxConstraints(
+                    minHeight: MemoSpace.hitMin,
+                  ),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: selected.contains(day) ? c.ink : c.ink6,
                     borderRadius: BorderRadius.circular(MemoRadius.chip),
                   ),
-                  child: Text(
-                    _labels[day - 1],
-                    style: MemoType.labelMedium.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: selected.contains(day) ? c.onInk : c.ink70,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      weekdayShort(context, day),
+                      style: MemoType.labelMedium.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: selected.contains(day) ? c.onInk : c.ink70,
+                      ),
                     ),
                   ),
                 ),

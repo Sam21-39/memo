@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 import 'memo_sheet.dart';
+import '../../l10n/l10n.dart';
 
 /// Native pickers: CupertinoDatePicker inside a Memō sheet on iOS, Material
 /// date and time pickers on Android. Returns null when dismissed.
@@ -44,11 +45,6 @@ Future<DateTime?> pickTime(BuildContext context, DateTime initial) async {
   final picked = await showTimePicker(
     context: context,
     initialTime: TimeOfDay.fromDateTime(initial),
-    builder: (context, child) => MediaQuery(
-      // 24-hour is the v1 rule (English-only, 24h).
-      data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-      child: child!,
-    ),
   );
   return picked == null
       ? null
@@ -79,7 +75,7 @@ Future<DateTime?> _cupertino(
           height: 216,
           child: CupertinoDatePicker(
             mode: mode,
-            use24hFormat: true,
+            use24hFormat: MediaQuery.alwaysUse24HourFormatOf(context),
             initialDateTime: initial,
             minimumDate: first,
             maximumDate: last,
@@ -89,7 +85,7 @@ Future<DateTime?> _cupertino(
         const SizedBox(height: MemoSpace.space4),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(value),
-          child: const Text('Done'),
+          child: Text(context.l10n.commonDone),
         ),
       ],
     ),

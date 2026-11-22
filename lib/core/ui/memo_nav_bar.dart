@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../../l10n/l10n.dart';
 
 /// "‹ Back" on the left, an optional accent text action on the right.
 class MemoNavBar extends StatelessWidget {
@@ -16,12 +17,16 @@ class MemoNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          TextButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            child: const Text('‹ Back'),
+          Flexible(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              child: Text(context.l10n.commonBack),
+            ),
           ),
           if (actionLabel != null)
-            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            Flexible(
+              child: TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            ),
         ],
       ),
     );
@@ -54,7 +59,7 @@ class MemoIconButton extends StatelessWidget {
         fixedSize: const Size.square(36),
         minimumSize: const Size.square(MemoSpace.hitMin),
         tapTargetSize: MaterialTapTargetSize.padded,
-        backgroundColor: accent ? c.accent : c.ink6,
+        backgroundColor: accent ? c.accentText : c.ink6,
         foregroundColor: accent ? c.onAccent : c.ink,
       ),
     );

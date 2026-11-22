@@ -16,6 +16,11 @@ final class AlarmPlugin: NSObject, FlutterPlugin {
       .appendingPathComponent("Sounds", isDirectory: true)
   }
 
+  /// Queue written by the Share Extension (same suite and key).
+  private var shares: [[String: Any]] {
+    UserDefaults(suiteName: "group.in.appamania.memo")?.array(forKey: "shares") as? [[String: Any]] ?? []
+  }
+
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     let args = call.arguments as? [String: Any]
     switch call.method {
@@ -39,6 +44,16 @@ final class AlarmPlugin: NSObject, FlutterPlugin {
       result(nil)
     case "reduceTransparency":
       result(UIAccessibility.isReduceTransparencyEnabled)
+    case "pendingShares":
+      let data = JSONSerialization.isValidJSONObject(shares)
+        ? try? JSONSerialization.data(withJSONObject: shares) : nil
+      result(data.flatMap { String(data: $0, encoding: .utf8) } ?? "[]")
+    case "ackShare":
+      if let id = args?["id"] as? String {
+        UserDefaults(suiteName: "group.in.appamania.memo")?
+          .set(shares.filter { $0["id"] as? String != id }, forKey: "shares")
+      }
+      result(nil)
     default:
       result(FlutterMethodNotImplemented)
     }

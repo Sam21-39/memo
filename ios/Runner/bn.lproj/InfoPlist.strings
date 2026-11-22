@@ -1,0 +1,4 @@
+/* Best-effort Bengali: needs native-speaker review. */
+"NSMicrophoneUsageDescription" = "Memō আপনার বলা রিমাইন্ডার রেকর্ড করে। এটি এই ফোনেই থাকে।";
+"NSSpeechRecognitionUsageDescription" = "Memō আপনার ভয়েস নোটকে এই ফোনেই শিরোনামে বদলে দেয়। কিছুই কোথাও পাঠানো হয় না।";
+"NSAlarmKitUsageDescription" = "Memō আপনার রিমাইন্ডার অ্যালার্ম হিসেবে লক স্ক্রিনে এবং ফোকাসের মধ্যেও বাজায়।";

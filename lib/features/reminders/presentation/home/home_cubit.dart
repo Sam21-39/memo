@@ -5,14 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/alarm/alarm_scheduler.dart';
 import '../../domain/entities/reminder.dart';
 import '../../domain/repositories/reminder_repository.dart';
-import '../../domain/usecases/complete_reminder.dart';
 import '../../domain/usecases/delete_reminder.dart';
 import '../../domain/usecases/save_reminder.dart';
-import '../../domain/usecases/snooze_reminder.dart';
 import 'home_state.dart';
-
-const scheduleFailedMessage =
-    'Saved, but the alarm could not be set. Memō retries when you next open it.';
+import '../../../../l10n/l10n.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit(this._repository, this._save, this._delete)
@@ -25,6 +21,9 @@ class HomeCubit extends Cubit<HomeState> {
   final DeleteReminder _delete;
   late final StreamSubscription<void> _changes;
   Timer? _undoTimer;
+  Timer? _savedTimer;
+  Timer? _deleteTimer;
+  String? _inFlight;
 
   static const undoWindow = Duration(seconds: 5);
 
@@ -42,29 +41,39 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<void> _write(Future<void> Function() action) async {
+  /// True when the write went through.
+  Future<bool> _write(Future<void> Function() action) async {
     try {
       await action();
+      return true;
     } on ScheduleFailure {
       final current = state;
       if (current is HomeReady) {
-        emit(current.copyWith(error: scheduleFailedMessage));
+        emit(current.copyWith(error: l10n().scheduleFailed));
+      }
+    } catch (_) {
+      final current = state;
+      if (current is HomeReady) {
+        emit(current.copyWith(error: l10n().saveFailed));
       }
     }
+    return false;
   }
 
   /// A one-off gets a 5 s Undo; a repeat moves forward with no toast, since
   /// restoring its old time would only roll forward again.
-  Future<void> complete(Reminder reminder) async {
-    await _write(
-      () => _save(const CompleteReminder()(reminder, now: DateTime.now())),
-    );
-    if (reminder.repeat.repeats) return;
+  /// False when the write failed (the row must come back).
+  Future<bool> complete(Reminder reminder) async {
+    await commitPendingDelete();
+    final ok = await _write(() => _save.done(reminder, DateTime.now()));
+    if (!ok || reminder.repeat.repeats) return ok;
     final current = state;
-    if (current is! HomeReady) return;
+    if (current is! HomeReady) return ok;
     _undoTimer?.cancel();
-    emit(current.copyWith(undo: reminder));
+    _savedTimer?.cancel();
+    emit(current.copyWith(undo: reminder, clearSaved: true));
     _undoTimer = Timer(undoWindow, dismissUndo);
+    return ok;
   }
 
   Future<void> undo() async {
@@ -83,11 +92,71 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<void> snooze(Reminder reminder, {Duration? by}) => _write(
-    () => _save(const SnoozeReminder()(reminder, now: DateTime.now(), by: by)),
-  );
+  /// The "Reminder set" toast: one at a time, so it replaces an Undo.
+  void showSaved(Reminder reminder) {
+    final current = state;
+    if (current is! HomeReady) return;
+    _undoTimer?.cancel();
+    _savedTimer?.cancel();
+    emit(current.copyWith(saved: reminder, clearUndo: true));
+    _savedTimer = Timer(undoWindow, dismissSaved);
+  }
 
-  Future<void> delete(String id) => _delete(id);
+  void dismissSaved() {
+    _savedTimer?.cancel();
+    final current = state;
+    if (current is HomeReady && current.saved != null) {
+      emit(current.copyWith(clearSaved: true));
+    }
+  }
+
+  Future<bool> snooze(Reminder reminder, {Duration? by}) =>
+      _write(() => _save.snooze(reminder, DateTime.now(), by: by));
+
+  /// Hides the row now; the delete runs when the Undo window ends.
+  Future<void> delete(Reminder reminder) async {
+    await commitPendingDelete();
+    dismissUndo();
+    dismissSaved();
+    final current = state;
+    if (current is! HomeReady) return;
+    emit(current.copyWith(pendingDelete: reminder));
+    _deleteTimer = Timer(undoWindow, commitPendingDelete);
+  }
+
+  void undoDelete() {
+    final current = state;
+    // Already deleting: undo would flash the row back, then drop it.
+    if (current is HomeReady && current.pendingDelete?.id == _inFlight) return;
+    _deleteTimer?.cancel();
+    if (current is HomeReady) emit(current.copyWith(clearPendingDelete: true));
+  }
+
+  /// Also run when the app goes to the background, so a kill cannot lose it.
+  Future<void> commitPendingDelete() async {
+    final current = state;
+    if (current is! HomeReady || current.pendingDelete == null) return;
+    final id = current.pendingDelete!.id;
+    // A commit still awaiting its delete: a second one would delete it twice.
+    if (_inFlight == id) return;
+    _inFlight = id;
+    _deleteTimer?.cancel();
+    try {
+      await _delete(id);
+    } catch (_) {
+      final now = state;
+      if (!isClosed && now is HomeReady) {
+        emit(now.copyWith(error: l10n().deleteFailed));
+      }
+    } finally {
+      _inFlight = null;
+    }
+    // A newer swipe may have replaced the pending row while this awaited.
+    final now = state;
+    if (!isClosed && now is HomeReady && now.pendingDelete?.id == id) {
+      emit(now.copyWith(clearPendingDelete: true));
+    }
+  }
 
   void filterByTag(String? tag) {
     final current = state;
@@ -105,9 +174,21 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     _undoTimer?.cancel();
+    _savedTimer?.cancel();
+    _deleteTimer?.cancel();
     _changes.cancel();
+    final current = state;
+    if (current is HomeReady &&
+        current.pendingDelete != null &&
+        current.pendingDelete!.id != _inFlight) {
+      try {
+        await _delete(current.pendingDelete!.id);
+      } catch (_) {
+        // Still on disk; the next launch shows it again.
+      }
+    }
     return super.close();
   }
 }

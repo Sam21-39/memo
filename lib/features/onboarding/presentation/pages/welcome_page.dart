@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/di.dart';
+import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Main (Onboarding · Welcome).
 class WelcomePage extends StatelessWidget {
@@ -17,16 +20,20 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      art: const MemoMark(),
-      title: 'One line,\none time.',
-      paragraphs: const [
-        'Type, say or snap the thing you keep forgetting. Memō rings at that '
-            'time, even with the app closed and no signal.',
-        'Nothing leaves your phone. No account, no sync, no analytics.',
+      art: MemoMark(),
+      title: context.l10n.welcomeTitle,
+      paragraphs: [
+        sl<FeatureFlags>().imageCapture
+            ? context.l10n.welcomeBody1
+            : context.l10n.welcomeBody1NoPhoto,
+        context.l10n.welcomeBody2,
       ],
       actions: [
-        ElevatedButton(onPressed: onContinue, child: const Text('Continue')),
-        TextButton(onPressed: onSkip, child: const Text('Skip')),
+        ElevatedButton(
+          onPressed: onContinue,
+          child: Text(context.l10n.commonContinue),
+        ),
+        TextButton(onPressed: onSkip, child: Text(context.l10n.commonSkip)),
       ],
     );
   }
@@ -41,12 +48,16 @@ class OnboardingScaffold extends StatelessWidget {
     required this.title,
     required this.paragraphs,
     required this.actions,
+    this.body,
   });
 
   final Widget art;
   final String title;
   final List<String> paragraphs;
   final List<Widget> actions;
+
+  /// Extra content under the paragraphs, e.g. a card of steps.
+  final Widget? body;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +90,10 @@ class OnboardingScaffold extends StatelessWidget {
                     for (final p in paragraphs) ...[
                       const SizedBox(height: MemoSpace.space3),
                       Text(p, style: MemoType.body.copyWith(color: c.ink70)),
+                    ],
+                    if (body != null) ...[
+                      const SizedBox(height: MemoSpace.space6),
+                      body!,
                     ],
                   ],
                 ),

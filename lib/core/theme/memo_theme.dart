@@ -18,12 +18,13 @@ abstract final class MemoTheme {
       useMaterial3: true,
       brightness: brightness,
       fontFamily: MemoType.sans,
+      fontFamilyFallback: MemoType.fallback,
       scaffoldBackgroundColor: c.canvas,
       canvasColor: c.canvas,
       splashFactory: NoSplash.splashFactory,
       colorScheme: ColorScheme(
         brightness: brightness,
-        primary: c.accent,
+        primary: c.accentText,
         onPrimary: c.onAccent,
         secondary: c.ink,
         onSecondary: c.onInk,
@@ -41,7 +42,7 @@ abstract final class MemoTheme {
         bodyMedium: MemoType.body.copyWith(color: c.ink70),
         labelLarge: MemoType.button.copyWith(color: c.ink),
         labelMedium: MemoType.labelMedium.copyWith(color: c.ink70),
-        labelSmall: MemoType.labelSmall.copyWith(color: c.ink45),
+        labelSmall: MemoType.labelSmall.copyWith(color: c.ink70),
       ),
       dividerTheme: DividerThemeData(color: c.hairline, thickness: 1, space: 1),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -65,7 +66,7 @@ abstract final class MemoTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: c.accent,
+          foregroundColor: c.accentText,
           minimumSize: const Size(MemoSpace.hitMin, MemoSpace.hitMin),
           textStyle: MemoType.button.copyWith(fontWeight: FontWeight.w500),
         ),
@@ -73,7 +74,7 @@ abstract final class MemoTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: c.surface,
-        hintStyle: MemoType.body.copyWith(color: c.ink45),
+        hintStyle: MemoType.body.copyWith(color: c.ink70),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: MemoSpace.space4,
           vertical: MemoSpace.space3,
@@ -91,7 +92,7 @@ abstract final class MemoTheme {
           borderSide: BorderSide(color: c.ink45),
         ),
       ),
-      textSelectionTheme: TextSelectionThemeData(cursorColor: c.accent),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: c.accentText),
       dialogTheme: DialogThemeData(
         backgroundColor: c.surface,
         surfaceTintColor: Colors.transparent,
@@ -101,4 +102,17 @@ abstract final class MemoTheme {
       extensions: [c],
     );
   }
+}
+
+/// Alarm-screen buttons (Done, Snooze): 64 px high, button-large type.
+abstract final class MemoButtons {
+  static ButtonStyle large(MemoColors c) => ButtonStyle(
+    minimumSize: const WidgetStatePropertyAll(Size.fromHeight(64)),
+    textStyle: const WidgetStatePropertyAll(MemoType.buttonLarge),
+    shape: WidgetStatePropertyAll(
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(MemoRadius.card + 2),
+      ),
+    ),
+  );
 }

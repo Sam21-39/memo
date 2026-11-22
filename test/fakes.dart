@@ -5,7 +5,10 @@ import 'package:memo/core/app_prefs.dart';
 import 'package:memo/core/di.dart';
 import 'package:memo/core/feature_flags/feature_flags.dart';
 import 'package:memo/core/theme/memo_theme.dart';
+import 'package:memo/l10n/l10n.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
 import 'package:memo/features/reminders/domain/alarm/alarm_scheduler.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
 import 'package:memo/features/reminders/domain/entities/reminder.dart';
 import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
 import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
@@ -28,6 +31,9 @@ class InMemoryRepository implements ReminderRepository {
 
   List<Reminder> _reminders;
   final _changes = StreamController<void>.broadcast();
+  bool failSave = false;
+  bool failDelete = false;
+  final log = <Occurrence>[];
 
   List<Reminder> get all => List.unmodifiable(_reminders);
 
@@ -43,14 +49,32 @@ class InMemoryRepository implements ReminderRepository {
       _reminders.where((r) => r.id == id).firstOrNull;
 
   @override
-  Future<void> save(Reminder reminder) async {
+  Future<void> save(
+    Reminder reminder, {
+    List<Occurrence> log = const [],
+  }) async {
+    if (failSave) throw StateError('db');
     _reminders = [..._reminders.where((r) => r.id != reminder.id), reminder];
+    this.log.addAll(log);
     _changes.add(null);
   }
 
   @override
+  Future<List<Occurrence>> occurrences(String reminderId) async =>
+      log.where((o) => o.reminderId == reminderId).toList()..sort((a, b) {
+        final d = b.dueAt.compareTo(a.dueAt);
+        return d != 0 ? d : a.at.compareTo(b.at);
+      });
+
+  @override
+  Future<void> pruneOccurrences(DateTime before) async =>
+      log.removeWhere((o) => o.dueAt.isBefore(before));
+
+  @override
   Future<void> delete(String id) async {
+    if (failDelete) throw StateError('db');
     _reminders = _reminders.where((r) => r.id != id).toList();
+    log.removeWhere((o) => o.reminderId == id);
     _changes.add(null);
   }
 }
@@ -61,6 +85,7 @@ class FakeScheduler implements AlarmScheduler {
   final cancelled = <String>[];
   List<Reminder>? synced;
   bool fail = false;
+  bool failSync = false;
 
   @override
   Future<void> schedule(Reminder reminder) async {
@@ -72,7 +97,10 @@ class FakeScheduler implements AlarmScheduler {
   Future<void> cancel(String reminderId) async => cancelled.add(reminderId);
 
   @override
-  Future<void> syncAll(List<Reminder> live) async => synced = live;
+  Future<void> syncAll(List<Reminder> live) async {
+    if (failSync) throw StateError('sync');
+    synced = live;
+  }
 }
 
 Reminder reminder(
@@ -117,5 +145,26 @@ Future<(InMemoryRepository, FakeScheduler)> setUpDi([
 /// Material path and chrome is solid.
 Widget themed(Widget child) => MaterialApp(
   theme: MemoTheme.light.copyWith(platform: TargetPlatform.android),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );
+
+/// Queued shares in memory; [acked] records what was removed.
+class FakeShares implements ShareInbox {
+  FakeShares(List<String> texts)
+    : queue = [
+        for (var i = 0; i < texts.length; i++) SharedText('s$i', texts[i]),
+      ];
+  final List<SharedText> queue;
+  final acked = <String>[];
+
+  @override
+  Future<SharedText?> next() async => queue.isEmpty ? null : queue.first;
+
+  @override
+  Future<void> ack(String id) async {
+    acked.add(id);
+    queue.removeWhere((e) => e.id == id);
+  }
+}

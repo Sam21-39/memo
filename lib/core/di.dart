@@ -9,9 +9,11 @@ import '../features/reminders/data/alarm/android_alarm_scheduler.dart';
 import '../features/reminders/data/alarm/ios_alarm_scheduler.dart';
 import '../features/reminders/data/alarm/local_notification_scheduler.dart';
 import '../features/reminders/data/alarm/native_alarm.dart';
+import '../features/reminders/data/share_inbox.dart';
 import '../features/reminders/data/media_store.dart';
 import '../features/reminders/data/reminder_db.dart';
 import '../features/reminders/data/reminder_repository_impl.dart';
+import '../features/reminders/data/rewall_repeats.dart';
 import '../features/reminders/data/spoken_reminder.dart';
 import '../features/reminders/data/voice_clip.dart';
 import '../features/reminders/domain/alarm/alarm_scheduler.dart';
@@ -20,7 +22,9 @@ import '../features/reminders/domain/usecases/apply_alarm_action.dart';
 import '../features/reminders/domain/usecases/delete_reminder.dart';
 import '../features/reminders/domain/usecases/save_reminder.dart';
 import '../features/reminders/domain/usecases/sync_alarms.dart';
+import '../l10n/l10n.dart';
 import 'app_prefs.dart';
+import 'app_settings_cubit.dart';
 import 'feature_flags/feature_flags.dart';
 import 'notification_background.dart';
 
@@ -32,11 +36,13 @@ final sl = GetIt.instance;
 /// Also runs in the iOS background isolate that applies Done / Snooze, so it
 /// must not touch anything that needs a widget tree.
 Future<void> configureDependencies() async {
+  useWesternDigits();
   const flags = RemoteFeatureFlags();
   const native = NativeAlarm();
   sl
     ..registerSingleton<FeatureFlags>(flags)
-    ..registerSingleton<NativeAlarm>(native);
+    ..registerSingleton<NativeAlarm>(native)
+    ..registerSingleton(const ShareInbox(native));
 
   final prefs = await AppPrefs.open();
   sl.registerSingleton<AppPrefs>(prefs);
@@ -51,19 +57,23 @@ Future<void> configureDependencies() async {
 
   // flutter_local_notifications still owns permission prompts and tap
   // delivery on both platforms; it rings only on iOS.
-  final spoken = SpokenReminder(gender: () => prefs.voiceGender);
+  final spoken = SpokenReminder(
+    gender: () => prefs.voiceGender,
+    playback: () => prefs.playbackLocale,
+  );
   sl.registerSingleton(spoken);
   final notifications = LocalNotificationScheduler(
     FlutterLocalNotificationsPlugin(),
     snoozeEnabled: flags.snooze,
     // Read aloud: the rendered chime + voice; else the Memō chime.
     soundFor: (r) async => await spoken.soundFor(r) ?? 'memo_ring.caf',
+    onScheduled: (r, sound) => spoken.prune(r.id, sound),
   );
   await notifications.initialize(onBackground: onBackgroundNotification);
   const alarmKit = AlarmKit();
   sl.registerSingleton(alarmKit);
   final AlarmScheduler scheduler = Platform.isAndroid
-      ? AndroidAlarmScheduler(native, spoken)
+      ? AndroidAlarmScheduler(native, spoken, media)
       : IosAlarmScheduler(alarmKit, notifications, spoken);
 
   final repository = ReminderRepositoryImpl(await ReminderDb.open());
@@ -83,5 +93,19 @@ Future<void> configureDependencies() async {
       }),
     )
     ..registerSingleton(SyncAlarms(repository, scheduler))
+    // After SyncAlarms: a language or voice change re-renders lazily through
+    // the normal sync, without cancelling alarms. A failed sync is retried on
+    // the next launch or resume.
+    ..registerSingleton(
+      AppSettingsCubit(
+        prefs,
+        onLanguageChanged: () async {
+          try {
+            await sl<SyncAlarms>()();
+          } catch (_) {}
+        },
+      ),
+    )
+    ..registerSingleton(RewallRepeats(repository))
     ..registerSingleton(ApplyAlarmAction(repository, save));
 }

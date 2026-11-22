@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,9 @@ import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_mark.dart';
 import '../../../../core/ui/memo_nav_bar.dart';
 import '../../../../core/ui/memo_toast.dart';
+import '../../../../core/ui/motion.dart';
+import '../../../../core/ui/minute_clock.dart';
+import '../../../../core/ui/section_label.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../tags/presentation/tag_color.dart';
 import '../../../tags/presentation/widgets/tag_chip.dart';
@@ -18,10 +22,14 @@ import '../widgets/day_section_header.dart';
 import '../widgets/reminder_row.dart';
 import '../widgets/section_card.dart';
 import '../widgets/swipeable_reminder_row.dart';
+import '../voice/recording_panel.dart';
+import '../edit/edit_sheet.dart';
 import 'capture_bar.dart';
 import 'capture_cubit.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
+import 'reminder_confirmation.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboards Home-Empty, Home-List, Home-Filter-Toast, Home-Dark,
 /// Swipe-States.
@@ -36,17 +44,57 @@ class _HomePageState extends State<HomePage> {
   // Time moves while the app sleeps: overdue sections and "2h late" are
   // only as fresh as the last build.
   late final _lifecycle = AppLifecycleListener(
-    onResume: () => context.read<HomeCubit>().load(),
+    onResume: () {
+      context.read<HomeCubit>().load();
+      context.read<CaptureCubit>().recheckMic();
+      _pullShare();
+    },
+    onHide: () {
+      context.read<HomeCubit>().commitPendingDelete();
+      // A latched take must not keep recording behind the lock screen.
+      context.read<CaptureCubit>().cancelRecording();
+    },
+    onPause: () => context.read<CaptureCubit>().cancelRecording(),
   );
 
   @override
   void initState() {
     super.initState();
     _lifecycle;
+    // Cold start: Home is only built once onboarding is done.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _router = GoRouter.maybeOf(context)
+        ?..routerDelegate.addListener(_onRoute);
+      _pullShare();
+    });
   }
+
+  /// Puts the next shared text on the confirmation card and brings Home
+  /// forward. Waits (nothing pulled, so nothing acked) while an alarm, a
+  /// reminder page (may hold an unsaved edit) or the archive (search text)
+  /// is on top; the router
+  /// listener retries once Home is back.
+  Future<void> _pullShare() async {
+    final router = GoRouter.maybeOf(context);
+    final top =
+        router?.routerDelegate.currentConfiguration.last.matchedLocation;
+    if (top != null &&
+        (top.startsWith('/alarm') ||
+            top.startsWith('/reminder/') ||
+            top.startsWith('/done'))) {
+      return;
+    }
+    if (!await context.read<CaptureCubit>().pullShare() || !mounted) return;
+    if (top != null && top != '/') router!.go('/');
+  }
+
+  GoRouter? _router;
+  void _onRoute() => _pullShare();
 
   @override
   void dispose() {
+    _router?.routerDelegate.removeListener(_onRoute);
     _lifecycle.dispose();
     super.dispose();
   }
@@ -54,97 +102,243 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final flags = sl<FeatureFlags>();
-    return BlocConsumer<HomeCubit, HomeState>(
-      listenWhen: (a, b) => b is HomeReady && b.error != null,
-      listener: (context, state) {
-        final error = (state as HomeReady).error!;
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(error)));
-        context.read<HomeCubit>().clearError();
-      },
-      builder: (context, state) {
-        final now = DateTime.now();
-        final ready = state is HomeReady ? state : null;
-        final grouped = groupByDay(ready?.upcoming ?? const [], now);
-        return Scaffold(
-          body: SafeArea(
-            bottom: false,
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CaptureCubit, CaptureState>(
+          listenWhen: (a, b) => b.saved != null && a.saved != b.saved,
+          listener: (context, s) =>
+              context.read<HomeCubit>().showSaved(s.saved!),
+        ),
+        // The next queued share, one at a time.
+        BlocListener<CaptureCubit, CaptureState>(
+          listenWhen: (a, b) =>
+              a.phase != CapturePhase.idle && b.phase == CapturePhase.idle,
+          listener: (context, _) => _pullShare(),
+        ),
+      ],
+      child: BlocConsumer<HomeCubit, HomeState>(
+        listenWhen: (a, b) => b is HomeReady && b.error != null,
+        listener: (context, state) {
+          final error = (state as HomeReady).error!;
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(error)));
+          context.read<HomeCubit>().clearError();
+        },
+        builder: (context, state) => ValueListenableBuilder<DateTime>(
+          valueListenable: MinuteClock.instance,
+          builder: (context, now, _) {
+            final ready = state is HomeReady ? state : null;
+            final grouped = groupByDay(ready?.upcoming ?? const [], now);
+            return Scaffold(
+              body: SafeArea(
+                bottom: false,
+                child: Stack(
                   children: [
-                    _Header(ready: ready, overdue: grouped.overdue.length),
-                    if (flags.tags && (ready?.filterTags.isNotEmpty ?? false))
-                      _TagFilterBar(state: ready!),
-                    Expanded(
-                      child: switch (state) {
-                        HomeLoading() => const SizedBox.shrink(),
-                        HomeFailure() => const _FailureState(),
-                        HomeReady() when grouped.isEmpty => const _EmptyState(),
-                        HomeReady() => _ReminderList(
-                          grouped: grouped,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _Header(
+                          ready: ready,
+                          overdue: grouped.overdue.length,
                           now: now,
                         ),
-                      },
+                        if (flags.tags &&
+                            (ready?.filterTags.isNotEmpty ?? false))
+                          _TagFilterBar(state: ready!),
+                        Expanded(
+                          child: switch (state) {
+                            HomeLoading() => const SizedBox.shrink(),
+                            HomeFailure() => const _FailureState(),
+                            HomeReady() when grouped.isEmpty =>
+                              const _EmptyState(),
+                            HomeReady() => _ReminderList(
+                              grouped: grouped,
+                              now: now,
+                            ),
+                          },
+                        ),
+                      ],
+                    ),
+                    // One slot for every toast: a toast coming or going must not
+                    // shift the capture bar's position in this list.
+                    _toast(context, ready),
+                    // Expanded capture dims the list; a tap outside closes the
+                    // keyboard, or the bar itself when nothing was typed, or
+                    // steps back from the confirmation. While recording only
+                    // Stop and Cancel decide.
+                    BlocBuilder<CaptureCubit, CaptureState>(
+                      buildWhen: (a, b) => a.expanded != b.expanded,
+                      builder: (context, capture) => capture.expanded
+                          ? Positioned.fill(
+                              child: GestureDetector(
+                                onTap: () {
+                                  final cubit = context.read<CaptureCubit>();
+                                  switch (cubit.state.phase) {
+                                    case CapturePhase.confirming:
+                                      cubit.backToTyping();
+                                    case CapturePhase.typing:
+                                      FocusScope.of(context).unfocus();
+                                      if (cubit.state.text.trim().isEmpty &&
+                                          !cubit.state.hasClip) {
+                                        cubit.discard();
+                                      }
+                                    default:
+                                  }
+                                },
+                                child: ColoredBox(color: MemoColors.scrim),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: CaptureBar(
+                        knownTags: ready?.tagsInUse ?? const [],
+                      ),
+                    ),
+                    // In-tree overlay, not a route: a route above the mic would
+                    // swallow its release.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: BlocBuilder<CaptureCubit, CaptureState>(
+                        builder: (context, capture) => _CapturePanel(
+                          state: capture,
+                          knownTags: ready?.tagsInUse ?? const [],
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                if (ready?.undo != null)
-                  Positioned(
-                    left: MemoSpace.gutter,
-                    right: MemoSpace.gutter,
-                    bottom:
-                        MediaQuery.paddingOf(context).bottom +
-                        MemoSpace.barHeight +
-                        MemoSpace.space8,
-                    child: MemoToast(
-                      message: '${ready!.undo!.title} done',
-                      action: 'Undo',
-                      onAction: context.read<HomeCubit>().undo,
-                    ),
-                  ),
-                // Expanded capture dims the list; a tap outside closes the
-                // keyboard, or the bar itself when nothing was typed.
-                BlocBuilder<CaptureCubit, CaptureState>(
-                  buildWhen: (a, b) => a.expanded != b.expanded,
-                  builder: (context, capture) => capture.expanded
-                      ? Positioned.fill(
-                          child: GestureDetector(
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              final cubit = context.read<CaptureCubit>();
-                              if (cubit.state.text.trim().isEmpty &&
-                                  !cubit.state.hasClip) {
-                                cubit.discard();
-                              }
-                            },
-                            child: ColoredBox(color: MemoColors.scrim),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: CaptureBar(knownTags: ready?.tagsInUse ?? const []),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// The bottom-anchored toast: deleted, completed (both with Undo) or saved.
+Widget _toast(BuildContext context, HomeReady? ready) {
+  final cubit = context.read<HomeCubit>();
+  final l = context.l10n;
+  final toast = ready == null
+      ? null
+      : ready.pendingDelete != null
+      ? MemoToast(
+          message: l.homeDeleted(ready.pendingDelete!.title),
+          action: l.commonUndo,
+          onAction: cubit.undoDelete,
+        )
+      : ready.undo != null
+      ? MemoToast(
+          message: l.homeCompleted(ready.undo!.title),
+          action: l.commonUndo,
+          onAction: cubit.undo,
+        )
+      : ready.saved != null
+      ? MemoToast(message: _savedText(context, ready.saved!))
+      : null;
+  return Positioned(
+    left: MemoSpace.gutter,
+    right: MemoSpace.gutter,
+    // Above the bar, its hint line and its fade.
+    bottom:
+        MediaQuery.paddingOf(context).bottom +
+        MemoSpace.barHeight * 2 +
+        CaptureBar.quickStartHeight(context) +
+        MemoSpace.space3,
+    child: AnimatedSwitcher(
+      duration: motion(context, MemoMotion.base),
+      switchInCurve: MemoMotion.curve,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(
+            begin: const Offset(0, 0.5),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.bottomCenter,
+        children: [...previous, ?current],
+      ),
+      child: toast == null
+          ? const SizedBox.shrink(key: ValueKey(''))
+          : KeyedSubtree(key: ValueKey(toast.message), child: toast),
+    ),
+  );
+}
+
+String _savedText(BuildContext context, Reminder r) {
+  final l = context.l10n;
+  final now = DateTime.now();
+  final time = formatTime(context, r.dueAt);
+  if (isSameDay(r.dueAt, now)) return l.savedToday(time);
+  if (isSameDay(r.dueAt, DateTime(now.year, now.month, now.day + 1))) {
+    return l.savedTomorrow(time);
+  }
+  return l.savedOn(formatDate(context, r.dueAt), time);
+}
+
+/// Recording, understanding, failure and confirmation, fading in over the bar.
+class _CapturePanel extends StatelessWidget {
+  const _CapturePanel({required this.state, required this.knownTags});
+
+  final CaptureState state;
+  final List<String> knownTags;
+
+  @override
+  Widget build(BuildContext context) {
+    final (key, panel) = switch (state.phase) {
+      CapturePhase.recording ||
+      CapturePhase.transcribing ||
+      CapturePhase.voiceFailed => ('voice', RecordingPanel(state: state)),
+      CapturePhase.confirming || CapturePhase.saving => (
+        'confirm',
+        ReminderConfirmation(state: state, knownTags: knownTags),
+      ),
+      _ => ('none', const SizedBox.shrink()),
+    };
+    return AnimatedSwitcher(
+      duration: motion(context, MemoMotion.base),
+      switchInCurve: MemoMotion.curve,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(
+            begin: const Offset(0, 0.08),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      layoutBuilder: (current, previous) => Stack(
+        alignment: Alignment.bottomCenter,
+        children: [...previous, ?current],
+      ),
+      child: KeyedSubtree(key: ValueKey(key), child: panel),
     );
   }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.ready, required this.overdue});
+  const _Header({
+    required this.ready,
+    required this.overdue,
+    required this.now,
+  });
 
   final HomeReady? ready;
   final int overdue;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
@@ -153,11 +347,13 @@ class _Header extends StatelessWidget {
     final summary = ready == null
         ? ''
         : scheduled == 0
-        ? 'Nothing scheduled'
-        : [
-            '$scheduled scheduled',
-            if (overdue > 0) '$overdue overdue',
-          ].join(' · ');
+        ? context.l10n.homeSummaryNone
+        : overdue > 0
+        ? context.l10n.homeScheduledOverdue(scheduled, overdue)
+        : context.l10n.homeScheduled(scheduled);
+    final next = ready?.upcoming
+        .where((r) => r.ringsAt.isAfter(now))
+        .firstOrNull;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         MemoSpace.gutter,
@@ -175,26 +371,61 @@ class _Header extends StatelessWidget {
                 Semantics(
                   header: true,
                   child: Text(
-                    'Memō',
+                    appName,
                     style: MemoType.display.copyWith(color: c.ink),
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  summary.toUpperCase(),
-                  style: MemoType.labelSmall.copyWith(color: c.ink45),
+                  sectionLabelText(context, summary),
+                  style: sectionLabelStyle(context).copyWith(color: c.ink70),
                 ),
+                if (next != null) ...[
+                  const SizedBox(height: MemoSpace.space2),
+                  // Type, not a card: the one thing that rings next.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: MemoSpace.space2,
+                    children: [
+                      Text(
+                        context.l10n.homeNext,
+                        style: MemoType.body.copyWith(
+                          fontSize: 13,
+                          height: 18 / 13,
+                          color: c.ink70,
+                        ),
+                      ),
+                      Text(
+                        next.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: MemoType.bodyLarge.copyWith(
+                          fontSize: 17,
+                          color: c.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        context.l10n.homeNextWhen(
+                          formatTime(context, next.ringsAt),
+                          formatUntil(context, next.ringsAt.difference(now)),
+                        ),
+                        style: MemoType.labelMedium.copyWith(color: c.ink70),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
           MemoIconButton(
             icon: Icons.check_rounded,
-            label: 'Done',
+            label: context.l10n.commonDone,
             onPressed: () => context.push('/done'),
           ),
           MemoIconButton(
             icon: Icons.settings_outlined,
-            label: 'Settings',
+            label: context.l10n.settingsTitle,
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -212,19 +443,19 @@ class _TagFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<HomeCubit>();
     final selected = state.tagFilter;
-    return SizedBox(
-      height: 46,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(
-          MemoSpace.gutter,
-          MemoSpace.space4,
-          MemoSpace.gutter,
-          0,
-        ),
+    // Intrinsic height: a scaled chip grows the bar instead of clipping.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(
+        MemoSpace.gutter,
+        MemoSpace.space4,
+        MemoSpace.gutter,
+        0,
+      ),
+      child: Row(
         children: [
           TagChip(
-            label: 'All',
+            label: context.l10n.homeAll,
             selected: selected == null,
             onTap: () => cubit.filterByTag(null),
           ),
@@ -258,12 +489,14 @@ class _ReminderList extends StatelessWidget {
         MemoSpace.space6,
         MemoSpace.gutter,
         // Clears the capture bar and its fade.
-        MemoSpace.barHeight * 2 + MediaQuery.paddingOf(context).bottom,
+        MemoSpace.barHeight * 2 +
+            CaptureBar.quickStartHeight(context) +
+            MediaQuery.paddingOf(context).bottom,
       ),
       children: [
         if (grouped.overdue.isNotEmpty) ...[
           DaySectionHeader(
-            label: 'Overdue',
+            label: context.l10n.homeOverdue,
             count: grouped.overdue.length,
             emphasize: true,
           ),
@@ -283,7 +516,7 @@ class _ReminderList extends StatelessWidget {
         ],
         for (final group in grouped.days) ...[
           DaySectionHeader(
-            label: dayHeaderLabel(group.day, now),
+            label: dayHeaderLabel(context, group.day, now),
             count: group.reminders.length,
           ),
           SectionCard(
@@ -299,7 +532,7 @@ class _ReminderList extends StatelessWidget {
   }
 }
 
-class _Row extends StatelessWidget {
+class _Row extends StatefulWidget {
   const _Row({
     super.key,
     required this.reminder,
@@ -312,29 +545,105 @@ class _Row extends StatelessWidget {
   final Color? background;
 
   @override
+  State<_Row> createState() => _RowState();
+}
+
+class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
+  // 1 = shown. Completing a one-off or deleting folds the row away, then
+  // calls the cubit, so the list never jumps.
+  late final _shown = AnimationController(
+    vsync: this,
+    duration: MemoMotion.base,
+    value: 1,
+  );
+
+  @override
+  void dispose() {
+    _shown.dispose();
+    super.dispose();
+  }
+
+  bool _folding = false;
+
+  /// Folds the row away, then runs [run]; true keeps it folded (it leaves
+  /// the list on the next load), false brings it back. The action always
+  /// runs, even if this row is disposed mid-fold, and only once.
+  Future<void> _fold(Future<bool> Function() run) async {
+    if (_folding) return;
+    final d = motion(context, MemoMotion.base);
+    setState(() => _folding = true);
+    if (d != Duration.zero) {
+      _shown.duration = d;
+      try {
+        await _shown.reverse().orCancel;
+      } on TickerCanceled {
+        // Disposed mid-fold: the action below still runs.
+      }
+    }
+    final ok = await run();
+    if (!ok && mounted) {
+      setState(() => _folding = false);
+      _shown.value = 1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final reminder = widget.reminder;
     final flags = sl<FeatureFlags>();
     final cubit = context.read<HomeCubit>();
-    final overdue = reminder.isOverdue(now);
+    final overdue = reminder.isOverdue(widget.now);
     final tag = flags.tags ? reminder.tag : null;
-    return SwipeableReminderRow(
-      background: background,
-      onComplete: () => cubit.complete(reminder),
-      onSnooze: flags.snooze
-          ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
-          : null,
-      onDelete: () => cubit.delete(reminder.id),
-      child: ReminderRow(
-        title: reminder.title,
-        state: overdue ? CheckState.overdue : CheckState.idle,
-        trailing: overdue
-            ? formatLateness(now.difference(reminder.ringsAt))
-            : formatTime(reminder.ringsAt),
-        subtitle: tag ?? reminder.note?.split('\n').first,
-        tagColor: tag == null ? null : tagColor(tag),
-        repeats: flags.repeatReminders && reminder.repeat.repeats,
-        onCheckTap: () => cubit.complete(reminder),
-        onTap: () => context.push('/reminder/${reminder.id}'),
+    void complete() => reminder.repeat.repeats
+        ? cubit.complete(reminder)
+        : _fold(() => cubit.complete(reminder));
+    final curved = CurvedAnimation(parent: _shown, curve: MemoMotion.curve);
+    return SizeTransition(
+      sizeFactor: curved,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(
+        opacity: curved,
+        child: SwipeableReminderRow(
+          background: widget.background,
+          title: reminder.title,
+          onComplete: complete,
+          onSnooze: flags.snooze
+              ? () => cubit.snooze(reminder, by: const Duration(minutes: 10))
+              : null,
+          onEdit: () => showEditSheet(
+            context,
+            existing: reminder,
+            knownTags: cubit.state is HomeReady
+                ? (cubit.state as HomeReady).tagsInUse
+                : const [],
+          ),
+          onDelete: () {
+            HapticFeedback.mediumImpact();
+            _fold(() async {
+              await cubit.delete(reminder);
+              return true;
+            });
+          },
+          child: ReminderRow(
+            title: reminder.title,
+            state: _folding
+                ? CheckState.done
+                : overdue
+                ? CheckState.overdue
+                : CheckState.idle,
+            trailing: overdue
+                ? formatLateness(
+                    context,
+                    widget.now.difference(reminder.ringsAt),
+                  )
+                : formatTime(context, reminder.ringsAt),
+            subtitle: tag ?? reminder.note?.split('\n').first,
+            tagColor: tag == null ? null : tagColor(tag),
+            repeats: flags.repeatReminders && reminder.repeat.repeats,
+            onCheckTap: complete,
+            onTap: () => context.push('/reminder/${reminder.id}'),
+          ),
+        ),
       ),
     );
   }
@@ -348,19 +657,25 @@ class _EmptyState extends StatelessWidget {
     final c = MemoColors.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(40, 0, 40, MemoSpace.barHeight * 2),
+        padding: const EdgeInsets.fromLTRB(
+          40,
+          0,
+          40,
+          // ponytail: unscaled; the state is centred, so text scale only trims slack.
+          MemoSpace.barHeight * 2 + CaptureBar.quickStartExtent,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const EmptyRing(),
             const SizedBox(height: MemoSpace.space4),
             Text(
-              'Nothing scheduled',
+              context.l10n.homeEmptyTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space1),
             Text(
-              'Bins, pills, that call.\nType below to add one.',
+              context.l10n.homeEmptyBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
@@ -379,25 +694,30 @@ class _FailureState extends StatelessWidget {
     final c = MemoColors.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(40, 0, 40, MemoSpace.barHeight * 2),
+        padding: const EdgeInsets.fromLTRB(
+          40,
+          0,
+          40,
+          // ponytail: unscaled; the state is centred, so text scale only trims slack.
+          MemoSpace.barHeight * 2 + CaptureBar.quickStartExtent,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your reminders",
+              context.l10n.homeLoadFailedTitle,
               style: MemoType.title.copyWith(color: c.ink),
             ),
             const SizedBox(height: MemoSpace.space2),
             Text(
-              'They are still saved on this device. '
-              'Alarms already scheduled keep firing.',
+              context.l10n.homeLoadFailedBody,
               textAlign: TextAlign.center,
               style: MemoType.body.copyWith(color: c.ink70),
             ),
             const SizedBox(height: MemoSpace.space6),
             OutlinedButton(
               onPressed: () => context.read<HomeCubit>().load(),
-              child: const Text('Try again'),
+              child: Text(context.l10n.commonTryAgain),
             ),
           ],
         ),

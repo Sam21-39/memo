@@ -7,6 +7,8 @@ import '../../../../core/di.dart';
 import '../../../../core/feature_flags/feature_flags.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/ui/memo_pickers.dart';
+import '../../../../core/ui/motion.dart';
+import '../../../../core/ui/option_button.dart';
 import '../../../../core/ui/minutes_sheet.dart';
 import '../../../../core/ui/memo_sheet.dart';
 import '../../../../core/utils/date_format.dart';
@@ -21,8 +23,10 @@ import '../widgets/day_section_header.dart';
 import '../widgets/key_value_row.dart';
 import '../widgets/repeat_segmented_control.dart';
 import '../widgets/section_card.dart';
+import '../widgets/voice_notice.dart';
 import '../widgets/weekday_selector.dart';
 import 'edit_cubit.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Edit-Reminder: create or edit in a sheet over Home or Detail.
 /// Saves (write + schedule) itself; a schedule failure is shown, then the
@@ -58,6 +62,7 @@ Future<bool> showEditSheet(
           if (state.error != null) {
             messenger?.showSnackBar(SnackBar(content: Text(state.error!)));
           }
+          HapticFeedback.lightImpact();
           Navigator.of(context).pop(true);
         },
         child: EditForm(knownTags: knownTags ?? const []),
@@ -84,8 +89,24 @@ class _EditFormState extends State<EditForm> {
     text: context.read<EditCubit>().state.note,
   );
 
+  late final _lifecycle = AppLifecycleListener(
+    onHide: () => context.read<EditCubit>().cancelRecording(),
+    onPause: () => context.read<EditCubit>().cancelRecording(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Built now: each field is off-screen in one of the two views, and a lazy
+    // first touch inside dispose() cannot look up the cubit.
+    _title;
+    _note;
+    _lifecycle;
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
     _title.dispose();
     _note.dispose();
     super.dispose();
@@ -96,23 +117,48 @@ class _EditFormState extends State<EditForm> {
     final c = MemoColors.of(context);
     final flags = sl<FeatureFlags>();
     final cubit = context.read<EditCubit>();
+    final l = context.l10n;
     return BlocBuilder<EditCubit, EditState>(
       builder: (context, state) {
         final isNew = state.existing == null;
-        return Column(
+        final status = [
+          if (state.notice != null && state.status == EditStatus.editing)
+            Padding(
+              padding: const EdgeInsets.only(top: MemoSpace.space2),
+              child: Text(
+                state.notice!,
+                style: MemoType.body.copyWith(color: c.ink70),
+              ),
+            ),
+          if (state.error != null && state.status == EditStatus.editing)
+            Padding(
+              padding: const EdgeInsets.only(top: MemoSpace.space2),
+              child: Text(
+                state.error!,
+                style: MemoType.body.copyWith(color: c.destructive),
+              ),
+            ),
+        ];
+        // Basic and More options are two views of one sheet: same header
+        // shape, one cross-fade between them.
+        Widget view(
+          String key,
+          Widget leading,
+          String title,
+          List<Widget> children,
+        ) => Column(
+          key: ValueKey(key),
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Shares of the width, so scaled buttons wrap rather than overflow.
             Row(
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(foregroundColor: c.ink),
-                  child: const Text('Cancel'),
-                ),
+                Flexible(flex: 3, child: leading),
                 Expanded(
+                  flex: 4,
                   child: Text(
-                    isNew ? 'New reminder' : 'Edit reminder',
+                    title,
                     textAlign: TextAlign.center,
                     style: MemoType.bodyLarge.copyWith(
                       color: c.ink,
@@ -120,9 +166,12 @@ class _EditFormState extends State<EditForm> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: state.canSave ? cubit.save : null,
-                  child: const Text('Save'),
+                Flexible(
+                  flex: 3,
+                  child: TextButton(
+                    onPressed: state.canSave ? cubit.save : null,
+                    child: Text(l.commonSave),
+                  ),
                 ),
               ],
             ),
@@ -131,144 +180,254 @@ class _EditFormState extends State<EditForm> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.only(top: MemoSpace.space4),
                 children: [
-                  TextField(
-                    controller: _title,
-                    autofocus: isNew,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: cubit.setTitle,
-                    style: MemoType.bodyLarge.copyWith(color: c.ink),
-                    decoration: const InputDecoration(
-                      hintText: 'Remind me to…',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _note,
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: cubit.setNote,
-                    style: MemoType.body.copyWith(color: c.ink),
-                    decoration: const InputDecoration(hintText: 'Add a note'),
-                  ),
-                  const SizedBox(height: MemoSpace.space6),
-                  const DaySectionHeader(label: 'When'),
-                  SectionCard(
-                    children: [
-                      KeyValueRow(
-                        label: 'Time',
-                        onTap: () async {
-                          final t = await pickTime(context, state.dueAt);
-                          if (t != null) cubit.setDueAt(t);
-                        },
-                        child: PillValue(formatTime(state.dueAt), active: true),
-                      ),
-                      KeyValueRow(
-                        label: 'Date',
-                        onTap: () async {
-                          final d = await pickDate(context, state.dueAt);
-                          if (d != null) cubit.setDueAt(d);
-                        },
-                        child: PillValue(
-                          dayHeaderLabel(state.dueAt, DateTime.now()),
-                        ),
-                      ),
-                      if (flags.preAlarm)
-                        KeyValueRow(
-                          label: 'Pre-alarm',
-                          onTap: () async {
-                            final m = await showMinutesSheet(
-                              context,
-                              title: 'Pre-alarm',
-                              body: 'An early heads-up before it rings.',
-                              presets: const [5, 15, 30, 60],
-                              current: state.preAlarmMin,
-                              label: preAlarmLabel,
-                            );
-                            if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
-                          },
-                          child: PillValue(
-                            state.preAlarmMin == null
-                                ? 'Off'
-                                : preAlarmLabel(state.preAlarmMin!),
-                          ),
-                        ),
-                      if (flags.nag)
-                        KeyValueRow(
-                          label: 'Nag until done',
-                          onTap: () async {
-                            final m = await showMinutesSheet(
-                              context,
-                              title: 'Nag until done',
-                              body:
-                                  'Rings again up to 6 times, until you '
-                                  'mark it done.',
-                              presets: const [5, 10, 30],
-                              current: state.nagMin,
-                              label: nagLabel,
-                            );
-                            if (m != null) cubit.setNag(m == 0 ? null : m);
-                          },
-                          child: PillValue(
-                            state.nagMin == null
-                                ? 'Off'
-                                : nagLabel(state.nagMin!),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (state.isPastOneOff(DateTime.now()))
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        'That time has passed. It will show as overdue and '
-                        'will not ring.',
-                        style: MemoType.body.copyWith(color: c.destructive),
-                      ),
-                    ),
-                  if (flags.repeatReminders) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Repeat'),
-                    _RepeatPicker(state: state),
-                  ],
-                  if (flags.tags) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Tag'),
-                    _TagPicker(
-                      knownTags: widget.knownTags,
-                      selected: state.tag,
-                      onChanged: cubit.setTag,
-                    ),
-                  ],
-                  if (cubit.media != null && cubit.voice != null) ...[
-                    const SizedBox(height: MemoSpace.space6),
-                    const DaySectionHeader(label: 'Sound'),
-                    _SoundCard(state: state),
-                  ],
-                  if (state.notice != null &&
-                      state.status == EditStatus.editing)
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        state.notice!,
-                        style: MemoType.body.copyWith(color: c.ink70),
-                      ),
-                    ),
-                  if (state.error != null && state.status == EditStatus.editing)
-                    Padding(
-                      padding: const EdgeInsets.only(top: MemoSpace.space2),
-                      child: Text(
-                        state.error!,
-                        style: MemoType.body.copyWith(color: c.destructive),
-                      ),
-                    ),
+                  ...children,
+                  ...status,
                   const SizedBox(height: MemoSpace.space4),
                 ],
               ),
             ),
           ],
         );
+        return AnimatedSwitcher(
+          duration: motion(context, MemoMotion.base),
+          switchInCurve: MemoMotion.curve,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topCenter,
+            children: [...previous, ?current],
+          ),
+          child: state.advanced
+              ? view(
+                  'advanced',
+                  TextButton(
+                    onPressed: () => cubit.showAdvanced(false),
+                    style: TextButton.styleFrom(foregroundColor: c.ink),
+                    child: Text(l.editBackBasic),
+                  ),
+                  l.editMoreTitle,
+                  _advanced(context, c, flags, cubit, state),
+                )
+              : view(
+                  'basic',
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(foregroundColor: c.ink),
+                    child: Text(l.commonCancel),
+                  ),
+                  isNew ? l.editNew : l.editExisting,
+                  _basic(context, c, flags, cubit, state, isNew),
+                ),
+        );
       },
     );
+  }
+
+  Widget _label(MemoColors c, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: MemoSpace.space2),
+    child: Text(
+      text,
+      style: MemoType.body.copyWith(
+        color: c.ink70,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
+
+  List<Widget> _basic(
+    BuildContext context,
+    MemoColors c,
+    FeatureFlags flags,
+    EditCubit cubit,
+    EditState state,
+    bool isNew,
+  ) {
+    final l = context.l10n;
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final today = isSameDay(state.dueAt, now);
+    final tmrw = isSameDay(state.dueAt, tomorrow);
+    DateTime onDay(DateTime day) => DateTime(
+      day.year,
+      day.month,
+      day.day,
+      state.dueAt.hour,
+      state.dueAt.minute,
+    );
+    Future<void> pickDay() async {
+      final d = await pickDate(context, state.dueAt);
+      if (d != null) cubit.setDueAt(d);
+    }
+
+    Future<void> pickClock() async {
+      final t = await pickTime(context, state.dueAt);
+      if (t != null) cubit.setDueAt(t);
+    }
+
+    return [
+      _label(c, l.editWhat),
+      TextField(
+        controller: _title,
+        autofocus: isNew,
+        textCapitalization: TextCapitalization.sentences,
+        onChanged: cubit.setTitle,
+        style: MemoType.bodyLarge.copyWith(color: c.ink),
+        decoration: InputDecoration(hintText: l.reminderHint),
+      ),
+      const SizedBox(height: MemoSpace.space6),
+      DaySectionHeader(label: l.fieldWhen),
+      Wrap(
+        spacing: MemoSpace.space2,
+        runSpacing: MemoSpace.space2,
+        children: [
+          OptionButton(
+            label: l.dateToday,
+            selected: today,
+            onTap: () => cubit.setDueAt(onDay(now)),
+          ),
+          OptionButton(
+            label: l.dateTomorrow,
+            selected: tmrw,
+            onTap: () => cubit.setDueAt(onDay(tomorrow)),
+          ),
+          OptionButton(
+            label: today || tmrw
+                ? l.editPickDate
+                : formatDate(context, state.dueAt),
+            selected: !today && !tmrw,
+            onTap: pickDay,
+          ),
+        ],
+      ),
+      const SizedBox(height: MemoSpace.space2),
+      Wrap(
+        spacing: MemoSpace.space2,
+        runSpacing: MemoSpace.space2,
+        children: [
+          OptionButton(
+            label: formatTime(context, state.dueAt),
+            selected: true,
+            onTap: pickClock,
+          ),
+          OptionButton(label: l.editChangeTime, onTap: pickClock),
+        ],
+      ),
+      if (state.pastBlocked(now))
+        Padding(
+          padding: const EdgeInsets.only(top: MemoSpace.space2),
+          child: Text(
+            l.timePassed,
+            style: MemoType.body.copyWith(color: c.destructive),
+          ),
+        ),
+      if (flags.repeatReminders) ...[
+        const SizedBox(height: MemoSpace.space6),
+        DaySectionHeader(label: l.fieldRepeat),
+        _RepeatPicker(state: state),
+      ],
+      const SizedBox(height: MemoSpace.space6),
+      OutlinedButton(
+        onPressed: () => cubit.showAdvanced(true),
+        child: Text(l.editMoreOptions, textAlign: TextAlign.center),
+      ),
+    ];
+  }
+
+  List<Widget> _advanced(
+    BuildContext context,
+    MemoColors c,
+    FeatureFlags flags,
+    EditCubit cubit,
+    EditState state,
+  ) {
+    final l = context.l10n;
+    return [
+      _label(c, l.editNote),
+      TextField(
+        controller: _note,
+        maxLines: null,
+        textCapitalization: TextCapitalization.sentences,
+        onChanged: cubit.setNote,
+        style: MemoType.body.copyWith(color: c.ink),
+        decoration: InputDecoration(hintText: l.editNoteHint),
+      ),
+      const SizedBox(height: MemoSpace.space6),
+      SectionCard(
+        children: [
+          if (flags.tags)
+            KeyValueRow(
+              label: l.fieldTag,
+              onTap: () => showMemoSheet<void>(
+                context,
+                builder: (_) => BlocProvider.value(
+                  value: cubit,
+                  child: BlocBuilder<EditCubit, EditState>(
+                    builder: (context, s) => SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SheetHeading(l.fieldTag),
+                          _TagPicker(
+                            knownTags: widget.knownTags,
+                            selected: s.tag,
+                            onChanged: cubit.setTag,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              child: PillValue(state.tag ?? l.commonNone),
+            ),
+          if (flags.preAlarm)
+            KeyValueRow(
+              label: l.editRemindEarlier,
+              onTap: () async {
+                final m = await showMinutesSheet(
+                  context,
+                  title: l.editRemindEarlier,
+                  body: l.editPreAlarmBody,
+                  presets: const [5, 15, 30, 60],
+                  current: state.preAlarmMin,
+                  label: (m) => preAlarmLabel(l, m),
+                );
+                if (m != null) cubit.setPreAlarm(m == 0 ? null : m);
+              },
+              child: PillValue(
+                state.preAlarmMin == null
+                    ? l.commonOff
+                    : preAlarmLabel(l, state.preAlarmMin!),
+              ),
+            ),
+          if (flags.nag)
+            KeyValueRow(
+              label: l.editNagTitle,
+              onTap: () async {
+                final m = await showMinutesSheet(
+                  context,
+                  title: l.editNagTitle,
+                  body: l.editNagBody,
+                  presets: const [5, 10, 30],
+                  current: state.nagMin,
+                  label: (m) => nagLabel(l, m),
+                );
+                if (m != null) cubit.setNag(m == 0 ? null : m);
+              },
+              child: PillValue(
+                state.nagMin == null
+                    ? l.commonOff
+                    : l.nagSummary(state.nagMin!),
+              ),
+            ),
+        ],
+      ),
+      if (cubit.media != null && cubit.voice != null) ...[
+        const SizedBox(height: MemoSpace.space6),
+        DaySectionHeader(label: l.editSound),
+        _SoundCard(state: state),
+      ],
+      const SizedBox(height: MemoSpace.space4),
+      Text(l.editOptionalBody, style: MemoType.body.copyWith(color: c.ink70)),
+    ];
   }
 }
 
@@ -291,7 +450,7 @@ class _SoundCard extends StatelessWidget {
       row = Row(
         children: [
           IconButton(
-            tooltip: 'Play voice note',
+            tooltip: context.l10n.voicePlay,
             onPressed: () => sl<VoiceClip>().play(path),
             style: IconButton.styleFrom(
               fixedSize: const Size.square(36),
@@ -302,14 +461,14 @@ class _SoundCard extends StatelessWidget {
           const SizedBox(width: MemoSpace.space3),
           Expanded(
             child: Text(
-              '${MediaStore.clipLength(path)} · your note',
+              context.l10n.clipNote(MediaStore.clipLength(path)),
               style: mono,
             ),
           ),
           IconButton(
-            tooltip: 'Delete voice note',
+            tooltip: context.l10n.voiceDelete,
             onPressed: cubit.deleteClip,
-            icon: Icon(Icons.close_rounded, color: c.ink45, size: 18),
+            icon: Icon(Icons.close_rounded, color: c.ink70, size: 18),
           ),
         ],
       );
@@ -323,14 +482,21 @@ class _SoundCard extends StatelessWidget {
                 ? Row(
                     children: [
                       Text(
-                        '● ${secs(state.recorded)}',
-                        style: mono.copyWith(color: c.accent),
+                        context.l10n.captureElapsed(secs(state.recorded)),
+                        style: mono.copyWith(color: c.accentText),
                       ),
-                      Text(' / ${secs(VoiceClip.maxLength)}', style: mono),
+                      Text(
+                        context.l10n.editRecordingMax(
+                          secs(VoiceClip.maxLength),
+                        ),
+                        style: mono,
+                      ),
                       const SizedBox(width: MemoSpace.space3),
                       Expanded(
                         child: Text(
-                          'Release to stop',
+                          state.latched
+                              ? context.l10n.micTapToStop
+                              : context.l10n.editReleaseToStop,
                           textAlign: TextAlign.end,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -339,29 +505,43 @@ class _SoundCard extends StatelessWidget {
                       ),
                     ],
                   )
-                : Text('Hold to record a voice note', style: mono),
+                : Text(context.l10n.editHoldToRecordNote, style: mono),
           ),
           const SizedBox(width: MemoSpace.space3),
           _HoldToRecord(cubit: cubit, active: state.recording),
         ],
       );
     }
-    return SectionCard(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        KeyValueRow(
-          label: 'Read aloud when it rings',
-          onTap: () => cubit.setReadAloud(!state.readAloud),
-          child: PillValue(
-            state.readAloud ? 'On' : 'Off',
-            active: state.readAloud,
-          ),
+        SectionCard(
+          children: [
+            KeyValueRow(
+              label: context.l10n.editReadAloudWhenRings,
+              onTap: () => cubit.setReadAloud(!state.readAloud),
+              child: PillValue(
+                state.readAloud
+                    ? context.l10n.commonOn
+                    : context.l10n.commonOff,
+                active: state.readAloud,
+              ),
+            ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: MemoSpace.space4,
+                ),
+                child: Align(alignment: Alignment.centerLeft, child: row),
+              ),
+            ),
+          ],
         ),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 52),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MemoSpace.space4),
-            child: Align(alignment: Alignment.centerLeft, child: row),
-          ),
+        VoiceNotice(
+          title: state.title,
+          readAloud: state.readAloud,
+          hasVoice: state.hasClip,
         ),
       ],
     );
@@ -383,7 +563,10 @@ class _HoldToRecord extends StatelessWidget {
     // sheet's scrolling can cancel it mid-hold. Down records, up stops.
     return Semantics(
       button: true,
-      label: 'Hold to record',
+      label: context.l10n.micRecord,
+      hint: active ? context.l10n.micTapToStop : context.l10n.micTapToStart,
+      onTap: cubit.toggleRecording,
+      excludeSemantics: true,
       child: Listener(
         onPointerDown: (_) {
           HapticFeedback.selectionClick();
@@ -392,11 +575,11 @@ class _HoldToRecord extends StatelessWidget {
         onPointerUp: (_) => cubit.stopRecording(),
         onPointerCancel: (_) => cubit.stopRecording(),
         child: AnimatedContainer(
-          duration: MemoMotion.fast,
+          duration: motion(context, MemoMotion.fast),
           width: MemoSpace.hitMin,
           height: MemoSpace.hitMin,
           decoration: BoxDecoration(
-            color: active ? c.accentPressed : c.accent,
+            color: active ? c.accentPressed : c.accentText,
             shape: BoxShape.circle,
             border: active ? Border.all(color: c.accentSoft, width: 4) : null,
           ),
@@ -501,7 +684,11 @@ class _TagPicker extends StatelessWidget {
             // Tapping the selected tag clears it: one flat tag, optional.
             onTap: () => onChanged(tag == selected ? null : tag),
           ),
-        TagChip(label: '+ New', dashed: true, onTap: () => _addTag(context)),
+        TagChip(
+          label: context.l10n.editNewTagChip,
+          dashed: true,
+          onTap: () => _addTag(context),
+        ),
       ],
     );
   }
@@ -529,20 +716,20 @@ class _NewTagDialogState extends State<_NewTagDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('New tag'),
+      title: Text(context.l10n.editNewTagTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(hintText: 'Home, Work, Health…'),
+        decoration: InputDecoration(hintText: context.l10n.editTagHint),
         onSubmitted: (_) => _submit(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
-        TextButton(onPressed: _submit, child: const Text('Add')),
+        TextButton(onPressed: _submit, child: Text(context.l10n.commonAdd)),
       ],
     );
   }

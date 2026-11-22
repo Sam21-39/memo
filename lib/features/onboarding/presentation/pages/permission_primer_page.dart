@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/ui/memo_mark.dart';
 import 'welcome_page.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Artboard Onboarding-Permission: the primer before the OS asks.
 class PermissionPrimerPage extends StatelessWidget {
@@ -17,20 +20,18 @@ class PermissionPrimerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
-      art: const EmptyRing(),
-      title: 'Let Memō ring',
-      paragraphs: const [
-        'Alarms are notifications. The next screen is the phone asking you to '
-            'allow them. Nothing else is asked for.',
-        'On Android you will also be asked to allow exact alarms so a 7:00 '
-            'reminder rings at 7:00, not 7:40.',
+      art: EmptyRing(),
+      title: context.l10n.permTitle,
+      paragraphs: [
+        context.l10n.permBody1,
+        if (Platform.isAndroid) context.l10n.permBody2,
       ],
       actions: [
         ElevatedButton(
           onPressed: onContinue,
-          child: const Text('Allow notifications'),
+          child: Text(context.l10n.permAllow),
         ),
-        OutlinedButton(onPressed: onSkip, child: const Text('Not now')),
+        OutlinedButton(onPressed: onSkip, child: Text(context.l10n.permNotNow)),
       ],
     );
   }

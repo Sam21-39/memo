@@ -1,0 +1,532 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:memo/core/app_prefs.dart';
+import 'package:memo/core/app_settings_cubit.dart';
+import 'package:memo/core/di.dart';
+import 'package:memo/core/theme/memo_theme.dart';
+import 'package:memo/core/ui/option_button.dart';
+import 'package:memo/features/reminders/data/alarm/native_alarm.dart';
+import 'package:memo/features/reminders/data/media_store.dart';
+import 'package:memo/features/reminders/data/share_inbox.dart';
+import 'package:memo/features/settings/settings_cubit.dart';
+import 'package:memo/features/settings/settings_page.dart';
+import 'package:memo/features/reminders/data/speech_to_text.dart';
+import 'package:memo/features/reminders/data/voice_clip.dart';
+import 'package:memo/features/reminders/domain/entities/occurrence.dart';
+import 'package:memo/features/reminders/domain/entities/repeat_rule.dart';
+import 'package:memo/features/reminders/domain/repositories/reminder_repository.dart';
+import 'package:memo/features/reminders/domain/usecases/delete_reminder.dart';
+import 'package:memo/features/reminders/domain/usecases/save_reminder.dart';
+import 'package:memo/features/reminders/presentation/alarm/alarm_cubit.dart';
+import 'package:memo/features/reminders/presentation/alarm/alarm_page.dart';
+import 'package:memo/features/reminders/presentation/archive/archive_cubit.dart';
+import 'package:memo/features/reminders/presentation/archive/archive_page.dart';
+import 'package:memo/features/reminders/presentation/detail/detail_cubit.dart';
+import 'package:memo/core/ui/memo_nav_bar.dart';
+import 'package:memo/features/reminders/presentation/detail/detail_page.dart';
+import 'package:memo/features/reminders/presentation/edit/edit_cubit.dart';
+import 'package:memo/features/reminders/presentation/edit/edit_sheet.dart';
+import 'package:memo/features/reminders/presentation/home/capture_cubit.dart';
+import 'package:memo/features/reminders/presentation/home/home_cubit.dart';
+import 'package:memo/features/reminders/presentation/home/reminder_confirmation.dart';
+import 'package:memo/features/reminders/presentation/home/home_page.dart';
+import 'package:memo/features/reminders/presentation/widgets/check_control.dart';
+import 'package:memo/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:memo/l10n/l10n.dart';
+
+import 'fakes.dart';
+
+/// (a) text at 2.0x on a 390x844 phone, (b) 320x690 at normal text.
+const _cases = [(Size(390, 844), 2.0), (Size(320, 690), 1.0)];
+
+class _Voice implements VoiceClip {
+  @override
+  Future<bool> hasPermission({bool request = false}) async => true;
+  @override
+  Future<double> level() async => 0.5;
+  @override
+  Future<void> start(String path) async => File(path).writeAsBytesSync([1]);
+  @override
+  Future<void> stop() async {}
+  @override
+  Future<void> cancel() async {}
+  @override
+  Future<void> play(String path) async {}
+  @override
+  Future<void> stopPlaying() async {}
+}
+
+class _EmptyStt implements SpeechToText {
+  @override
+  Future<bool> available(String tag) async => true;
+  @override
+  Future<String> availability(String tag) async => 'installed';
+  @override
+  Future<String> transcribeFile(String path, String tag) async => '';
+}
+
+Future<void> _show(
+  WidgetTester tester,
+  Size size,
+  double scale,
+  Widget home, {
+  Locale? locale,
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: MemoTheme.light.copyWith(platform: TargetPlatform.android),
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (c) => MediaQuery(
+          data: MediaQuery.of(c).copyWith(textScaler: TextScaler.linear(scale)),
+          child: home,
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Widget _home([ShareInbox? shares]) => MultiBlocProvider(
+  providers: [
+    BlocProvider(
+      create: (_) => HomeCubit(
+        sl<ReminderRepository>(),
+        sl<SaveReminder>(),
+        sl<DeleteReminder>(),
+      )..load(),
+    ),
+    BlocProvider(
+      create: (_) => CaptureCubit(
+        sl<SaveReminder>(),
+        media: MediaStore(Directory.systemTemp.createTempSync('a11y')),
+        voice: _Voice(),
+        stt: _EmptyStt(),
+        knownTags: () => const ['Health'],
+        shares: shares,
+        clock: () => DateTime(2026, 11, 4, 12),
+      ),
+    ),
+  ],
+  child: const HomePage(),
+);
+
+/// No overflow or layout error; says where when there is one.
+void _fits(WidgetTester tester) {
+  final e = tester.takeException();
+  if (e != null) fail(e is FlutterError ? e.toStringDeep() : '$e');
+}
+
+void main() {
+  final now = DateTime.now();
+  DateTime inDays(int d, int h, [int m = 0]) =>
+      DateTime(now.year, now.month, now.day + d, h, m);
+  final long =
+      'Collect the signed forms from the ward office and post them ' * 2;
+
+  Future<void> seed() => setUpDi([
+    reminder('1', 'Pills', inDays(1, 8), tag: 'Health'),
+    reminder('2', long.substring(0, 80), inDays(1, 9)),
+    reminder('3', 'Bins', now.subtract(const Duration(hours: 3))),
+    reminder('4', 'Dentist', inDays(3, 9), note: 'Bring the X-ray'),
+    reminder('5', 'Call mum', inDays(4, 18)),
+  ]);
+
+  // Detail with history, incl. the harshest 320x690 @ 2.0x (hi for 320).
+  void detailCase(Size size, double scale, String tag) {
+    testWidgets('Detail: $tag', (tester) async {
+      final (repo, _) = await setUpDi([
+        reminder(
+          '1',
+          long.substring(0, 80),
+          inDays(2, 9),
+          repeat: RepeatRule.daily,
+        ),
+      ]);
+      repo.log.addAll([
+        for (var i = 1; i <= 3; i++)
+          Occurrence(
+            reminderId: '1',
+            dueAt: inDays(-i, 9),
+            event: i == 2 ? OccurrenceEvent.open : OccurrenceEvent.done,
+            at: inDays(-i, 9, 20),
+          ),
+        Occurrence(
+          reminderId: '1',
+          dueAt: inDays(-1, 9),
+          event: OccurrenceEvent.snoozed,
+          at: inDays(-1, 9, 5),
+          until: inDays(-1, 9, 15),
+        ),
+      ]);
+      await _show(
+        tester,
+        size,
+        scale,
+        BlocProvider(
+          create: (_) => DetailCubit(
+            '1',
+            sl<ReminderRepository>(),
+            sl<SaveReminder>(),
+            sl<DeleteReminder>(),
+          )..load(),
+          child: const DetailPage(),
+        ),
+        locale: size.width == 320 ? const Locale('hi') : null,
+      );
+      // Lazy list: bring History on-screen so it is laid out and checked.
+      final history = find.textContaining(
+        size.width == 320 ? 'पिछला रिकॉर्ड' : 'HISTORY',
+        skipOffstage: false,
+      );
+      await tester.scrollUntilVisible(
+        history,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(history, findsOneWidget);
+      _fits(tester);
+    });
+  }
+
+  detailCase(const Size(320, 690), 2.0, '320x690 @ 2.0x');
+
+  // A long Bengali share with no clear time: quote, unsure block, footnote.
+  void sharedCase(Size size, double scale, String tag) {
+    testWidgets('Shared confirmation (bn): $tag', (tester) async {
+      await seed();
+      await _show(
+        tester,
+        size,
+        scale,
+        _home(FakeShares(['আমাকে মনে করিয়ে দাও ' * 12])),
+        locale: const Locale('bn'),
+      );
+      expect(find.byType(ReminderConfirmation), findsOneWidget);
+      _fits(tester);
+    });
+  }
+
+  sharedCase(const Size(320, 690), 2.0, '320x690 @ 2.0x');
+
+  for (final (size, scale) in _cases) {
+    final tag = '${size.width.toInt()}x${size.height.toInt()} @ ${scale}x';
+
+    testWidgets('Home, long title, filter bar: $tag', (tester) async {
+      await seed();
+      await _show(tester, size, scale, _home());
+      _fits(tester);
+    });
+
+    testWidgets('Home row menu: $tag', (tester) async {
+      await setUpDi([reminder('1', 'Pills', inDays(1, 8))]);
+      await _show(tester, size, scale, _home());
+      await tester.longPress(find.text('Pills').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Mark done'), findsOneWidget);
+      _fits(tester);
+    });
+
+    testWidgets('Home swipe actions: $tag', (tester) async {
+      await setUpDi([reminder('1', 'Pills', inDays(1, 8))]);
+      await _show(tester, size, scale, _home());
+      await tester.drag(find.text('Pills').last, const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      _fits(tester);
+      for (final label in ['Snooze\n10 min', 'Delete']) {
+        final action = find.ancestor(
+          of: find.text(label),
+          matching: find.byType(InkWell),
+        );
+        final s = tester.getSize(action.first);
+        expect(s.width, greaterThanOrEqualTo(44));
+        expect(s.height, greaterThanOrEqualTo(44));
+      }
+    });
+
+    testWidgets('capture bar typing and ambiguous confirmation (bn): $tag', (
+      tester,
+    ) async {
+      await seed();
+      await _show(tester, size, scale, _home(), locale: const Locale('bn'));
+      await tester.enterText(find.byType(TextField), 'Call mum tomorrow at 8');
+      await tester.pumpAndSettle();
+      _fits(tester);
+      final clearBox = tester.getSize(
+        find.ancestor(
+          of: find.byIcon(Icons.close_rounded),
+          matching: find.byType(MemoIconButton),
+        ),
+      );
+      expect(clearBox.width, greaterThanOrEqualTo(44));
+      expect(clearBox.height, greaterThanOrEqualTo(44));
+      await tester.tap(find.byType(ElevatedButton).last);
+      await tester.pumpAndSettle();
+      _fits(tester);
+      for (final f in find.byType(OptionButton).evaluate()) {
+        final s = tester.getSize(find.byWidget(f.widget));
+        expect(s.height, greaterThanOrEqualTo(44));
+        expect(s.width, greaterThanOrEqualTo(44));
+      }
+      final discard = tester.getSize(
+        find.widgetWithText(TextButton, 'বাদ দিন'),
+      );
+      expect(discard.height, greaterThanOrEqualTo(44));
+      expect(discard.width, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('Home quick start: $tag', (tester) async {
+      await seed();
+      await _show(tester, size, scale, _home());
+      _fits(tester);
+      expect(find.text('Weekly routine'), findsOneWidget);
+    });
+
+    detailCase(size, scale, tag);
+    sharedCase(size, scale, tag);
+
+    testWidgets('Alarm: $tag', (tester) async {
+      final repo = InMemoryRepository([
+        reminder(
+          'p',
+          long.substring(0, 80),
+          now.subtract(const Duration(hours: 2)),
+        ),
+      ]);
+      await _show(
+        tester,
+        size,
+        scale,
+        BlocProvider(
+          create: (_) => AlarmCubit(
+            'p',
+            repo,
+            SaveReminder(repo, FakeScheduler()),
+            ringingNatively: (_) async => true,
+            stopRinging: () async {},
+            play: (_) async {},
+            stop: () async {},
+            speak: (_) async => true,
+          )..load(),
+          child: AlarmPage(voicePath: (id) => id, onClose: () {}),
+        ),
+      );
+      _fits(tester);
+    });
+
+    testWidgets('Archive: $tag', (tester) async {
+      await setUpDi([
+        reminder(
+          '1',
+          long.substring(0, 80),
+          inDays(-1, 9),
+          doneAt: inDays(0, 9),
+        ),
+        reminder('2', 'Bins', inDays(-2, 9), doneAt: inDays(-1, 9)),
+      ]);
+      await _show(
+        tester,
+        size,
+        scale,
+        BlocProvider(
+          create: (_) =>
+              ArchiveCubit(sl<ReminderRepository>(), sl<SaveReminder>())
+                ..load(),
+          child: const ArchivePage(),
+        ),
+      );
+      _fits(tester);
+      for (final chip in tester.widgetList<TagChip>(find.byType(TagChip))) {
+        final s = tester.getSize(find.byWidget(chip));
+        expect(s.height, greaterThanOrEqualTo(44));
+        expect(s.width, greaterThanOrEqualTo(44));
+      }
+    });
+
+    testWidgets('Settings: $tag', (tester) async {
+      await setUpDi();
+      await _show(
+        tester,
+        size,
+        scale,
+        MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => SettingsCubit(
+                sl<AppPrefs>(),
+                NativeAlarm(),
+                sl<SaveReminder>(),
+                sl<DeleteReminder>(),
+              ),
+            ),
+            BlocProvider(create: (_) => AppSettingsCubit(sl<AppPrefs>())),
+          ],
+          child: const SettingsPage(),
+        ),
+      );
+      _fits(tester);
+    });
+
+    testWidgets('Archive empty: $tag', (tester) async {
+      await setUpDi();
+      await _show(
+        tester,
+        size,
+        scale,
+        BlocProvider(
+          create: (_) =>
+              ArchiveCubit(sl<ReminderRepository>(), sl<SaveReminder>())
+                ..load(),
+          child: const ArchivePage(),
+        ),
+      );
+      expect(find.text('Nothing done yet'), findsOneWidget);
+      _fits(tester);
+    });
+
+    for (final advanced in [false, true]) {
+      testWidgets('Editor ${advanced ? 'more options' : 'basic'}: $tag', (
+        tester,
+      ) async {
+        await setUpDi();
+        final cubit = EditCubit(sl<SaveReminder>())
+          ..setTitle(long.substring(0, 80))
+          ..setRepeat(const RepeatRule(RepeatType.weekly, weekdays: {1, 3}))
+          ..showAdvanced(advanced);
+        await _show(
+          tester,
+          size,
+          scale,
+          Scaffold(
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: BlocProvider.value(
+                  value: cubit,
+                  child: const EditForm(knownTags: ['Health', 'Home']),
+                ),
+              ),
+            ),
+          ),
+        );
+        _fits(tester);
+        for (final b in find.byType(OptionButton).evaluate()) {
+          expect(
+            tester.getSize(find.byWidget(b.widget)).height,
+            greaterThanOrEqualTo(44),
+          );
+        }
+      });
+    }
+
+    testWidgets('check control hit area: $tag', (tester) async {
+      await seed();
+      await _show(tester, size, scale, _home());
+      final s = tester.getSize(find.byType(CheckControl).first);
+      expect(s.width, greaterThanOrEqualTo(44));
+      expect(s.height, greaterThanOrEqualTo(44));
+      final mic = find.ancestor(
+        of: find.byIcon(Icons.mic_none_rounded),
+        matching: find.byType(AnimatedContainer),
+      );
+      expect(tester.getSize(mic.first).width, greaterThanOrEqualTo(44));
+      expect(tester.getSize(mic.first).height, greaterThanOrEqualTo(44));
+      for (final chip in find.byType(TagChip).evaluate()) {
+        expect(
+          tester.getSize(find.byWidget(chip.widget)).height,
+          greaterThanOrEqualTo(44),
+        );
+      }
+    });
+  }
+
+  testWidgets('capture bar typing and confirmation (bn): 320x690 @ 2.0x', (
+    tester,
+  ) async {
+    await seed();
+    await _show(
+      tester,
+      const Size(320, 690),
+      2.0,
+      _home(),
+      locale: const Locale('bn'),
+    );
+    await tester.enterText(find.byType(TextField), 'Call mum tomorrow at 8');
+    await tester.pumpAndSettle();
+    _fits(tester);
+    await tester.tap(find.byType(ElevatedButton).last);
+    await tester.pumpAndSettle();
+    _fits(tester);
+  });
+
+  for (final (lang, discard) in [
+    ('en', 'Discard'),
+    ('hi', 'हटा दें'),
+    ('bn', 'বাদ দিন'),
+  ]) {
+    testWidgets('Voice failed panel: 320x690 @ 2.0x ($lang)', (tester) async {
+      await seed();
+      await _show(
+        tester,
+        const Size(320, 690),
+        2.0,
+        _home(),
+        locale: Locale(lang),
+      );
+      final cubit = BlocProvider.of<CaptureCubit>(
+        tester.element(find.byType(HomePage)),
+      );
+      await tester.runAsync(() async {
+        await cubit.startRecording();
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
+        await cubit.stopRecording();
+        for (var i = 0; i < 50; i++) {
+          if (cubit.state.phase == CapturePhase.voiceFailed) break;
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+      });
+      await tester.pumpAndSettle();
+      expect(cubit.state.phase, CapturePhase.voiceFailed);
+      _fits(tester);
+      final size = tester.getSize(find.widgetWithText(TextButton, discard));
+      expect(size.height, greaterThanOrEqualTo(44));
+    });
+  }
+
+  for (final lang in ['en', 'hi', 'bn']) {
+    testWidgets('Home quick start, 320x690 @2.0x chips >= 44 ($lang)', (
+      tester,
+    ) async {
+      await seed();
+      await _show(
+        tester,
+        const Size(320, 690),
+        2.0,
+        _home(),
+        locale: Locale(lang),
+      );
+      _fits(tester);
+      final texts = find.descendant(
+        of: find.byType(SingleChildScrollView).last,
+        matching: find.byType(Text),
+      );
+      expect(texts, findsNWidgets(5));
+      for (final e in texts.evaluate()) {
+        final chip = find.ancestor(
+          of: find.byWidget(e.widget),
+          matching: find.byType(GestureDetector),
+        );
+        expect(tester.getSize(chip.first).height, greaterThanOrEqualTo(44));
+      }
+    });
+  }
+}
